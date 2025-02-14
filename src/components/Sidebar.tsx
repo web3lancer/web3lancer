@@ -1,6 +1,6 @@
 import { Drawer, List, ListItem, ListItemText, ListItemIcon, Box } from "@mui/material";
 import { CalendarToday, Dashboard, EventNote, Work, Store } from "@mui/icons-material";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { motion } from "framer-motion";
 import React from "react";
 
