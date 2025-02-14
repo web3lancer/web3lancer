@@ -51,31 +51,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileView() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Wallet Addresses',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ..._walletAddresses.map((address) => Text(address)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              _showAddWalletDialog();
-            },
-            child: const Text('Add Wallet Address'),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Settings',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          // TODO: Add settings options
-        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // New profile avatar with pencil icon overlay
+            Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage(
+                        'assets/profile_placeholder.png'), // Placeholder image
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 4,
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: Trigger profile edit action
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Wallet Addresses',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ..._walletAddresses.map((address) => Text(address)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                _showAddWalletDialog();
+              },
+              child: const Text('Add Wallet Address'),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Settings',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            // TODO: Add settings options
+          ],
+        ),
       ),
     );
   }
