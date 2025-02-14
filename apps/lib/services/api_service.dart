@@ -11,9 +11,7 @@ class ApiService {
         account = Account(Client()),
         databases = Databases(Client()),
         storage = Storage(Client()) {
-    client
-        .setEndpoint('https://[HOSTNAME_OR_IP]/v1') // Your Appwrite Endpoint
-        .setProject('[PROJECT_ID]'); // Your project ID
+    client.setProject('67aed8360001b6dd8cb3'); // Your project ID
   }
 
   Future<void> signUp(String email, String password) async {
@@ -45,7 +43,7 @@ class ApiService {
       String collectionId, Map<String, dynamic> data) async {
     try {
       final response = await databases.createDocument(
-        databaseId: '[DATABASE_ID]',
+        databaseId: '67aed8360001b6dd8cb3',
         collectionId: collectionId,
         documentId: 'unique()',
         data: data,
@@ -59,7 +57,7 @@ class ApiService {
   Future<void> getDocument(String collectionId, String documentId) async {
     try {
       final response = await databases.getDocument(
-        databaseId: '[DATABASE_ID]',
+        databaseId: '67aed8360001b6dd8cb3',
         collectionId: collectionId,
         documentId: documentId,
       );
@@ -73,7 +71,7 @@ class ApiService {
       String collectionId, String documentId, Map<String, dynamic> data) async {
     try {
       final response = await databases.updateDocument(
-        databaseId: '[DATABASE_ID]',
+        databaseId: '67aed8360001b6dd8cb3',
         collectionId: collectionId,
         documentId: documentId,
         data: data,
@@ -87,7 +85,7 @@ class ApiService {
   Future<void> deleteDocument(String collectionId, String documentId) async {
     try {
       final response = await databases.deleteDocument(
-        databaseId: '[DATABASE_ID]',
+        databaseId: '67aed8360001b6dd8cb3',
         collectionId: collectionId,
         documentId: documentId,
       );
@@ -100,7 +98,7 @@ class ApiService {
   Future<void> uploadFile(String path) async {
     try {
       final response = await storage.createFile(
-        bucketId: '[BUCKET_ID]',
+        bucketId: '67aed8360001b6dd8cb3',
         fileId: 'unique()',
         file: InputFile(path: path),
       );
@@ -113,7 +111,7 @@ class ApiService {
   Future<void> getFile(String fileId) async {
     try {
       final response = await storage.getFile(
-        bucketId: '[BUCKET_ID]',
+        bucketId: '67aed8360001b6dd8cb3',
         fileId: fileId,
       );
       print('File retrieved successfully: $response');
