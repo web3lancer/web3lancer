@@ -2,9 +2,9 @@
 import React from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { Box, useMediaQuery } from "@mui/material";
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
-import { theme } from "../utils/theme";
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
+import { theme } from "@/utils/theme";
 import { motion } from "framer-motion";
 
 export default function RootLayout({
