@@ -1,0 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}  );    </Drawer>      </List>        </ListItem>          <ListItemText primary="Calendar" />        <ListItem button>        </ListItem>          <ListItemText primary="Planning" />        <ListItem button>        </ListItem>          <ListItemText primary="Projects" />        <ListItem button>        </ListItem>          <ListItemText primary="Dashboard" />        <ListItem button>      <List>    <Drawer variant="permanent">  return (export default function Sidebar() {import { Drawer, List, ListItem, ListItemText } from "@mui/material";import React from "react";
