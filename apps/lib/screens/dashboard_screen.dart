@@ -178,20 +178,26 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 8),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            stat['title'] as String,
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 12,
+                                          Flexible(
+                                            child: Text(
+                                              stat['title'] as String,
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                          const SizedBox(width: 4),
                                           Row(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
                                               const Icon(
                                                 Icons.arrow_upward,
@@ -255,6 +261,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                                       style: const TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                     Text(
                                                       activity['description']
@@ -262,10 +270,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                                                       style: TextStyle(
                                                           color:
                                                               Colors.grey[600]),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ],
                                                 ),
                                               ),
+                                              const SizedBox(width: 8),
                                               Text(
                                                 activity['time'] as String,
                                                 style: TextStyle(
