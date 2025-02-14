@@ -1,64 +1,74 @@
 "use client";
 import React from "react";
+import Image from 'next/image';
 import { AppBar, Toolbar, Typography, Button, Grid, Card, CardContent } from "@mui/material";
+import Link from 'next/link';
 
 export default function HomePage() {
   return (
     <>
       <AppBar position="static" style={{ backgroundColor: '#1E40AF', fontFamily: 'Roboto' }}>
         <Toolbar>
-          <Typography variant="h6">Web3Lancer</Typography>
-          <Button color="inherit">Sign In</Button>
+          <Typography variant="h6" style={{ flexGrow: 1 }}>
+            Web3Lancer
+          </Typography>
+          <Link href="/app" passHref>
+            <Button color="inherit">Sign In</Button>
+          </Link>
         </Toolbar>
       </AppBar>
       <main style={{ padding: '20px', fontFamily: 'Roboto' }}>
-        <Typography variant="h5" gutterBottom>Welcome to Web3Lancer!</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={4}>
             <Card>
               <CardContent>
-                <Typography variant="h6">Continue courses</Typography>
-                {/* Add course cards here */}
+                <Typography variant="h5" gutterBottom>
+                  Work Without Borders
+                </Typography>
+                <Typography variant="body1">
+                  Connect, collaborate, and conquer from anywhere with digital working.
+                </Typography>
+                <Link href="/app" passHref>
+                  <Button variant="contained" color="primary" style={{ marginTop: '10px' }}>
+                    Sign Up
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6} lg={8}>
             <Card>
               <CardContent>
-                <Typography variant="h6">Notifications</Typography>
-                {/* Add notification cards here */}
+                <Image src="/logo/web3lancer.jpg" alt="Web3Lancer" width={500} height={300} style={{ objectFit: 'cover' }} />
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+        </Grid>
+        <Typography variant="h5" gutterBottom style={{ marginTop: '20px' }}>
+          See what you get if you trust us
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
-                <Typography variant="h6">Calendar</Typography>
-                {/* Add calendar component here */}
+                <Typography variant="h6">Payment Protection</Typography>
+                <Typography variant="body2">Lower cost and reliable</Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
-                <Typography variant="h6">Today tasks</Typography>
-                {/* Add task cards here */}
+                <Typography variant="h6">Large pool of Customers</Typography>
+                <Typography variant="body2">Advanced Analytics</Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
-                <Typography variant="h6">Team chat</Typography>
-                {/* Add chat component here */}
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Hours spent</Typography>
-                {/* Add hours spent component here */}
+                <Typography variant="h6">Advanced Analytics</Typography>
+                <Typography variant="body2">Manage your work, Grow your network, and Never miss an opportunity.</Typography>
               </CardContent>
             </Card>
           </Grid>
