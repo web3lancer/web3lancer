@@ -1,10 +1,26 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { AppBar, Toolbar, Typography, Button, Grid, Card, CardContent } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Grid, Card, CardContent } from '@mui/material';
 import Link from 'next/link';
+import { databases } from '../utils/api';
 
 export default function HomePage() {
+  const [jobs, setJobs] = useState([]);
+
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        const response = await databases.listDocuments('67aed8360001b6dd8cb3', 'jobs');
+        setJobs(response.documents);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      }
+    }
+
+    fetchJobs();
+  }, []);
+
   return (
     <>
       <AppBar position="static" style={{ backgroundColor: '#1E40AF', fontFamily: 'Roboto' }}>
@@ -72,6 +88,21 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </Grid>
+        </Grid>
+        <Typography variant="h5" gutterBottom style={{ marginTop: '20px' }}>
+          Latest Jobs
+        </Typography>
+        <Grid container spacing={3}>
+          {jobs.map((job) => (
+            <Grid item xs={12} md={6} lg={4} key={job.$ID}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">{job.title}</Typography>
+                  <Typography variant="body2">{job.description}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
       </main>
     </>
