@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/theme.dart';
+import '../screens/profile_screen.dart'; // Import the ProfileScreen
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({Key? key}) : super(key: key);
@@ -85,23 +86,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 tooltip: 'Notifications',
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    side: BorderSide(
-                      color: Colors.white.withOpacity(0.5),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text('Sign In'),
-                ),
-              ),
-              Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: Hero(
                   tag: 'profile',
@@ -121,8 +105,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ],
                     ),
-                    child: const CircleAvatar(
-                      child: Icon(Icons.person_outline),
+                    child: IconButton(
+                      icon: const Icon(Icons.account_circle),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const ProfileScreen()), // Navigate to ProfileScreen
+                        );
+                      },
                     ),
                   ),
                 ),
