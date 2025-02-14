@@ -1,3 +1,5 @@
+"use client";
+
 import { Drawer, List, ListItem, ListItemText, ListItemIcon, Box } from "@mui/material";
 import { CalendarToday, Dashboard, EventNote, Work, Store } from "@mui/icons-material";
 import { useRouter } from 'next/navigation';
