@@ -7,16 +7,43 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration:
-            AppTheme.glassEffect, // Apply glassy effect to the whole screen
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Settings',
-              style: Theme.of(context).textTheme.displayMedium,
+            const SizedBox(height: 16),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.store),
+                    title: const Text('My stores'),
+                    trailing: Chip(
+                      label: Text('2'),
+                      backgroundColor: Theme.of(context).primaryColorLight,
+                    ),
+                    onTap: () {
+                      // TODO: Navigate to My stores
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.support),
+                    title: const Text('Support'),
+                    onTap: () {
+                      // TODO: Navigate to Support
+                    },
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             Card(
@@ -24,56 +51,44 @@ class SettingsScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: ListView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+              child: Column(
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.account_circle),
-                    title: const Text('Account'),
-                    subtitle: const Text('Manage your account details'),
-                    onTap: () {
-                      // TODO: Navigate to account settings
+                  SwitchListTile(
+                    secondary: const Icon(Icons.notifications),
+                    title: const Text('Push notifications'),
+                    value: true,
+                    onChanged: (bool value) {
+                      // TODO: Handle push notifications toggle
                     },
                   ),
                   const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.lock),
-                    title: const Text('Privacy'),
-                    subtitle: const Text('Manage your privacy settings'),
-                    onTap: () {
-                      // TODO: Navigate to privacy settings
+                  SwitchListTile(
+                    secondary: const Icon(Icons.face),
+                    title: const Text('Face ID'),
+                    value: true,
+                    onChanged: (bool value) {
+                      // TODO: Handle Face ID toggle
                     },
                   ),
                   const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.notifications),
-                    title: const Text('Notifications'),
-                    subtitle:
-                        const Text('Manage your notification preferences'),
-                    onTap: () {
-                      // TODO: Navigate to notification settings
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.help),
-                    title: const Text('Help & Support'),
-                    subtitle: const Text('Get help and support'),
-                    onTap: () {
-                      // TODO: Navigate to help and support
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.info),
-                    title: const Text('About'),
-                    subtitle: const Text('Learn more about the app'),
-                    onTap: () {
-                      // TODO: Navigate to about page
+                  SwitchListTile(
+                    secondary: const Icon(Icons.lock),
+                    title: const Text('PIN Code'),
+                    value: true,
+                    onChanged: (bool value) {
+                      // TODO: Handle PIN Code toggle
                     },
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  // TODO: Handle logout
+                },
+                child: const Text('Logout'),
               ),
             ),
           ],
