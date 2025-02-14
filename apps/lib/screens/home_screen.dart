@@ -4,7 +4,7 @@ import '../widgets/sidebar.dart';
 import '../utils/theme.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class HomeScreen extends StatelessWidget {
       body: const Center(
         child: Text('Hello Web3Lancer!'),
       ),
-      backgroundColor: AppTheme.lightTheme.backgroundColor,
+      backgroundColor: AppTheme.lightTheme.colorScheme.surface,
     );
   }
 }

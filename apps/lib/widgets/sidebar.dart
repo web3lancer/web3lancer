@@ -10,11 +10,11 @@ class Sidebar extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
               color: AppTheme.lightTheme.primaryColor,
             ),
-            child: Text('Web3Lancer'),
+            child: const Text('Web3Lancer'),
           ),
           ListTile(
             title: const Text('Dashboard'),
