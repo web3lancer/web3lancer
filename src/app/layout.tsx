@@ -12,7 +12,7 @@ export default function RootLayout({
       <head>
         {/* ...existing code... */}
       </head>
-      <body style={{ display: 'flex' }}>
+      <body style={{ display: 'flex', backgroundColor: '#f4f4f4' }}>
         <Sidebar />
         <div style={{ marginLeft: 240, padding: '20px', width: '100%' }}>
           <Header />

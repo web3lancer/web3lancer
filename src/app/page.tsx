@@ -1,17 +1,17 @@
 "use client";
 import React from "react";
-import { AppBar, Toolbar, Typography, Button, Grid, Card, CardContent, CardActions } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Grid, Card, CardContent } from "@mui/material";
 
 export default function HomePage() {
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="static" style={{ backgroundColor: '#1E40AF', fontFamily: 'Roboto' }}>
         <Toolbar>
           <Typography variant="h6">Web3Lancer</Typography>
           <Button color="inherit">Sign In</Button>
         </Toolbar>
       </AppBar>
-      <main style={{ padding: '20px' }}>
+      <main style={{ padding: '20px', fontFamily: 'Roboto' }}>
         <Typography variant="h5" gutterBottom>Welcome to Web3Lancer!</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={4}>

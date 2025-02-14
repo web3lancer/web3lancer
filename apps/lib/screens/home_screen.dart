@@ -1,19 +1,20 @@
+import 'package:flutter/material.dart';
+import '../widgets/header.dart';
+import '../widgets/sidebar.dart';
+import '../utils/theme.dart';
 
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}  }    );      ),        child: Text('Hello Web3Lancer!'),      body: const Center(      drawer: Sidebar(),      appBar: Header(),    return Scaffold(  Widget build(BuildContext context) {  @override  const HomeScreen({Key? key}) : super(key: key);class HomeScreen extends StatelessWidget {import '../widgets/sidebar.dart';import '../widgets/header.dart';import 'package:flutter/material.dart';
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const Header(),
+      drawer: const Sidebar(),
+      body: const Center(
+        child: Text('Hello Web3Lancer!'),
+      ),
+      backgroundColor: AppTheme.lightTheme.backgroundColor,
+    );
+  }
+}

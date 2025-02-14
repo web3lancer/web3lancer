@@ -1,24 +1,28 @@
+import { Drawer, List, ListItem, ListItemText, ListItemIcon } from "@mui/material";
+import { CalendarToday, Dashboard, EventNote, Work } from "@mui/icons-material";
+import React from "react";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}  );    </Drawer>      </List>        </ListItem>          <ListItemText primary="Calendar" />        <ListItem button>        </ListItem>          <ListItemText primary="Planning" />        <ListItem button>        </ListItem>          <ListItemText primary="Projects" />        <ListItem button>        </ListItem>          <ListItemText primary="Dashboard" />        <ListItem button>      <List>    <Drawer variant="permanent">  return (export default function Sidebar() {import { Drawer, List, ListItem, ListItemText } from "@mui/material";import React from "react";
+export default function Sidebar() {
+  return (
+    <Drawer variant="permanent" style={{ backgroundColor: '#1E40AF', fontFamily: 'Roboto' }}>
+      <List>
+        <ListItem button>
+          <ListItemIcon><Dashboard /></ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItem>
+        <ListItem button>
+          <ListItemIcon><Work /></ListItemIcon>
+          <ListItemText primary="Projects" />
+        </ListItem>
+        <ListItem button>
+          <ListItemIcon><EventNote /></ListItemIcon>
+          <ListItemText primary="Planning" />
+        </ListItem>
+        <ListItem button>
+          <ListItemIcon><CalendarToday /></ListItemIcon>
+          <ListItemText primary="Calendar" />
+        </ListItem>
+      </List>
+    </Drawer>
+  );
+}

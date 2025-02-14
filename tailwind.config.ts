@@ -9,10 +9,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primary: '#1E40AF',
+        secondary: '#1E3A8A',
+        accent: '#3B82F6',
+        background: '#F4F4F4',
+        text: '#333',
+      },
+      fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
       },
     },
   },
+  variants: {},
   plugins: [],
 } satisfies Config;
