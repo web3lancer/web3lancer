@@ -5,6 +5,7 @@ import '../utils/theme.dart';
 import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 import 'package:apps/screens/projects_screen.dart';
+import 'settings_screen.dart'; // new import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
     ProjectsScreen(),
-    // Add other screens here
+    SettingsScreen(), // new Settings tab
   ];
 
   void _onItemTapped(int index) {
@@ -48,7 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     NavigationRailDestination(
                         icon: Icon(Icons.work_outline),
                         label: Text('Projects')),
-                    // Add other destinations here
+                    NavigationRailDestination(
+                        icon: Icon(Icons.settings_outlined),
+                        label: Text('Settings')),
                   ],
                 ),
                 Expanded(child: _screens[_selectedIndex]),
@@ -68,7 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icon(Icons.work_outline),
                   label: 'Projects',
                 ),
-                // Add other items here
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings_outlined),
+                  label: 'Settings',
+                ),
               ],
               currentIndex: _selectedIndex,
               selectedItemColor: Theme.of(context).primaryColor,
