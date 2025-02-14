@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'dart:ui';
 import '../widgets/header.dart';
 import '../utils/theme.dart';
 import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 import 'package:apps/screens/projects_screen.dart';
-import 'settings_screen.dart'; // new import
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,11 +18,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
   int _selectedIndex = 0;
+  final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
 
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
     ProjectsScreen(),
-    SettingsScreen(), // new Settings tab
+    SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -61,24 +63,25 @@ class _HomeScreenState extends State<HomeScreen> {
         : Scaffold(
             appBar: const Header(),
             body: _screens[_selectedIndex],
-            bottomNavigationBar: BottomNavigationBar(
-              items: const <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard_outlined),
-                  label: 'Dashboard',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.work_outline),
-                  label: 'Projects',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.settings_outlined),
-                  label: 'Settings',
-                ),
+            bottomNavigationBar: CurvedNavigationBar(
+              key: _bottomNavigationKey,
+              index: 0,
+              items: const <Widget>[
+                Icon(Icons.dashboard_outlined, size: 30),
+                Icon(Icons.work_outline, size: 30),
+                Icon(Icons.settings_outlined, size: 30),
               ],
-              currentIndex: _selectedIndex,
-              selectedItemColor: Theme.of(context).primaryColor,
-              onTap: _onItemTapped,
+              color: Colors.white,
+              buttonBackgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).primaryColor,
+              animationCurve: Curves.easeInOut,
+              animationDuration: const Duration(milliseconds: 600),
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              letIndexChange: (index) => true,
             ),
           );
   }
