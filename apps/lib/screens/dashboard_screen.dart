@@ -133,10 +133,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                           },
                           child: Container(
                             decoration: AppTheme.glassEffect,
-                            // Removed explicit constraints to allow proper grid sizing
-                            /* constraints: BoxConstraints(
-                              maxWidth: isSmallScreen ? 150 : double.infinity,
-                            ), */
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
