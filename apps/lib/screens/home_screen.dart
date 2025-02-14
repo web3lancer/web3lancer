@@ -7,6 +7,8 @@ import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 import 'package:apps/screens/projects_screen.dart';
 import 'settings_screen.dart';
+import 'profile_screen.dart'; // Import ProfileScreen
+import 'planning_screen.dart'; // Import PlanningScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
     DashboardScreen(),
     ProjectsScreen(),
     SettingsScreen(),
+    ProfileScreen(), // Add ProfileScreen
+    //PlanningScreen(), // Add PlanningScreen - if you create one
   ];
 
   void _onItemTapped(int index) {
@@ -70,6 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Icon(Icons.dashboard_outlined, size: 30),
                 Icon(Icons.work_outline, size: 30),
                 Icon(Icons.settings_outlined, size: 30),
+                Icon(Icons.person_outline, size: 30), // Add Profile icon
+                //Icon(Icons.calendar_today_outlined, size: 30), // Add Planning icon - if you create one
               ],
               color: Colors.white,
               buttonBackgroundColor: Colors.white,
