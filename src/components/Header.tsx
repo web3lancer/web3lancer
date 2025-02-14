@@ -1,3 +1,5 @@
+"use client";
+
 import { AppBar, Toolbar, Typography, Button, IconButton, Avatar, Box } from "@mui/material";
 import { AccountCircle, Notifications } from "@mui/icons-material";
 import React, { useState } from "react";
