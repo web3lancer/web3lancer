@@ -65,7 +65,7 @@ async function deleteDocument(collectionId: string, documentId: string) {
 
 async function uploadFile(file: File) {
   try {
-    const response = await storage.createFile('[BUCKET_ID]', 'unique()', file);
+    const response = await storage.createFile('67aed8360001b6dd8cb3', 'unique()', file);
     console.log('File uploaded successfully:', response);
   } catch (error) {
     console.error('Error uploading file:', error);
@@ -74,7 +74,7 @@ async function uploadFile(file: File) {
 
 async function getFile(fileId: string) {
   try {
-    const response = await storage.getFile('[BUCKET_ID]', fileId);
+    const response = await storage.getFile('67aed8360001b6dd8cb3', fileId);
     console.log('File retrieved successfully:', response);
   } catch (error) {
     console.error('Error retrieving file:', error);
