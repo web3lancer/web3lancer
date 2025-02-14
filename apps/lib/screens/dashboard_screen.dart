@@ -133,13 +133,16 @@ class _DashboardScreenState extends State<DashboardScreen>
                           },
                           child: Container(
                             decoration: AppTheme.glassEffect,
+                            constraints: BoxConstraints(
+                              maxWidth: isSmallScreen ? 150 : double.infinity,
+                            ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: () {},
                                 borderRadius: BorderRadius.circular(16),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(8),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
