@@ -2,7 +2,6 @@ import { Client, Account, Databases, Storage } from 'appwrite';
 
 const client = new Client();
 client
-  .setEndpoint('https://[HOSTNAME_OR_IP]/v1') // Your Appwrite Endpoint
   .setProject('67aed8360001b6dd8cb3'); // Your project ID
 
 const account = new Account(client);
