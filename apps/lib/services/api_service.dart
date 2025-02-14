@@ -30,8 +30,8 @@ class ApiService {
   Future<void> signIn(String email, String password) async {
     try {
       final response = await account.createSession(
-        email: email,
-        password: password,
+        userId: email,
+        secret: password,
       );
       print('User signed in successfully: $response');
     } catch (e) {
