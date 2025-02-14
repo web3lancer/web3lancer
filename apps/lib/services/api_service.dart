@@ -1,17 +1,21 @@
 import 'package:appwrite/appwrite.dart';
 
 class ApiService {
-  Client client;
-  Account account;
-  Databases databases;
-  Storage storage;
+  final Client client = Client();
+  late final Databases databases;
+  late final Account account;
+  late final Storage storage;
 
-  ApiService()
-      : client = Client(),
-        account = Account(Client()),
-        databases = Databases(Client()),
-        storage = Storage(Client()) {
-    client.setProject('67aed8360001b6dd8cb3'); // Your project ID
+  ApiService() {
+    client
+        .setEndpoint(
+            'https://cloud.appwrite.io/v1') // Replace with your endpoint
+        .setProject('67aed8360001b6dd8cb3') // Replace with your project ID
+        .setSelfSigned(status: true); // Remove in production
+
+    databases = Databases(client);
+    account = Account(client);
+    storage = Storage(client);
   }
 
   Future<void> signUp(String email, String password) async {
