@@ -16,6 +16,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        actions: [
+          if (_isLoggedIn)
+            TextButton(
+              onPressed: () {
+                // TODO: Handle logout
+                setState(() {
+                  _isLoggedIn = false; // Placeholder
+                });
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+        ],
       ),
       body: _isLoggedIn ? _buildProfileView() : _buildAuthView(),
     );
@@ -57,60 +72,159 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // New profile avatar with pencil icon overlay
             Center(
-              child: Stack(
-                alignment: Alignment.center,
+              child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage(
-                        'assets/profile_placeholder.png'), // Placeholder image
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 4,
-                    child: GestureDetector(
-                      onTap: () {
-                        // TODO: Trigger profile edit action
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit,
-                          size: 16,
-                          color: Colors.black,
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage(
+                            'assets/profile_placeholder.png'), // Placeholder image
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () {
+                            // TODO: Trigger profile edit action
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Ryan Schnetzer',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    'ryansc@acme.co',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // TODO: Navigate to edit profile
+                    },
+                    child: const Text('Edit profile'),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'Wallet Addresses',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'Content',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            ..._walletAddresses.map((address) => Text(address)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                _showAddWalletDialog();
-              },
-              child: const Text('Add Wallet Address'),
+            const SizedBox(height: 8),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.favorite),
+                    title: const Text('Favorites'),
+                    onTap: () {
+                      // TODO: Navigate to Favorites
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.download),
+                    title: const Text('Downloads'),
+                    onTap: () {
+                      // TODO: Navigate to Downloads
+                    },
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'Settings',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'Preferences',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            // TODO: Add settings options
+            const SizedBox(height: 8),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: const Text('Language'),
+                    trailing: const Text('English'),
+                    onTap: () {
+                      // TODO: Navigate to Language settings
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.notifications),
+                    title: const Text('Notifications'),
+                    trailing: const Text('Enabled'),
+                    onTap: () {
+                      // TODO: Navigate to Notifications settings
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.color_lens),
+                    title: const Text('Theme'),
+                    trailing: const Text('Light'),
+                    onTap: () {
+                      // TODO: Navigate to Theme settings
+                    },
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.play_circle_outline),
+                    title: const Text('Background play'),
+                    value: true,
+                    onChanged: (bool value) {
+                      // TODO: Handle Background play toggle
+                    },
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.wifi),
+                    title: const Text('Download via WiFi only'),
+                    value: false,
+                    onChanged: (bool value) {
+                      // TODO: Handle Download via WiFi only toggle
+                    },
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.autorenew),
+                    title: const Text('Autoplay'),
+                    value: true,
+                    onChanged: (bool value) {
+                      // TODO: Handle Autoplay toggle
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
