@@ -64,6 +64,36 @@ export default function Header() {
             Sign In
           </Button>
 
+          <Button 
+            color="inherit"
+            variant="outlined"
+            sx={{
+              borderRadius: '20px',
+              borderColor: 'rgba(255,255,255,0.5)',
+              '&:hover': {
+                borderColor: 'white',
+                background: 'rgba(255,255,255,0.1)',
+              }
+            }}
+          >
+            Sign in with GitHub
+          </Button>
+
+          <Button 
+            color="inherit"
+            variant="outlined"
+            sx={{
+              borderRadius: '20px',
+              borderColor: 'rgba(255,255,255,0.5)',
+              '&:hover': {
+                borderColor: 'white',
+                background: 'rgba(255,255,255,0.1)',
+              }
+            }}
+          >
+            Connect Wallet
+          </Button>
+
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}

@@ -2,7 +2,7 @@
 
 import { Drawer, List, ListItem, ListItemText, ListItemIcon, Box } from "@mui/material";
 import { CalendarToday, Dashboard, EventNote, Work, Store } from "@mui/icons-material";
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion } from "framer-motion";
 import React from "react";
 
@@ -16,6 +16,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname();
   
   return (
     <Drawer
@@ -27,13 +28,14 @@ export default function Sidebar() {
           width: 240,
           boxSizing: 'border-box',
           borderRight: '1px solid rgba(255,255,255,0.1)',
+          background: 'linear-gradient(45deg, #1E40AF 30%, #3B82F6 90%)',
         },
       }}
     >
       <Box sx={{ mt: 8, overflow: 'auto' }}>
         <List>
           {menuItems.map((item) => {
-            const isActive = router.pathname === item.path;
+            const isActive = pathname === item.path;
             
             return (
               <motion.div
@@ -43,6 +45,7 @@ export default function Sidebar() {
               >
                 <ListItem 
                   button
+                  component="li"
                   onClick={() => router.push(item.path)}
                   sx={{
                     my: 0.5,
@@ -52,7 +55,8 @@ export default function Sidebar() {
                     position: 'relative',
                     overflow: 'hidden',
                     '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.05)',
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
                     },
                   }}
                 >
