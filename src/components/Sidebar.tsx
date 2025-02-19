@@ -44,7 +44,6 @@ export default function Sidebar() {
                 whileTap={{ scale: 0.95 }}
               >
                 <ListItem 
-                  button
                   component="li"
                   onClick={() => router.push(item.path)}
                   sx={{
