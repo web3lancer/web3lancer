@@ -29,6 +29,9 @@ export default function Sidebar() {
           boxSizing: 'border-box',
           borderRight: '1px solid rgba(255,255,255,0.1)',
           background: 'linear-gradient(45deg, #1E40AF 30%, #3B82F6 90%)',
+          position: 'fixed',
+          height: '100vh',
+          overflowY: 'auto'
         },
       }}
     >

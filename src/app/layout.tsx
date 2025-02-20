@@ -21,20 +21,28 @@ export default function RootLayout({
       </head>
       <body style={{ margin: 0, background: '#f4f4f4' }}>
         <ThemeProvider theme={theme}>
-          <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            minHeight: '100vh',
+            width: '100%',
+            overflow: 'hidden'
+          }}>
             {!isMobile && <Sidebar />}
-            <motion.div
+            <Box
+              component={motion.div}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              style={{ 
+              sx={{ 
                 flexGrow: 1,
-                marginLeft: isMobile ? 0 : 240,
+                marginLeft: isMobile ? 0 : '240px',
+                width: isMobile ? '100%' : 'calc(100% - 240px)',
                 minHeight: '100vh',
                 position: 'relative',
                 zIndex: 1,
                 backdropFilter: 'blur(10px)',
-                background: 'rgba(255, 255, 255, 0.5)'
+                background: 'rgba(255, 255, 255, 0.5)',
+                transition: 'margin 0.3s ease'
               }}
             >
               <Header />
@@ -44,17 +52,19 @@ export default function RootLayout({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 sx={{
-                  padding: theme.spacing(3),
+                  padding: { xs: 1, sm: 2, md: 3 },
                   marginTop: '64px',
-                  borderRadius: '24px 0 0 0',
+                  borderRadius: { xs: '12px 12px 0 0', md: '24px 0 0 0' },
                   background: 'rgba(255, 255, 255, 0.7)',
                   backdropFilter: 'blur(10px)',
                   minHeight: 'calc(100vh - 64px)',
+                  overflowX: 'hidden',
+                  overflowY: 'auto'
                 }}
               >
                 {children}
               </Box>
-            </motion.div>
+            </Box>
           </Box>
         </ThemeProvider>
       </body>
