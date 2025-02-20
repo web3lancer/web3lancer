@@ -22,16 +22,18 @@ export default function Sidebar() {
     <Drawer
       variant="permanent"
       sx={{
-        width: 240,
+        width: { xs: 0, md: 240 },
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           width: 240,
           boxSizing: 'border-box',
-          borderRight: '1px solid rgba(255,255,255,0.1)',
           background: 'linear-gradient(45deg, #1E40AF 30%, #3B82F6 90%)',
+          borderRight: '1px solid rgba(255,255,255,0.1)',
           position: 'fixed',
           height: '100vh',
-          overflowY: 'auto'
+          display: { xs: 'none', md: 'block' },
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
         },
       }}
     >

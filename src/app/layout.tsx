@@ -22,44 +22,40 @@ export default function RootLayout({
       <body style={{ margin: 0, background: '#f4f4f4' }}>
         <ThemeProvider theme={theme}>
           <Box sx={{ 
-            display: 'flex', 
+            display: 'flex',
             minHeight: '100vh',
             width: '100%',
-            overflow: 'hidden'
+            background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
           }}>
             <Sidebar />
             <Box
               component={motion.div}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               sx={{ 
-                flexGrow: 1,
-                marginLeft: isMobile ? 0 : '240px',
-                width: '100%',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
                 minHeight: '100vh',
-                position: 'relative',
-                zIndex: 1,
-                backdropFilter: 'blur(10px)',
-                background: 'rgba(255, 255, 255, 0.5)',
-                transition: 'margin 0.3s ease'
+                marginLeft: { xs: 0, md: '240px' },
+                transition: 'margin 0.3s ease',
               }}
             >
               <Header />
               <Box
                 component={motion.div}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 sx={{
-                  padding: { xs: 1, sm: 2, md: 3 },
-                  marginTop: '64px',
-                  borderRadius: { xs: '12px 12px 0 0', md: '24px 0 0 0' },
+                  flex: 1,
+                  p: { xs: 1, sm: 2, md: 3 },
+                  pt: '64px',
                   background: 'rgba(255, 255, 255, 0.7)',
                   backdropFilter: 'blur(10px)',
-                  minHeight: 'calc(100vh - 64px)',
-                  overflowX: 'hidden',
-                  overflowY: 'auto'
+                  borderRadius: { xs: '0', md: '24px 0 0 0' },
+                  overflow: 'auto',
+                  position: 'relative',
                 }}
               >
                 {children}
