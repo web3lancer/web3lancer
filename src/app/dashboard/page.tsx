@@ -2,7 +2,6 @@
 import { Box, Grid, Card, CardContent, Typography, IconButton, LinearProgress, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import { ArrowUpward, MoreVert, Assessment, AccountBalance, WorkOutline, TrendingUp } from '@mui/icons-material';
-import Header from '@/components/Header';
 
 const MotionCard = motion(Card);
 
@@ -24,7 +23,7 @@ export default function DashboardPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Header />
+      {/* <Header /> */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
