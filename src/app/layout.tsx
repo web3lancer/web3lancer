@@ -27,7 +27,7 @@ export default function RootLayout({
             width: '100%',
             overflow: 'hidden'
           }}>
-            {!isMobile && <Sidebar />}
+            <Sidebar />
             <Box
               component={motion.div}
               initial={{ opacity: 0, y: 20 }}
@@ -36,7 +36,7 @@ export default function RootLayout({
               sx={{ 
                 flexGrow: 1,
                 marginLeft: isMobile ? 0 : '240px',
-                width: isMobile ? '100%' : 'calc(100% - 240px)',
+                width: '100%',
                 minHeight: '100vh',
                 position: 'relative',
                 zIndex: 1,
