@@ -7,15 +7,27 @@ import { scrollAnimation, staggeredContainer, cardAnimation } from "@/utils/anim
 
 const MotionCard = motion(Card);
 
-const activities = [
+interface Job {
+  $id: string;
+  title: string;
+  description: string;
+}
+
+interface Activity {
+  type: string;
+  user: string;
+  time: string;
+}
+
+const activities: Activity[] = [
   { type: 'joined', user: 'Alice', time: '2 minutes ago' },
   { type: 'paid', user: 'Bob', time: '5 minutes ago' },
   { type: 'joined team', user: 'Charlie', time: '10 minutes ago' },
 ];
 
 export default function MarketplacePage() {
-  const [jobs, setJobs] = useState([]);
-  const [liveActivities, setLiveActivities] = useState(activities);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [liveActivities, setLiveActivities] = useState<Activity[]>(activities);
   const { scrollYProgress } = useScroll();
   const scaleProgress = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
 
@@ -23,7 +35,7 @@ export default function MarketplacePage() {
     async function fetchJobs() {
       try {
         const response = await databases.listDocuments('67aed8360001b6dd8cb3', 'jobs');
-        setJobs(response.documents);
+        setJobs(response.documents as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);
       }
@@ -56,7 +68,7 @@ export default function MarketplacePage() {
               <Typography variant="h5" sx={{ mb: 2 }}>Latest Jobs</Typography>
               <Grid container spacing={3}>
                 {jobs.map((job, index) => (
-                  <Grid item xs={12} sm={6} key={job.$ID || index}>
+                  <Grid item xs={12} sm={6} key={job.$id || index}>
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
