@@ -4,6 +4,7 @@ import { Box, Typography, Grid, Card, CardContent, Avatar } from "@mui/material"
 import { motion, useScroll, useTransform } from "framer-motion";
 import { databases } from "../../utils/api";
 import { scrollAnimation, staggeredContainer, cardAnimation } from "@/utils/animations";
+import Header from '@/components/Header';
 
 const MotionCard = motion(Card);
 
@@ -57,6 +58,7 @@ export default function MarketplacePage() {
       initial="hidden"
       animate="visible"
     >
+      <Header />
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
           Marketplace
