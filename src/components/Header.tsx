@@ -2,12 +2,38 @@
 
 import { AppBar, Toolbar, Typography, Button, IconButton, Avatar, Box } from "@mui/material";
 import { AccountCircle, Notifications } from "@mui/icons-material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
+import { account } from "@/utils/api";
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isHovered, setIsHovered] = useState(false);
+  const [user, setUser] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const user = await account.get();
+        setUser(user);
+      } catch (error) {
+        console.error("No active session found:", error);
+      }
+    }
+    checkSession();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await account.deleteSession('current');
+      setUser(null);
+      router.push('/signin');
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <AppBar position="fixed">
@@ -49,21 +75,44 @@ export default function Header() {
             <Notifications />
           </IconButton>
           
-          <Button 
-            color="inherit"
-            variant="outlined"
-            sx={{
-              borderRadius: '20px',
-              borderColor: 'rgba(255,255,255,0.5)',
-              '&:hover': {
-                borderColor: 'white',
-                background: 'rgba(255,255,255,0.1)',
-              }
-            }}
-            href="/signin"
-          >
-            Sign In
-          </Button>
+          {user ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="body1" sx={{ color: 'white' }}>
+                {user.name}
+              </Typography>
+              <Button 
+                color="inherit"
+                variant="outlined"
+                sx={{
+                  borderRadius: '20px',
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  '&:hover': {
+                    borderColor: 'white',
+                    background: 'rgba(255,255,255,0.1)',
+                  }
+                }}
+                onClick={handleSignOut}
+              >
+                Sign Out
+              </Button>
+            </Box>
+          ) : (
+            <Button 
+              color="inherit"
+              variant="outlined"
+              sx={{
+                borderRadius: '20px',
+                borderColor: 'rgba(255,255,255,0.5)',
+                '&:hover': {
+                  borderColor: 'white',
+                  background: 'rgba(255,255,255,0.1)',
+                }
+              }}
+              href="/signin"
+            >
+              Sign In
+            </Button>
+          )}
 
           <motion.div
             whileHover={{ scale: 1.1 }}
