@@ -16,14 +16,16 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          background: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
-          transition: 'transform 0.3s ease-in-out',
+          background: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+          transform: 'perspective(1000px)',
+          transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
           '&:hover': {
-            transform: 'translateY(-5px)',
+            transform: 'perspective(1000px) rotateX(5deg) translateY(-5px)',
+            boxShadow: '0 12px 40px 0 rgba(31, 38, 135, 0.25)',
           },
         },
       },
@@ -48,12 +50,19 @@ export const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px',
+          borderRadius: '12px',
           textTransform: 'none',
-          transition: 'all 0.3s ease',
+          padding: '10px 24px',
+          transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
           '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 5px 15px rgba(0,0,0,0.2)',
+            transform: 'translateY(-3px) scale(1.02)',
+            boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+          },
+        },
+        contained: {
+          background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #1E40AF 20%, #3B82F6 100%)',
           },
         },
       },
