@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { Box, Typography, Button, TextField, Link } from "@mui/material";
 import { account } from "@/utils/api";
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignInPage() {
+  const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -12,6 +14,8 @@ export default function SignInPage() {
   const signInWithEmail = async () => {
     try {
       await account.createEmailPasswordSession(email, password);
+      const user = await account.get();
+      setUser(user);
       // Redirect to dashboard or profile page after successful sign-in
       router.push('/dashboard');
     } catch (error: any) {

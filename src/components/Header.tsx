@@ -7,23 +7,11 @@ import Image from 'next/image';
 import { motion } from "framer-motion";
 import { account } from "@/utils/api";
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
-  const [isHovered, setIsHovered] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user, setUser } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    async function checkSession() {
-      try {
-        const user = await account.get();
-        setUser(user);
-      } catch (error) {
-        console.error("No active session found:", error);
-      }
-    }
-    checkSession();
-  }, []);
 
   const handleSignOut = async () => {
     try {
