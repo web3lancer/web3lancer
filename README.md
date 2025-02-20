@@ -2,7 +2,6 @@
 
 Web3Lancer is a global hub for freelancers and creators to connect, collaborate, and earn crypto
 
-
 ## 🚀 Key Vision
 - **Global & Inclusive:** A broad, digital workplace open to every skillset.
 - **Crypto-Friendly:** Simplified blockchain-enabled payments.
