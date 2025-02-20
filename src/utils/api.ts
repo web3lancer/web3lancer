@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage } from 'appwrite';
+import { Client, Account, Databases, Storage, ID } from 'appwrite';
 
 const client = new Client();
 client
@@ -26,4 +26,4 @@ async function signIn(email: string, password: string) {
   }
 }
 
-export { client, account, databases, storage, signUp, signIn };
+export { client, account, databases, storage, signUp, signIn, ID };

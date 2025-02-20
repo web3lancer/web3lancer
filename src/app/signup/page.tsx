@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
-import { account, ID } from "@/utils/api";
+import { account } from "@/utils/api";
+import { ID } from 'appwrite';
 import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
