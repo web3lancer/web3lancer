@@ -25,7 +25,7 @@ export default function JobsPage() {
 
   const handlePostJob = async () => {
     try {
-      const response = await databases.createDocument('67aed8360001b6dd8cb3', 'jobs', ID.unique(), {
+      const response = await databases.createDocument('67af3ffe0011106c4575', 'jobs', ID.unique(), {
         userId: user?.$id,
         title,
         description,
