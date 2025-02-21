@@ -98,7 +98,7 @@ export default function Header() {
               }}
               href="/signin"
             >
-              Sign In
+              Login
             </Button>
           )}
 
