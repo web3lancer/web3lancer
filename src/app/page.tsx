@@ -8,8 +8,14 @@ import { databases } from '../utils/api';
 
 const MotionCard = motion(Card);
 
+interface Job {
+  $id: string;
+  title: string;
+  description: string;
+}
+
 export default function HomePage() {
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -17,7 +23,7 @@ export default function HomePage() {
     async function fetchJobs() {
       try {
         const response = await databases.listDocuments('67aed8360001b6dd8cb3', 'jobs');
-        setJobs(response.documents);
+        setJobs(response.documents as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);
       }
@@ -155,7 +161,7 @@ export default function HomePage() {
           >
             <Grid container spacing={3}>
               {jobs.map((job, index) => (
-                <Grid item xs={12} sm={6} md={4} key={job.$ID || index}>
+                <Grid item xs={12} sm={6} md={4} key={job.$id || index}>
                   <motion.div variants={item}>
                     <MotionCard
                       whileHover={{ y: -10 }}
