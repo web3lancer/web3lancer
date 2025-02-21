@@ -26,4 +26,26 @@ async function signIn(email: string, password: string) {
   }
 }
 
-export { client, account, databases, storage, signUp, signIn, ID };
+async function addBookmark(userId: string, jobId: string) {
+  try {
+    const response = await databases.createDocument('67b87f690013f3c1796a', 'bookmarks', ID.unique(), {
+      userId,
+      jobId,
+      createdAt: new Date().toISOString(),
+    });
+    console.log('Bookmark added successfully:', response);
+  } catch (error) {
+    console.error('Error adding bookmark:', error);
+  }
+}
+
+async function removeBookmark(bookmarkId: string) {
+  try {
+    await databases.deleteDocument('67b87f690013f3c1796a', 'bookmarks', bookmarkId);
+    console.log('Bookmark removed successfully');
+  } catch (error) {
+    console.error('Error removing bookmark:', error);
+  }
+}
+
+export { client, account, databases, storage, signUp, signIn, addBookmark, removeBookmark, ID };
