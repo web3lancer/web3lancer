@@ -73,7 +73,7 @@ export default function HomePage() {
                 Connect, collaborate, and conquer from anywhere with digital working.
               </Typography>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/app" passHref>
+                <Link href="/dashboard" passHref>
                   <Button
                     variant="contained"
                     size="large"
