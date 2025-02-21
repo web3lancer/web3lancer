@@ -54,6 +54,9 @@ export default function JobsPage() {
         label="Description"
         fullWidth
         multiline
+        rows={4}
+        sx={{ mb: 2 }}
+        value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
