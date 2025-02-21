@@ -1,12 +1,14 @@
 "use client";
 import React, { useState } from "react";
-import { Box, Typography, Avatar, Button, Input } from "@mui/material";
+import { Box, Typography, Avatar, Button, Input, Chip, TextField } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadFile } from "@/utils/storage";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -25,6 +27,17 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAddSkill = () => {
+    if (skillInput.trim() !== "") {
+      setSkills([...skills, skillInput.trim()]);
+      setSkillInput("");
+    }
+  };
+
+  const handleDeleteSkill = (skillToDelete: string) => {
+    setSkills(skills.filter(skill => skill !== skillToDelete));
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
@@ -41,6 +54,32 @@ export default function ProfilePage() {
       <Button variant="contained" onClick={handleUpload}>
         Upload Profile Picture
       </Button>
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Skills
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <TextField
+            label="Add Skill"
+            value={skillInput}
+            onChange={(e) => setSkillInput(e.target.value)}
+            sx={{ mr: 2 }}
+          />
+          <Button variant="contained" onClick={handleAddSkill}>
+            Add
+          </Button>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {skills.map((skill, index) => (
+            <Chip
+              key={index}
+              label={skill}
+              onDelete={() => handleDeleteSkill(skill)}
+              sx={{ background: 'rgba(30, 64, 175, 0.1)', color: '#1E40AF' }}
+            />
+          ))}
+        </Box>
+      </Box>
     </Box>
   );
 }

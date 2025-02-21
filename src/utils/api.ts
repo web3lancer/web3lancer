@@ -48,4 +48,68 @@ async function removeBookmark(bookmarkId: string) {
   }
 }
 
-export { client, account, databases, storage, signUp, signIn, addBookmark, removeBookmark, ID };
+async function addTransaction(userId: string, amount: number, type: string) {
+  try {
+    const response = await databases.createDocument('67aed8360001b6dd8cb3', 'transactions', ID.unique(), {
+      userId,
+      amount,
+      type,
+      createdAt: new Date().toISOString(),
+    });
+    console.log('Transaction added successfully:', response);
+  } catch (error) {
+    console.error('Error adding transaction:', error);
+  }
+}
+
+async function sendMessage(senderId: string, receiverId: string, content: string) {
+  try {
+    const response = await databases.createDocument('67aed8360001b6dd8cb3', 'messages', ID.unique(), {
+      senderId,
+      receiverId,
+      content,
+      createdAt: new Date().toISOString(),
+    });
+    console.log('Message sent successfully:', response);
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
+
+async function addNotification(userId: string, message: string) {
+  try {
+    const response = await databases.createDocument('67aed8360001b6dd8cb3', 'notifications', ID.unique(), {
+      userId,
+      message,
+      createdAt: new Date().toISOString(),
+    });
+    console.log('Notification added successfully:', response);
+  } catch (error) {
+    console.error('Error adding notification:', error);
+  }
+}
+
+async function addProject(userId: string, title: string, description: string) {
+  try {
+    const response = await databases.createDocument('67aed8360001b6dd8cb3', 'projects', ID.unique(), {
+      userId,
+      title,
+      description,
+      createdAt: new Date().toISOString(),
+    });
+    console.log('Project added successfully:', response);
+  } catch (error) {
+    console.error('Error adding project:', error);
+  }
+}
+
+async function addUser(email: string, password: string, name: string) {
+  try {
+    const response = await account.create(ID.unique(), email, password, name);
+    console.log('User added successfully:', response);
+  } catch (error) {
+    console.error('Error adding user:', error);
+  }
+}
+
+export { client, account, databases, storage, signUp, signIn, addBookmark, removeBookmark, addTransaction, sendMessage, addNotification, addProject, addUser, ID };
