@@ -34,7 +34,7 @@ export default function MarketplacePage() {
   useEffect(() => {
     async function fetchJobs() {
       try {
-        const response = await databases.listDocuments('67af3ffe0011106c4575', 'jobs');
+        const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
         setJobs(response.documents as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);

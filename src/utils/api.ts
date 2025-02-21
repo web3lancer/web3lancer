@@ -28,7 +28,7 @@ async function signIn(email: string, password: string) {
 
 async function addBookmark(userId: string, jobId: string) {
   try {
-    const response = await databases.createDocument('67b885ed000038dd7ab9', 'bookmarks', ID.unique(), {
+    const response = await databases.createDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', ID.unique(), {
       userId,
       jobId,
       createdAt: new Date().toISOString(),
@@ -41,7 +41,7 @@ async function addBookmark(userId: string, jobId: string) {
 
 async function removeBookmark(bookmarkId: string) {
   try {
-    await databases.deleteDocument('67b885ed000038dd7ab9', 'bookmarks', bookmarkId);
+    await databases.deleteDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', bookmarkId);
     console.log('Bookmark removed successfully');
   } catch (error) {
     console.error('Error removing bookmark:', error);
@@ -50,7 +50,7 @@ async function removeBookmark(bookmarkId: string) {
 
 async function addTransaction(userId: string, amount: number, type: string) {
   try {
-    const response = await databases.createDocument('67b8866c00265d466063', 'transactions', ID.unique(), {
+    const response = await databases.createDocument('67b8866c00265d466063', '67b8867b001643b2585a', ID.unique(), {
       userId,
       amount,
       type,
@@ -64,7 +64,7 @@ async function addTransaction(userId: string, amount: number, type: string) {
 
 async function sendMessage(senderId: string, receiverId: string, content: string) {
   try {
-    const response = await databases.createDocument('67b8864c0020483351b5', 'messages', ID.unique(), {
+    const response = await databases.createDocument('67b8864c0020483351b5', '67b88658000bea7a7c7e', ID.unique(), {
       senderId,
       receiverId,
       content,
@@ -78,7 +78,7 @@ async function sendMessage(senderId: string, receiverId: string, content: string
 
 async function addNotification(userId: string, message: string) {
   try {
-    const response = await databases.createDocument('67b8862f00055127cd62', 'notifications', ID.unique(), {
+    const response = await databases.createDocument('67b8862f00055127cd62', '67b88639000157c7909d', ID.unique(), {
       userId,
       message,
       createdAt: new Date().toISOString(),
@@ -91,7 +91,7 @@ async function addNotification(userId: string, message: string) {
 
 async function addProject(userId: string, title: string, description: string) {
   try {
-    const response = await databases.createDocument('67b88574002c6eb405a2', 'projects', ID.unique(), {
+    const response = await databases.createDocument('67b88574002c6eb405a2', '67b885810006a89bc6a4', ID.unique(), {
       userId,
       title,
       description,

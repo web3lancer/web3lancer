@@ -27,7 +27,7 @@ export default function BookmarksPage() {
   useEffect(() => {
     async function fetchBookmarks() {
       try {
-        const response = await databases.listDocuments('67b885ed000038dd7ab9', 'bookmarks', [
+        const response = await databases.listDocuments('67b885ed000038dd7ab9', '67b8860100311b7d7939', [
           { key: 'userId', value: user?.$id }
         ]);
         setBookmarks(response.documents as Bookmark[]);
@@ -38,7 +38,7 @@ export default function BookmarksPage() {
 
     async function fetchJobs() {
       try {
-        const response = await databases.listDocuments('67af3ffe0011106c4575', 'jobs');
+        const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
         setJobs(response.documents as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);
