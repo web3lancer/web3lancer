@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Box, Grid, Typography, Button, Card, CardContent, useTheme, useMediaQuery, Container } from '@mui/material';
+import { Box, Grid, Typography, Button, Card, CardContent, useTheme, useMediaQuery, Container, Fab } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { databases } from '../utils/api';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 const MotionCard = motion(Card);
 
@@ -44,6 +45,10 @@ export default function HomePage() {
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -152,8 +157,46 @@ export default function HomePage() {
           </Grid>
         </Box>
 
-        <Box>
-          <Typography variant="h2" sx={{ mb: 4 }}>Latest Jobs</Typography>
+        <Box sx={{ mb: 8 }}>
+          <Typography variant="h2" sx={{ mb: 4, textAlign: 'center' }}>
+            How It Works
+          </Typography>
+          <Grid container spacing={4}>
+            {['Create an Account', 'Post a Job', 'Hire the Best'].map((step, index) => (
+              <Grid item xs={12} md={4} key={step}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.2 }}
+                >
+                  <MotionCard
+                    whileHover={{ y: -10 }}
+                    sx={{
+                      height: '100%',
+                      background: 'rgba(255, 255, 255, 0.7)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.18)',
+                    }}
+                  >
+                    <CardContent>
+                      <Typography variant="h5" gutterBottom>{step}</Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        {step === 'Create an Account' && 'Sign up and create your profile'}
+                        {step === 'Post a Job' && 'Describe your project and post it'}
+                        {step === 'Hire the Best' && 'Review proposals and hire the best'}
+                      </Typography>
+                    </CardContent>
+                  </MotionCard>
+                </motion.div>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        <Box sx={{ mb: 8 }}>
+          <Typography variant="h2" sx={{ mb: 4, textAlign: 'center' }}>
+            Latest Jobs
+          </Typography>
           <motion.div
             variants={container}
             initial="hidden"
@@ -183,6 +226,21 @@ export default function HomePage() {
             </Grid>
           </motion.div>
         </Box>
+
+        <Fab
+          color="primary"
+          aria-label="scroll to top"
+          onClick={scrollToTop}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
+            boxShadow: '0 4px 14px 0 rgba(30, 64, 175, 0.39)',
+          }}
+        >
+          <ArrowUpwardIcon />
+        </Fab>
       </Box>
     </Container>
   );
