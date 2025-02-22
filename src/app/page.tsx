@@ -329,34 +329,39 @@ export default function HomePage() {
                         }}
                       >
                         <CardContent>
-                  </motion.div>
-                </Grid>
-              ))}
-            </Grid>
-          </motion.div>
-        </Box>
+                          <Typography variant="h6">{job.title}</Typography>
+                          <Typography variant="body2" color="text.secondary">{job.description}</Typography>
+                        </CardContent>
+                      </MotionCard>
+                    </motion.div>
+                  </Grid>
+                ))}
+              </Grid>
+            </motion.div>
+          </Box>
 
-        <Fab
-          color="primary"
-          aria-label="scroll to top"
-          onClick={scrollToTop}
-          sx={{
-            position: 'fixed',
-            bottom: { xs: 72, md: 16 }, // Adjusted to account for mobile bottom navigation
-            right: 16,
-            background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
-            boxShadow: '0 4px 14px 0 rgba(30, 64, 175, 0.39)',
-            zIndex: 1000,
-            opacity: 0.9,
-            '&:hover': {
-              opacity: 1,
+          <Fab
+            color="primary"
+            aria-label="scroll to top"
+            onClick={scrollToTop}
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 72, md: 16 }, // Adjusted to account for mobile bottom navigation
+              right: 16,
               background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
-            },
-          }}
-        >
-          <ArrowUpwardIcon />
-        </Fab>
-      </Box>
-    </Container>
+              boxShadow: '0 4px 14px 0 rgba(30, 64, 175, 0.39)',
+              zIndex: 1000,
+              opacity: 0.9,
+              '&:hover': {
+                opacity: 1,
+                background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
+              },
+            }}
+          >
+            <ArrowUpwardIcon />
+          </Fab>
+        </Box>
+      </Container>
+    </MotionCard>
   );
 }
