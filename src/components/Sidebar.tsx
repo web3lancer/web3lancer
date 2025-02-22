@@ -9,9 +9,11 @@ import Link from 'next/link';
 
 const menuItems = [
   { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
+  { text: 'Jobs', icon: WorkOutline, path: '/jobs' },
   { text: 'Projects', icon: Work, path: '/projects' },
-  { text: 'Planning', icon: EventNote, path: '/planning' },
-  { text: 'Marketplace', icon: Store, path: '/marketplace' },
+  { text: 'Marketplace', icon: Storefront, path: '/marketplace' },
+  { text: 'Calendar', icon: CalendarMonth, path: '/calendar' },
+  { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
 ];
 
 export default function Sidebar() {
@@ -96,44 +98,6 @@ export default function Sidebar() {
                 </motion.div>
               );
             })}
-          </List>
-          <List>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} href="/dashboard">
-                <ListItemIcon><Dashboard /></ListItemIcon>
-                <ListItemText primary="Dashboard" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} href="/jobs">
-                <ListItemIcon><WorkOutline /></ListItemIcon>
-                <ListItemText primary="Jobs" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} href="/projects">
-                <ListItemIcon><WorkOutline /></ListItemIcon>
-                <ListItemText primary="Projects" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} href="/marketplace">
-                <ListItemIcon><Storefront /></ListItemIcon>
-                <ListItemText primary="Marketplace" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} href="/calendar">
-                <ListItemIcon><CalendarMonth /></ListItemIcon>
-                <ListItemText primary="Calendar" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton component={Link} href="/bookmarks">
-                <ListItemIcon><Bookmarks /></ListItemIcon>
-                <ListItemText primary="Bookmarks" />
-              </ListItemButton>
-            </ListItem>
           </List>
           <Divider />
         </Box>
