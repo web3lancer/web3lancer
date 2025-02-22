@@ -47,7 +47,12 @@ export default function SignInPage() {
       <Button variant="contained" fullWidth sx={{ mb: 2 }} onClick={handleSignIn}>
         Sign In with Email
       </Button>
-      <Button variant="outlined" fullWidth sx={{ mb: 2 }}>
+      <Button
+        variant="outlined"
+        fullWidth
+        sx={{ mb: 2 }}
+        href="https://github.com/login/oauth/authorize?client_id=Ov23lik5C96Psa3OrZiM"
+      >
         Sign In with GitHub
       </Button>
       <Button variant="outlined" fullWidth>

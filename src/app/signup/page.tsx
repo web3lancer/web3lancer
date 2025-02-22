@@ -14,7 +14,6 @@ export default function SignUpPage() {
   const handleSignUp = async () => {
     try {
       await signUp(email, password, name);
-      // Redirect to dashboard or profile page after successful sign-up
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Error signing up:", error.message);
@@ -54,7 +53,12 @@ export default function SignUpPage() {
       <Button variant="contained" fullWidth sx={{ mb: 2 }} onClick={handleSignUp}>
         Sign Up with Email
       </Button>
-      <Button variant="outlined" fullWidth sx={{ mb: 2 }}>
+      <Button
+        variant="outlined"
+        fullWidth
+        sx={{ mb: 2 }}
+        href="https://github.com/login/oauth/authorize?client_id=Ov23lik5C96Psa3OrZiM"
+      >
         Sign Up with GitHub
       </Button>
       <Button variant="outlined" fullWidth>

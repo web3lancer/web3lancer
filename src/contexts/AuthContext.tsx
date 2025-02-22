@@ -8,6 +8,7 @@ interface AuthContextProps {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  handleGitHubOAuth: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextProps>({
   signUp: async () => {},
   signIn: async () => {},
   signOut: async () => {},
+  handleGitHubOAuth: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -43,8 +45,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const handleGitHubOAuth = async (code: string) => {
+    try {
+      const response = await account.createOAuth2Session('github', 'https://your-app-url.com/oauth/callback', 'https://your-app-url.com/oauth/callback', code);
+      const userData = await account.get();
+      setUser(userData);
+    } catch (error) {
+      console.error("Error handling GitHub OAuth:", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, setUser, signUp, signIn, signOut, handleGitHubOAuth }}>
       {children}
     </AuthContext.Provider>
   );
