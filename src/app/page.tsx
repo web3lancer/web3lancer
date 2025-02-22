@@ -193,6 +193,107 @@ export default function HomePage() {
           </Grid>
         </Box>
 
+        {/* Add new Download Section */}
+        <Box sx={{ mb: 8, textAlign: 'center' }}>
+          <Typography variant="h2" sx={{ mb: 4 }}>
+            Download Our App
+          </Typography>
+          <Grid container spacing={4} justifyContent="center">
+            <Grid item xs={12} md={5}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <MotionCard
+                  whileHover={{ y: -10 }}
+                  sx={{
+                    height: '100%',
+                    background: 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    position: 'relative',
+                  }}
+                >
+                  <CardContent sx={{ position: 'relative' }}>
+                    <Box sx={{ 
+                      filter: 'blur(3px)', 
+                      pointerEvents: 'none',
+                      position: 'relative'
+                    }}>
+                      <Typography variant="h5" gutterBottom>
+                        Download for iOS
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        Get Web3Lancer on your iPhone
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        sx={{ mt: 2 }}
+                        disabled
+                      >
+                        App Store
+                      </Button>
+                    </Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        color: '#1E40AF',
+                        fontWeight: 'bold',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        zIndex: 1
+                      }}
+                    >
+                      Coming Soon
+                    </Typography>
+                  </CardContent>
+                </MotionCard>
+              </motion.div>
+            </Grid>
+            <Grid item xs={12} md={5}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <MotionCard
+                  whileHover={{ y: -10 }}
+                  sx={{
+                    height: '100%',
+                    background: 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                  }}
+                >
+                  <CardContent>
+                    <Typography variant="h5" gutterBottom>
+                      Download for Android
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                      Get Web3Lancer on your Android device
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      sx={{ mt: 2 }}
+                      href="https://github.com/web3lancer/web3lancer/releases"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Download APK
+                    </Button>
+                  </CardContent>
+                </MotionCard>
+              </motion.div>
+            </Grid>
+          </Grid>
+        </Box>
+
         <Box sx={{ mb: 8 }}>
           <Typography variant="h2" sx={{ mb: 4, textAlign: 'center' }}>
             Latest Jobs
