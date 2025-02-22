@@ -56,6 +56,15 @@ export default function BookmarksPage() {
     return jobs.find(job => job.$id === jobId);
   };
 
+  const removeBookmark = async (bookmarkId: string) => {
+    try {
+      await databases.deleteDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', bookmarkId);
+      setBookmarks(prev => prev.filter(b => b.$id !== bookmarkId));
+    } catch (error) {
+      console.error("Error removing bookmark:", error);
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
@@ -84,6 +93,9 @@ export default function BookmarksPage() {
                     <Typography variant="body2" color="text.secondary">{job.description}</Typography>
                     <Button variant="outlined" sx={{ mt: 2 }}>
                       View Job
+                    </Button>
+                    <Button variant="outlined" sx={{ mt: 2 }} onClick={() => removeBookmark(bookmark.$id)}>
+                      Remove
                     </Button>
                   </CardContent>
                 </MotionCard>

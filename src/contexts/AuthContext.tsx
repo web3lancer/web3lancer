@@ -1,45 +1,55 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { account } from '@/utils/api';
-import { Models } from 'appwrite';
+"use client";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { account } from "@/app/appwrite";
 
-interface AuthContextType {
-  user: Models.User<Models.Preferences> | null;
-  setUser: React.Dispatch<React.SetStateAction<Models.User<Models.Preferences> | null>>;
-  loading: boolean;
+interface AuthContextProps {
+  user: any;
+  setUser: React.Dispatch<React.SetStateAction<any>>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextProps>({
+  user: null,
+  setUser: () => {},
+  signUp: async () => {},
+  signIn: async () => {},
+  signOut: async () => {},
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    checkAuth();
+    account.get().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const currentUser = await account.get();
-      setUser(currentUser);
-    } catch (error) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+  const signUp = async (email: string, password: string, name: string) => {
+    await account.create("unique()", email, password, name);
+    await account.createEmailSession(email, password);
+    const userData = await account.get();
+    setUser(userData);
+  };
+
+  const signIn = async (email: string, password: string) => {
+    await account.createEmailSession(email, password);
+    const userData = await account.get();
+    setUser(userData);
+  };
+
+  const signOut = async () => {
+    await account.deleteSession("current");
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  return useContext(AuthContext);
+}

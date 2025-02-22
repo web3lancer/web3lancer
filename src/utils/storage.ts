@@ -1,11 +1,11 @@
-import { Storage, ID } from 'appwrite';
-import { client } from './api';
+import { Client, Storage } from "appwrite";
+import { client } from "@/app/appwrite";
 
 const storage = new Storage(client);
 
-async function uploadFile(bucketId: string, file: File, path: string) {
+export async function uploadFile(bucketId: string, file: File, filePath: string) {
   try {
-    const response = await storage.createFile(bucketId, ID.unique(), file, path);
+    const response = await storage.createFile(bucketId, filePath, file);
     console.log('File uploaded successfully:', response);
     return response;
   } catch (error) {
@@ -35,4 +35,4 @@ async function deleteFile(bucketId: string, fileId: string) {
   }
 }
 
-export { uploadFile, getFile, deleteFile };
+export { getFile, deleteFile };

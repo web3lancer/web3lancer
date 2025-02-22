@@ -1,9 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Grid, Card, CardContent, Avatar } from "@mui/material";
+import { Box, Typography, Grid, Card, CardContent, Avatar, Button } from "@mui/material";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { databases } from "../../utils/api";
 import { scrollAnimation, staggeredContainer, cardAnimation } from "@/utils/animations";
+import { ID } from "appwrite";
+import { useAuth } from '@/contexts/AuthContext';
 
 const MotionCard = motion(Card);
 
@@ -36,6 +38,7 @@ export default function MarketplacePage() {
   const [liveActivities, setLiveActivities] = useState<Activity[]>(activities);
   const { scrollYProgress } = useScroll();
   const scaleProgress = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchJobs() {
@@ -55,6 +58,20 @@ export default function MarketplacePage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleBookmark = async (jobId: string) => {
+    if(!user) return;
+    try {
+      await databases.createDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', ID.unique(), {
+        jobId,
+        userId: user.$id,
+        bookmarkId: ID.unique(),
+        createdAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error bookmarking job:", error);
+    }
+  };
 
   return (
     <motion.div
@@ -92,6 +109,7 @@ export default function MarketplacePage() {
                         <CardContent>
                           <Typography variant="h6">{job.title}</Typography>
                           <Typography variant="body2" color="text.secondary">{job.description}</Typography>
+                          <Button onClick={() => handleBookmark(job.$id)}>Bookmark</Button>
                         </CardContent>
                       </MotionCard>
                     </motion.div>

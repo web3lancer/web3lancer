@@ -1,10 +1,11 @@
 "use client";
 
-import { Drawer, List, ListItem, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction } from "@mui/material";
-import { CalendarToday, Dashboard, EventNote, Work, Store } from "@mui/icons-material";
+import { Drawer, List, ListItem, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction, Divider, ListItemButton } from "@mui/material";
+import { CalendarToday, Dashboard, EventNote, Work, Store, Home, WorkOutline, CalendarMonth, Bookmarks, Storefront } from "@mui/icons-material";
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from "framer-motion";
 import React, { useState } from "react";
+import Link from 'next/link';
 
 const menuItems = [
   { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
@@ -96,6 +97,45 @@ export default function Sidebar() {
               );
             })}
           </List>
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/dashboard">
+                <ListItemIcon><Dashboard /></ListItemIcon>
+                <ListItemText primary="Dashboard" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/jobs">
+                <ListItemIcon><WorkOutline /></ListItemIcon>
+                <ListItemText primary="Jobs" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/projects">
+                <ListItemIcon><WorkOutline /></ListItemIcon>
+                <ListItemText primary="Projects" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/marketplace">
+                <ListItemIcon><Storefront /></ListItemIcon>
+                <ListItemText primary="Marketplace" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/calendar">
+                <ListItemIcon><CalendarMonth /></ListItemIcon>
+                <ListItemText primary="Calendar" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/bookmarks">
+                <ListItemIcon><Bookmarks /></ListItemIcon>
+                <ListItemText primary="Bookmarks" />
+              </ListItemButton>
+            </ListItem>
+          </List>
+          <Divider />
         </Box>
       </Drawer>
 

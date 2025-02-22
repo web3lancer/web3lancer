@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, signOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {

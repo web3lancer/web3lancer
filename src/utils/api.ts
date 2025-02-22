@@ -124,4 +124,4 @@ async function addUser(email: string, password: string, name: string) {
   }
 }
 
-export { client, account, databases, storage, signUp, signIn, addBookmark, removeBookmark, addTransaction, sendMessage, addNotification, addProject, addUser, ID };
+export { client, account, databases, ID } from "@/app/appwrite";

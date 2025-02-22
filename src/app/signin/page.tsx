@@ -1,19 +1,18 @@
 "use client";
 import React, { useState } from "react";
 import { Box, Typography, Button, TextField, Link } from "@mui/material";
-import { account } from "@/utils/api";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignInPage() {
-  const { setUser } = useAuth();
+  const { signIn, setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const signInWithEmail = async () => {
+  const handleSignIn = async () => {
     try {
-      await account.createEmailPasswordSession(email, password);
+      await signIn(email, password);
       const user = await account.get();
       setUser(user);
       // Redirect to dashboard or profile page after successful sign-in
@@ -45,7 +44,7 @@ export default function SignInPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <Button variant="contained" fullWidth sx={{ mb: 2 }} onClick={signInWithEmail}>
+      <Button variant="contained" fullWidth sx={{ mb: 2 }} onClick={handleSignIn}>
         Sign In with Email
       </Button>
       <Button variant="outlined" fullWidth sx={{ mb: 2 }}>
