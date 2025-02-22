@@ -20,6 +20,9 @@ importers:
       '@mui/material':
         specifier: ^6.4.4
         version: 6.4.4(@emotion/react@11.14.0(@types/react@19.0.8)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.8)(react@19.0.0))(@types/react@19.0.8)(react@19.0.0))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@tanstack/react-query':
+        specifier: ^5.66.9
+        version: 5.66.9(react@19.0.0)
       appwrite:
         specifier: ^17.0.0
         version: 17.0.0
