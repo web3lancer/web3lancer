@@ -276,7 +276,7 @@ export default function HomePage() {
                       Download for Android
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
-                      Get Web3Lancer on your Android device
+                      Get Web3Lancer for Android
                     </Typography>
                     <Button
                       variant="contained"
