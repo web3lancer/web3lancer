@@ -27,9 +27,9 @@ export default function RootLayout({
       </head>
       <body style={{ margin: 0, background: '#f4f4f4' }}>
         <ThemeProvider theme={theme}>
-          <AuthProvider>
-            <WagmiProvider config={config}>
-              <QueryClientProvider client={queryClient}>
+          <WagmiProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
                 <Box sx={{ 
                   display: 'flex',
                   minHeight: '100vh',
@@ -71,9 +71,9 @@ export default function RootLayout({
                     </Box>
                   </Box>
                 </Box>
-              </QueryClientProvider>
-            </WagmiProvider>
-          </AuthProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </WagmiProvider>
         </ThemeProvider>
       </body>
     </html>
