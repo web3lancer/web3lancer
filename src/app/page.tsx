@@ -213,45 +213,53 @@ export default function HomePage() {
                     backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(255, 255, 255, 0.18)',
                     position: 'relative',
+                    overflow: 'hidden',
                   }}
                 >
-                  <CardContent sx={{ position: 'relative' }}>
-                    <Box sx={{ 
-                      filter: 'blur(3px)', 
-                      pointerEvents: 'none',
-                      position: 'relative'
-                    }}>
-                      <Typography variant="h5" gutterBottom>
-                        Download for iOS
-                      </Typography>
-                      <Typography variant="body1" color="text.secondary">
-                        Get Web3Lancer on your iPhone
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                        disabled
-                      >
-                        App Store
-                      </Button>
-                    </Box>
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(8px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 2,
+                    }}
+                  >
                     <Typography
-                      variant="h6"
+                      variant="h5"
                       sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
                         color: '#1E40AF',
                         fontWeight: 'bold',
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        padding: '8px 16px',
-                        borderRadius: '4px',
-                        zIndex: 1
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        padding: '12px 24px',
+                        borderRadius: '30px',
+                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                        border: '1px solid rgba(30, 64, 175, 0.2)',
                       }}
                     >
                       Coming Soon
                     </Typography>
+                  </Box>
+                  <CardContent>
+                    <Typography variant="h5" gutterBottom>
+                      Download for iOS
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                      Get Web3Lancer on your iPhone
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      sx={{ mt: 2 }}
+                      disabled
+                    >
+                      App Store
+                    </Button>
                   </CardContent>
                 </MotionCard>
               </motion.div>
