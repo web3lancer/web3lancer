@@ -2,6 +2,9 @@
 import { Box, Grid, Card, CardContent, Typography, IconButton, LinearProgress, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import { ArrowUpward, MoreVert, Assessment, AccountBalance, WorkOutline, TrendingUp } from '@mui/icons-material';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import { databases } from '@/utils/api';
 
 const MotionCard = motion(Card);
 
@@ -20,10 +23,39 @@ const activities = [
 
 export default function DashboardPage() {
   const theme = useTheme();
+  const { user } = useAuth();
+  const [userStats, setUserStats] = useState(statsData);
+  const [userActivities, setUserActivities] = useState(activities);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserStats();
+      fetchUserActivities();
+    }
+  }, [user]);
+
+  const fetchUserStats = async () => {
+    try {
+      // Fetch user-specific stats from the database
+      // Example: const response = await databases.listDocuments('databaseId', 'collectionId', [query]);
+      // setUserStats(response.documents);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const fetchUserActivities = async () => {
+    try {
+      // Fetch user-specific activities from the database
+      // Example: const response = await databases.listDocuments('databaseId', 'collectionId', [query]);
+      // setUserActivities(response.documents);
+    } catch (error) {
+      console.error('Error fetching user activities:', error);
+    }
+  };
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* <Header /> */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -34,7 +66,7 @@ export default function DashboardPage() {
         </Typography>
 
         <Grid container spacing={3}>
-          {statsData.map((stat, index) => (
+          {userStats.map((stat, index) => (
             <Grid item xs={12} sm={6} lg={3} key={stat.title}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -99,7 +131,7 @@ export default function DashboardPage() {
               <CardContent>
                 <Typography variant="h6" sx={{ mb: 3 }}>Recent Activity</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {activities.map((activity, index) => (
+                  {userActivities.map((activity, index) => (
                     <motion.div
                       key={activity.title}
                       initial={{ opacity: 0, x: -20 }}

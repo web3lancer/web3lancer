@@ -1,14 +1,35 @@
 "use client";
-import React, { useState } from "react";
-import { Box, Typography, Avatar, Button, Input, Chip, TextField } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Avatar, Button, Input, Chip, TextField, CircularProgress } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadFile } from "@/utils/storage";
+import { databases } from "@/utils/api";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
+  const [bio, setBio] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await databases.getDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id);
+      setSkills(response.skills || []);
+      setBio(response.bio || "");
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -21,6 +42,9 @@ export default function ProfilePage() {
       try {
         const response = await uploadFile('67b889200019e3d3519d', profilePicture, `users/${user.$id}/profile-pictures/${profilePicture.name}`);
         console.log('Profile picture uploaded:', response);
+        await databases.updateDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id, {
+          profilePicture: response.$id,
+        });
       } catch (error) {
         console.error('Error uploading profile picture:', error);
       }
@@ -38,12 +62,30 @@ export default function ProfilePage() {
     setSkills(skills.filter(skill => skill !== skillToDelete));
   };
 
+  const handleSaveProfile = async () => {
+    if (user) {
+      try {
+        await databases.updateDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id, {
+          skills,
+          bio,
+        });
+        console.log('Profile updated successfully');
+      } catch (error) {
+        console.error('Error updating profile:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return <CircularProgress />;
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
         User Profile
       </Typography>
-      <Avatar sx={{ width: 96, height: 96, mb: 2 }} />
+      <Avatar sx={{ width: 96, height: 96, mb: 2 }} src={user?.profilePicture ? `/storage/${user.profilePicture}` : undefined} />
       <Typography variant="h6" sx={{ mb: 1 }}>
         {user?.name}
       </Typography>
@@ -80,6 +122,23 @@ export default function ProfilePage() {
           ))}
         </Box>
       </Box>
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Bio
+        </Typography>
+        <TextField
+          label="Bio"
+          fullWidth
+          multiline
+          rows={4}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+      </Box>
+      <Button variant="contained" onClick={handleSaveProfile}>
+        Save Profile
+      </Button>
     </Box>
   );
 }
