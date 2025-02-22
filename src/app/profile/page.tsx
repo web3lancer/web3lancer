@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const handleUpload = async () => {
     if (profilePicture && user) {
       try {
-        const response = await uploadFile('profile-pictures', profilePicture, `users/${user.$id}/profile-pictures/${profilePicture.name}`);
+        const response = await uploadFile('67b889200019e3d3519d', profilePicture, `users/${user.$id}/profile-pictures/${profilePicture.name}`);
         console.log('Profile picture uploaded:', response);
       } catch (error) {
         console.error('Error uploading profile picture:', error);
