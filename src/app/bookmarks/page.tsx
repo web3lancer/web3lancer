@@ -11,6 +11,7 @@ interface Bookmark {
   $id: string;
   jobId: string;
   createdAt: string;
+  bookmarkId: string;
 }
 
 interface Job {

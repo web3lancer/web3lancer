@@ -11,6 +11,12 @@ interface Job {
   $id: string;
   title: string;
   description: string;
+  tags: string[];
+  createdAt: string;
+  jobId: string;
+  employerId: string;
+  status: string;
+  updatedAt: string;
 }
 
 interface Activity {

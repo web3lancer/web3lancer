@@ -32,6 +32,7 @@ async function addBookmark(userId: string, jobId: string) {
       userId,
       jobId,
       createdAt: new Date().toISOString(),
+      bookmarkId: ID.unique(),
     });
     console.log('Bookmark added successfully:', response);
   } catch (error) {
@@ -48,13 +49,15 @@ async function removeBookmark(bookmarkId: string) {
   }
 }
 
-async function addTransaction(userId: string, amount: number, type: string) {
+async function addTransaction(userId: string, amount: number, type: string, status: string, transactionId: string) {
   try {
     const response = await databases.createDocument('67b8866c00265d466063', '67b8867b001643b2585a', ID.unique(), {
       userId,
       amount,
       type,
       createdAt: new Date().toISOString(),
+      status,
+      transactionId,
     });
     console.log('Transaction added successfully:', response);
   } catch (error) {
@@ -62,13 +65,15 @@ async function addTransaction(userId: string, amount: number, type: string) {
   }
 }
 
-async function sendMessage(senderId: string, receiverId: string, content: string) {
+async function sendMessage(senderId: string, receiverId: string, message: string, status: string) {
   try {
     const response = await databases.createDocument('67b8864c0020483351b5', '67b88658000bea7a7c7e', ID.unique(), {
       senderId,
       receiverId,
-      content,
-      createdAt: new Date().toISOString(),
+      message,
+      timestamp: new Date().toISOString(),
+      messageId: ID.unique(),
+      status,
     });
     console.log('Message sent successfully:', response);
   } catch (error) {
@@ -76,12 +81,15 @@ async function sendMessage(senderId: string, receiverId: string, content: string
   }
 }
 
-async function addNotification(userId: string, message: string) {
+async function addNotification(userId: string, message: string, type: string) {
   try {
     const response = await databases.createDocument('67b8862f00055127cd62', '67b88639000157c7909d', ID.unique(), {
       userId,
       message,
       createdAt: new Date().toISOString(),
+      type,
+      notificationId: ID.unique(),
+      read: false,
     });
     console.log('Notification added successfully:', response);
   } catch (error) {
@@ -89,13 +97,17 @@ async function addNotification(userId: string, message: string) {
   }
 }
 
-async function addProject(userId: string, title: string, description: string) {
+async function addProject(ownerId: string, title: string, description: string, participants: string[], status: string) {
   try {
     const response = await databases.createDocument('67b88574002c6eb405a2', '67b885810006a89bc6a4', ID.unique(), {
-      userId,
+      ownerId,
       title,
       description,
       createdAt: new Date().toISOString(),
+      participants,
+      status,
+      updatedAt: new Date().toISOString(),
+      projectId: ID.unique(),
     });
     console.log('Project added successfully:', response);
   } catch (error) {
