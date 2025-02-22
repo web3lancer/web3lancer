@@ -7,6 +7,11 @@ import Sidebar from "@/components/Sidebar";
 import { theme } from "@/utils/theme";
 import { motion } from "framer-motion";
 import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider } from 'wagmi';
+import { config } from '@/utils/config';
+
+const queryClient = new QueryClient();
 
 export default function RootLayout({
   children,
@@ -23,47 +28,51 @@ export default function RootLayout({
       <body style={{ margin: 0, background: '#f4f4f4' }}>
         <ThemeProvider theme={theme}>
           <AuthProvider>
-            <Box sx={{ 
-              display: 'flex',
-              minHeight: '100vh',
-              width: '100%',
-              background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
-            }}>
-              <Sidebar />
-              <Box
-                component={motion.div}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                sx={{ 
-                  flex: 1,
+            <WagmiProvider config={config}>
+              <QueryClientProvider client={queryClient}>
+                <Box sx={{ 
                   display: 'flex',
-                  flexDirection: 'column',
                   minHeight: '100vh',
-                  marginLeft: { xs: 0, md: '240px' },
-                  transition: 'margin 0.3s ease',
-                }}
-              >
-                <Header />
-                <Box
-                  component={motion.div}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  sx={{
-                    flex: 1,
-                    p: { xs: 1, sm: 2, md: 3 },
-                    pt: '64px',
-                    background: 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: { xs: '0', md: '24px 0 0 0' },
-                    overflow: 'auto',
-                    position: 'relative',
-                  }}
-                >
-                  {children}
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+                }}>
+                  <Sidebar />
+                  <Box
+                    component={motion.div}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    sx={{ 
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minHeight: '100vh',
+                      marginLeft: { xs: 0, md: '240px' },
+                      transition: 'margin 0.3s ease',
+                    }}
+                  >
+                    <Header />
+                    <Box
+                      component={motion.div}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      sx={{
+                        flex: 1,
+                        p: { xs: 1, sm: 2, md: 3 },
+                        pt: '64px',
+                        background: 'rgba(255, 255, 255, 0.7)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: { xs: '0', md: '24px 0 0 0' },
+                        overflow: 'auto',
+                        position: 'relative',
+                      }}
+                    >
+                      {children}
+                    </Box>
+                  </Box>
                 </Box>
-              </Box>
-            </Box>
+              </QueryClientProvider>
+            </WagmiProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

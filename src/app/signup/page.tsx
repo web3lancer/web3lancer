@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from 'next/navigation';
+import { ConnectWallet } from '@/components/ConnectWallet';
 
 export default function SignUpPage() {
   const { signUp } = useAuth();
@@ -61,9 +62,7 @@ export default function SignUpPage() {
       >
         Sign Up with GitHub
       </Button>
-      <Button variant="outlined" fullWidth>
-        Connect Wallet
-      </Button>
+      <ConnectWallet />
     </Box>
   );
 }
