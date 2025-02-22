@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, TextField } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from 'next/navigation';
 import { ConnectWallet } from '@/components/ConnectWallet';
+import { useAccount } from 'wagmi';
 
 export default function SignUpPage() {
   const { signUp } = useAuth();
@@ -11,6 +12,13 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const router = useRouter();
+  const { isConnected } = useAccount();
+
+  useEffect(() => {
+    if (isConnected) {
+      router.push('/dashboard');
+    }
+  }, [isConnected, router]);
 
   const handleSignUp = async () => {
     try {

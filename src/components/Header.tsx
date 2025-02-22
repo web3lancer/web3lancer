@@ -2,20 +2,22 @@
 
 import { AppBar, Toolbar, Typography, Button, IconButton, Avatar, Box } from "@mui/material";
 import { AccountCircle, Notifications } from "@mui/icons-material";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
-import { account } from "@/utils/api";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount, useDisconnect } from 'wagmi';
 
 export default function Header() {
   const { user, setUser, signOut } = useAuth();
+  const { address } = useAccount();
+  const { disconnect } = useDisconnect();
   const router = useRouter();
 
   const handleSignOut = async () => {
     try {
-      await account.deleteSession('current');
+      await disconnect();
       setUser(null);
       router.push('/signin');
     } catch (error) {
@@ -63,10 +65,10 @@ export default function Header() {
             <Notifications />
           </IconButton>
           
-          {user ? (
+          {address ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="body1" sx={{ color: 'white' }}>
-                {user.name}
+                {address}
               </Typography>
               <Button 
                 color="inherit"
@@ -81,7 +83,7 @@ export default function Header() {
                 }}
                 onClick={handleSignOut}
               >
-                Sign Out
+                Disconnect Wallet
               </Button>
             </Box>
           ) : (

@@ -1,22 +1,29 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, TextField, Link } from "@mui/material";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ConnectWallet } from '@/components/ConnectWallet';
+import { useAccount } from 'wagmi';
 
 export default function SignInPage() {
   const { signIn, setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { isConnected } = useAccount();
+
+  useEffect(() => {
+    if (isConnected) {
+      router.push('/dashboard');
+    }
+  }, [isConnected, router]);
 
   const handleSignIn = async () => {
     try {
       await signIn(email, password);
       const user = await account.get();
       setUser(user);
-      // Redirect to dashboard or profile page after successful sign-in
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Error signing in:", error.message);
