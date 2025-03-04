@@ -9,7 +9,8 @@ class ApiService {
   ApiService() {
     client
         .setEndpoint(
-            'https://cloud.appwrite.io/v1') // Replace with your endpoint
+          'https://cloud.appwrite.io/v1',
+        ) // Replace with your endpoint
         .setProject('67aed8360001b6dd8cb3') // Replace with your project ID
         .setSelfSigned(status: true); // Remove in production
 
@@ -44,7 +45,9 @@ class ApiService {
   }
 
   Future<void> createDocument(
-      String collectionId, Map<String, dynamic> data) async {
+    String collectionId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await databases.createDocument(
         databaseId: '67aed8360001b6dd8cb3',
@@ -72,7 +75,10 @@ class ApiService {
   }
 
   Future<void> updateDocument(
-      String collectionId, String documentId, Map<String, dynamic> data) async {
+    String collectionId,
+    String documentId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await databases.updateDocument(
         databaseId: '67aed8360001b6dd8cb3',
