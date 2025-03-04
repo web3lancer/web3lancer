@@ -1,16 +1,16 @@
 class AppConstants {
   // Platform name
   static const String appName = 'Web3Lancer';
-  
+
   // Supported blockchains
   static const List<String> supportedBlockchains = [
     'Ethereum',
     'Polygon',
     'Solana',
     'Binance Smart Chain',
-    'Avalanche'
+    'Avalanche',
   ];
-  
+
   // Supported tokens
   static const Map<String, String> supportedTokens = {
     'ETH': 'Ethereum',
@@ -22,12 +22,12 @@ class AppConstants {
     'USDC': 'USD Coin',
     'DAI': 'Dai',
   };
-  
+
   // Escrow settings
   static const int minEscrowWitnesses = 3;
   static const int maxEscrowWitnesses = 7;
   static const double escrowFeePercentage = 0.5; // 0.5%
-  
+
   // User reputation levels
   static const Map<String, int> reputationLevels = {
     'New': 0,
@@ -37,7 +37,7 @@ class AppConstants {
     'Expert': 200,
     'Master': 500,
   };
-  
+
   // Project categories
   static const List<String> projectCategories = [
     'Smart Contract Development',
@@ -51,10 +51,10 @@ class AppConstants {
     'DeFi Projects',
     'Crypto Content Creation',
   ];
-  
+
   // API endpoints
   static const String apiBaseUrl = 'https://api.web3lancer.io';
-  static const String explorerBaseUrls = {
+  static const Map<String, String> explorerBaseUrls = {
     'Ethereum': 'https://etherscan.io',
     'Polygon': 'https://polygonscan.com',
     'Solana': 'https://explorer.solana.com',

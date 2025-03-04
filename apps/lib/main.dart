@@ -1,24 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/signin_screen.dart';
-import 'screens/signup_screen.dart';
 import 'utils/theme.dart';
-import 'provider/auth_provider.dart';
-import 'provider/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  // Later you can add provider after fixing the dependencies
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -26,19 +15,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
+    // For now, hardcode these values without using Provider
+    final bool isAuthenticated = false;
+    final bool isLoading = false;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Web3Lancer',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeProvider.themeMode,
+      themeMode: ThemeMode.system,
       home:
-          authProvider.isLoading
+          isLoading
               ? _buildLoadingScreen()
-              : authProvider.isAuthenticated
+              : isAuthenticated
               ? const HomeScreen()
               : SignInScreen(),
       routes: {
@@ -50,16 +40,16 @@ class MyApp extends StatelessWidget {
   }
 
   Widget _buildLoadingScreen() {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/web3lancer.jpg', width: 100, height: 100),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            const Text('Loading Web3Lancer...'),
+            // Image.asset('assets/web3lancer.jpg', width: 100, height: 100),
+            SizedBox(height: 24),
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Loading Web3Lancer...'),
           ],
         ),
       ),

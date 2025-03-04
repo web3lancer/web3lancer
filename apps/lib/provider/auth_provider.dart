@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 
+// Remove SharedPreferences for now until you add the dependency
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
@@ -25,18 +25,13 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('userId');
-
-      if (userId != null) {
-        // Try to get current session
-        final accountDetails = await _apiService.getCurrentSession();
-        if (accountDetails != null) {
-          _isAuthenticated = true;
-          _currentUser = await _apiService.getUserProfile(userId);
-        } else {
-          _clearAuthData();
-        }
+      // Simplified auth check without SharedPreferences
+      final accountDetails = await _apiService.getCurrentSession();
+      if (accountDetails != null) {
+        _isAuthenticated = true;
+        _currentUser = await _apiService.getUserProfile(accountDetails.userId);
+      } else {
+        _clearAuthData();
       }
     } catch (e) {
       _errorMessage = e.toString();
@@ -54,11 +49,12 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final user = await _apiService.signIn(email, password);
-      _currentUser = user;
-      _isAuthenticated = true;
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', user.id);
+      if (user != null) {
+        _currentUser = user;
+        _isAuthenticated = true;
+      } else {
+        throw Exception("Failed to get user profile");
+      }
     } catch (e) {
       _errorMessage = 'Login failed: ${e.toString()}';
       _isAuthenticated = false;
@@ -76,11 +72,12 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final user = await _apiService.signUp(name, email, password);
-      _currentUser = user;
-      _isAuthenticated = true;
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', user.id);
+      if (user != null) {
+        _currentUser = user;
+        _isAuthenticated = true;
+      } else {
+        throw Exception("Failed to create user profile");
+      }
     } catch (e) {
       _errorMessage = 'Registration failed: ${e.toString()}';
       _isAuthenticated = false;
@@ -109,8 +106,6 @@ class AuthProvider with ChangeNotifier {
   Future<void> _clearAuthData() async {
     _currentUser = null;
     _isAuthenticated = false;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userId');
   }
 
   Future<void> connectWallet(

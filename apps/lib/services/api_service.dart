@@ -20,28 +20,56 @@ class ApiService {
     storage = Storage(client);
   }
 
-  Future<void> signUp(String email, String password) async {
+  Future<User?> signUp(String name, String email, String password) async {
     try {
       final response = await account.create(
         userId: 'unique()',
         email: email,
         password: password,
+        name: name,
       );
-      print('User created successfully: $response');
+
+      // Create user profile document
+      final userId = response.$id;
+      await databases.createDocument(
+        databaseId: '67aed8360001b6dd8cb3',
+        collectionId: 'users',
+        documentId: userId,
+        data: {
+          'name': name,
+          'email': email,
+          'createdAt': DateTime.now().toIso8601String(),
+          'lastActive': DateTime.now().toIso8601String(),
+        },
+      );
+
+      // Log in the user after signup
+      await account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
+
+      return await getUserProfile(userId);
     } catch (e) {
       print('Error creating user: $e');
+      return null;
     }
   }
 
-  Future<void> signIn(String email, String password) async {
+  Future<User?> signIn(String email, String password) async {
     try {
-      final response = await account.createEmailSession(
+      final response = await account.createEmailPasswordSession(
         email: email,
         password: password,
       );
       print('User signed in successfully: $response');
+
+      // Get user profile after login
+      final userId = response.userId;
+      return await getUserProfile(userId);
     } catch (e) {
       print('Error signing in: $e');
+      return null;
     }
   }
 
