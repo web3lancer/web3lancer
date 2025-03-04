@@ -35,13 +35,34 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.themeMode,
-      initialRoute: authProvider.isAuthenticated ? '/home' : '/signin',
+      home:
+          authProvider.isLoading
+              ? _buildLoadingScreen()
+              : authProvider.isAuthenticated
+              ? const HomeScreen()
+              : SignInScreen(),
       routes: {
-        '/': (context) => const HomeScreen(),
         '/home': (context) => const HomeScreen(),
         '/signin': (context) => SignInScreen(),
         '/signup': (context) => SignUpScreen(),
       },
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/web3lancer.jpg', width: 100, height: 100),
+            const SizedBox(height: 24),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            const Text('Loading Web3Lancer...'),
+          ],
+        ),
+      ),
     );
   }
 }

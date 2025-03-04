@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import '../models/user.dart';
 
 class ApiService {
   final Client client = Client();
@@ -34,14 +35,59 @@ class ApiService {
 
   Future<void> signIn(String email, String password) async {
     try {
-      final response = await account.createSession(
-        userId: email,
-        secret: password,
+      final response = await account.createEmailSession(
+        email: email,
+        password: password,
       );
       print('User signed in successfully: $response');
     } catch (e) {
       print('Error signing in: $e');
     }
+  }
+
+  Future<dynamic> getCurrentSession() async {
+    try {
+      return await account.getSession(sessionId: 'current');
+    } catch (e) {
+      print('Error getting current session: $e');
+      return null;
+    }
+  }
+
+  Future<User?> getUserProfile(String userId) async {
+    try {
+      final document = await databases.getDocument(
+        databaseId: '67aed8360001b6dd8cb3',
+        collectionId: 'users',
+        documentId: userId,
+      );
+      return User.fromJson(document.data);
+    } catch (e) {
+      print('Error getting user profile: $e');
+      return null;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await account.deleteSession(sessionId: 'current');
+    } catch (e) {
+      print('Error signing out: $e');
+    }
+  }
+
+  Future<UserWallet> verifyWalletSignature(
+    String address,
+    String blockchainType,
+    String signature,
+  ) async {
+    // In a real app, this would verify the signature with blockchain
+    // For now, we'll simulate wallet verification
+    return UserWallet(
+      address: address,
+      blockchainType: blockchainType,
+      isVerified: true,
+    );
   }
 
   Future<void> createDocument(
