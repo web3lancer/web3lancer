@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'screens/signin_screen.dart';
+import 'screens/signup_screen.dart'; // Add this import
 import 'utils/theme.dart';
 
 void main() async {
