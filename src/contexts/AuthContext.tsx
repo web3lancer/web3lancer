@@ -1,87 +1,101 @@
 "use client";
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { account, databases, ID } from "@/app/appwrite";
+import { account, databases, ID, Query } from "@/app/appwrite";
 import { useAccount, useDisconnect } from 'wagmi';
+import { useRouter } from 'next/navigation';
+
+interface User {
+  $id: string;
+  name?: string;
+  email?: string;
+  walletId?: string;
+  profileImage?: string;
+  bio?: string;
+  skills?: string[];
+  // Add any other user properties
+}
 
 interface AuthContextProps {
-  user: any;
-  setUser: React.Dispatch<React.SetStateAction<any>>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  signUp: (email: string, password: string, name: string) => Promise<User>;
+  signIn: (email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
   handleGitHubOAuth: (code: string) => Promise<void>;
+  updateUserProfile: (userId: string, data: Partial<User>) => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
   user: null,
   setUser: () => {},
-  signUp: async () => {},
-  signIn: async () => {},
+  isLoading: false,
+  isAuthenticated: false,
+  signUp: async () => ({ $id: '' }),
+  signIn: async () => ({ $id: '' }),
   signOut: async () => {},
   handleGitHubOAuth: async () => {},
+  updateUserProfile: async () => ({ $id: '' }),
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
+  const router = useRouter();
 
   useEffect(() => {
-    account.get().then(setUser).catch(() => setUser(null));
+    const checkUser = async () => {
+      try {
+        setIsLoading(true);
+        const currentUser = await account.get();
+        setUser(currentUser as User);
+      } catch (error) {
+        console.error('Error checking user session:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkUser();
   }, []);
 
   useEffect(() => {
-    if (address) {
+    if (address && !user) {
       handleWalletAuth(address);
     }
-  }, [address]);
+  }, [address, user]);
 
-  const signUp = async (email: string, password: string, name: string) => {
-    await account.create("unique()", email, password, name);
-    await account.createEmailSession(email, password);
-    const userData = await account.get();
-    setUser(userData);
-  };
-
-  const signIn = async (email: string, password: string) => {
-    await account.createEmailSession(email, password);
-    const userData = await account.get();
-    setUser(userData);
-  };
-
-  const signOut = async () => {
-    await account.deleteSession("current");
-    setUser(null);
-  };
-
-  const handleGitHubOAuth = async (code: string) => {
+  const signUp = async (email: string, password: string, name: string): Promise<User> => {
+    setIsLoading(true);
     try {
-      const response = await account.createOAuth2Session('github', 'https://your-app-url.com/oauth/callback', 'https://your-app-url.com/oauth/callback', code);
+      await account.create("unique()", email, password, name);
+      await account.createEmailSession(email, password);
       const userData = await account.get();
-      setUser(userData);
+      setUser(userData as User);
+      return userData as User;
     } catch (error) {
-      console.error("Error handling GitHub OAuth:", error);
+      console.error('Error during signup:', error);
+      throw new Error(`Signup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleWalletAuth = async (walletAddress: string) => {
+  const signIn = async (email: string, password: string): Promise<User> => {
+    setIsLoading(true);
     try {
-      const response = await databases.createDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', ID.unique(), {
-        walletId: walletAddress,
-      });
-      setUser(response);
+      await account.createEmailSession(email, password);
+      const userData = await account.get();
+      setUser(userData as User);
+      return userData as User;
     } catch (error) {
-      console.error("Error handling wallet authentication:", error);
+      console.error('Error during signin:', error);
+      throw new Error(`Sign in failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  return (
-    <AuthContext.Provider value={{ user, setUser, signUp, signIn, signOut, handleGitHubOAuth }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
-}
