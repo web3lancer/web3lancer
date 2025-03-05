@@ -99,3 +99,117 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   };
+
+  const signOut = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await account.deleteSession("current");
+      setUser(null);
+      if (router) {
+        router.push('/signin');
+      }
+    } catch (error) {
+      console.error('Error during signout:', error);
+      throw new Error(`Sign out failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGitHubOAuth = async (code: string) => {
+    setIsLoading(true);
+    try {
+      // Replace with your actual OAuth callback URLs
+      const response = await account.createOAuth2Session(
+        'github',
+        'https://web3lancer.com/oauth/callback',
+        'https://web3lancer.com/signin',
+        code
+      );
+      const userData = await account.get();
+      setUser(userData as User);
+    } catch (error) {
+      console.error("Error handling GitHub OAuth:", error);
+      throw new Error(`GitHub OAuth failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleWalletAuth = async (walletAddress: string) => {
+    setIsLoading(true);
+    try {
+      // Check if user with this wallet already exists
+      const existingUsers = await databases.listDocuments(
+        '67b885280000d2cb5411',
+        '67b8853c003c55c82ff6',
+        [Query.equal('walletId', walletAddress)]
+      );
+
+      let userData;
+      
+      if (existingUsers.documents.length > 0) {
+        // User exists, load their data
+        userData = existingUsers.documents[0];
+      } else {
+        // Create new user with wallet
+        userData = await databases.createDocument(
+          '67b885280000d2cb5411',
+          '67b8853c003c55c82ff6',
+          ID.unique(),
+          {
+            walletId: walletAddress,
+            createdAt: new Date().toISOString(),
+          }
+        );
+      }
+      
+      setUser(userData as User);
+    } catch (error) {
+      console.error("Error handling wallet authentication:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateUserProfile = async (userId: string, data: Partial<User>): Promise<User> => {
+    setIsLoading(true);
+    try {
+      const updatedUser = await databases.updateDocument(
+        '67b885280000d2cb5411',
+        '67b8853c003c55c82ff6',
+        userId,
+        data
+      );
+      setUser(updatedUser as User);
+      return updatedUser as User;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw new Error(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isAuthenticated = Boolean(user);
+
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      setUser, 
+      isLoading, 
+      isAuthenticated,
+      signUp, 
+      signIn, 
+      signOut, 
+      handleGitHubOAuth,
+      updateUserProfile
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
