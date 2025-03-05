@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Box, TextField, Button, Typography, Grid, Card, CardContent } from "@mui/material";
+import { Box, TextField, Button, Typography, Grid, Card, CardContent, CircularProgress } from "@mui/material";
 import { databases, ID } from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -15,6 +15,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -24,16 +25,22 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b005d474dcf22');
+      setLoading(true);
+      const response = await databases.listDocuments('67b88574002c6eb405a2', '67b885810006a89bc6a4');
       setProjects(response.documents as Project[]);
     } catch (error) {
       console.error("Error fetching projects:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCreateProject = async () => {
+    if (!name || !description) return;
+    
     try {
-      await databases.createDocument('67af3ffe0011106c4575', '67b8f57b005d474dcf22', ID.unique(), {
+      setLoading(true);
+      await databases.createDocument('67b88574002c6eb405a2', '67b885810006a89bc6a4', ID.unique(), {
         name,
         description,
         ownerId: user.$id,
@@ -44,6 +51,8 @@ export default function ProjectsPage() {
       fetchProjects();
     } catch (error) {
       console.error("Error creating project:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,35 +61,52 @@ export default function ProjectsPage() {
       <Typography variant="h4" sx={{ mb: 3 }}>
         Projects
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
         <TextField
           label="Project Name"
           variant="outlined"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          fullWidth
         />
         <TextField
           label="Project Description"
           variant="outlined"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          fullWidth
         />
-        <Button variant="contained" onClick={handleCreateProject}>
-          Create Project
+        <Button 
+          variant="contained" 
+          onClick={handleCreateProject}
+          disabled={loading || !name || !description}
+        >
+          {loading ? <CircularProgress size={24} /> : "Create Project"}
         </Button>
       </Box>
-      <Grid container spacing={2}>
-        {projects.map((project) => (
-          <Grid item xs={12} sm={6} md={4} key={project.$id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{project.name}</Typography>
-                <Typography variant="body2">{project.description}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : projects.length > 0 ? (
+        <Grid container spacing={2}>
+          {projects.map((project) => (
+            <Grid item xs={12} sm={6} md={4} key={project.$id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">{project.name}</Typography>
+                  <Typography variant="body2">{project.description}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          No projects found. Create your first project!
+        </Typography>
+      )}
     </Box>
   );
 }

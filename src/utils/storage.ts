@@ -69,4 +69,5 @@ export async function listFiles(bucketId: string) {
   }
 }
 
-export { getFile, deleteFile };
+// Remove redundant exports that are already exported above
+export { storage };

@@ -119,15 +119,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleGitHubOAuth = async (code: string) => {
     setIsLoading(true);
     try {
-      // Replace with your actual OAuth callback URLs
-      const response = await account.createOAuth2Session(
-        'github',
-        'https://web3lancer.com/oauth/callback',
-        'https://web3lancer.com/signin',
-        code
-      );
+      // Use the appropriate endpoint URLs for your app
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      
+      // Create OAuth2 session - note that this is a server-side operation in production
+      // This is a simplified client-side implementation for development
+      await fetch('/api/auth/github', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+      
+      // Get user data after OAuth is complete
       const userData = await account.get();
       setUser(userData as User);
+      return userData;
     } catch (error) {
       console.error("Error handling GitHub OAuth:", error);
       throw new Error(`GitHub OAuth failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
