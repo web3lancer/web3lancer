@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useConnect } from 'wagmi';
-import { Box, Button, Typography, Grid, Paper, CircularProgress } from '@mui/material';
+import { Box, Button, Typography, Grid, Paper, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -9,7 +9,7 @@ const MotionButton = motion(Button);
 const MotionPaper = motion(Paper);
 
 export function WalletOptions() {
-  const { connectors, connect, status, error } = useConnect();
+  const { connectors, connect, status, error, isLoading } = useConnect();
   const router = useRouter();
   const [connecting, setConnecting] = React.useState<string | null>(null);
   
@@ -29,6 +29,9 @@ export function WalletOptions() {
       router.push('/dashboard');
     }
   }, [status, router]);
+
+  // Check if there are available connectors
+  const hasAvailableConnectors = connectors.some(connector => connector.ready);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -82,6 +85,12 @@ export function WalletOptions() {
         </MotionPaper>
       )}
 
+      {!hasAvailableConnectors && !isLoading && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          No wallet detected. Please install a Web3 wallet extension like MetaMask.
+        </Alert>
+      )}
+
       <Grid container spacing={2}>
         {connectors.map((connector) => (
           <Grid item xs={12} key={connector.id}>
@@ -126,7 +135,7 @@ export function WalletOptions() {
                 </Typography>
                 {!connector.ready && (
                   <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                    Not installed
+                    {connector.id === 'metaMask' ? 'MetaMask not installed' : 'Not installed'}
                   </Typography>
                 )}
               </Box>
