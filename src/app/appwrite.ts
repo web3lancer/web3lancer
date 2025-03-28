@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID } from 'appwrite';
+import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/env';
 
 // Initialize the Appwrite client
@@ -14,5 +14,4 @@ export const databases = new Databases(client);
 export const storage = new Storage(client);
 
 // Export client and ID for convenience
-export { client, ID };
-export { Query } from 'appwrite';
+export { client, ID, Query };
