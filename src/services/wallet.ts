@@ -1,12 +1,11 @@
 import { ID } from 'appwrite';
-import { databases, client } from '@/utils/api';
-import { NEW_SCHEMAS } from '@/lib/schema';
+import { databases } from '@/utils/api';
+import { APPWRITE_CONFIG } from '@/lib/env';
 
 /**
  * Wallet Service
  * 
  * This service handles operations related to cryptocurrency wallets.
- * Note: This will use the new schema that needs to be added to Appwrite.
  */
 
 /**
@@ -19,8 +18,8 @@ export async function createWallet(userId: string, walletType: string = 'custodi
     
     // Create the wallet document
     const wallet = await databases.createDocument(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.WALLETS.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       ID.unique(),
       {
         userId,
@@ -51,8 +50,8 @@ export async function createWallet(userId: string, walletType: string = 'custodi
 async function createBalance(walletId: string, currency: string, amount: number = 0) {
   try {
     return await databases.createDocument(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.BALANCES.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       ID.unique(),
       {
         walletId,
@@ -73,8 +72,8 @@ async function createBalance(walletId: string, currency: string, amount: number 
 export async function getUserWallet(userId: string) {
   try {
     const response = await databases.listDocuments(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.WALLETS.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       [
         databases.Query.equal('userId', userId)
       ]
@@ -98,8 +97,8 @@ export async function getUserWallet(userId: string) {
 export async function getWalletBalances(walletId: string) {
   try {
     const response = await databases.listDocuments(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.BALANCES.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       [
         databases.Query.equal('walletId', walletId)
       ]
@@ -119,8 +118,8 @@ export async function updateBalance(walletId: string, currency: string, amount: 
   try {
     // Find the existing balance
     const response = await databases.listDocuments(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.BALANCES.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       [
         databases.Query.equal('walletId', walletId),
         databases.Query.equal('currency', currency)
@@ -135,8 +134,8 @@ export async function updateBalance(walletId: string, currency: string, amount: 
     // Update the existing balance
     const balance = response.documents[0];
     return await databases.updateDocument(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.BALANCES.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       balance.$id,
       {
         amount,
@@ -166,10 +165,11 @@ export async function recordCryptoTransaction(
 ) {
   try {
     return await databases.createDocument(
-      NEW_SCHEMAS.WALLET_DATABASE.ID,
-      NEW_SCHEMAS.WALLET_DATABASE.COLLECTIONS.CRYPTO_TRANSACTIONS.ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
       ID.unique(),
       {
+        cryptoTxId: ID.unique(),
         transactionId,
         walletId,
         txHash,

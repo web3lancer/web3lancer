@@ -113,3 +113,21 @@ export async function processJobPayment(
     `Payment for job ${jobId}`
   );
 }
+
+/**
+ * Process payment for a service or product
+ */
+export async function processServicePayment(
+  userId: string,
+  serviceId: string,
+  amount: number,
+  currency: string
+): Promise<{ success: boolean; transactionId?: string; error?: string }> {
+  return processAndRecordPayment(
+    userId,
+    amount,
+    currency,
+    'service_payment',
+    `Payment for service ${serviceId}`
+  );
+}

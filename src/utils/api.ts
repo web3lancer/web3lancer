@@ -1,4 +1,5 @@
 import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
+import { APPWRITE_CONFIG } from '@/lib/env';
 
 const client = new Client();
 client
@@ -14,7 +15,7 @@ const storage = new Storage(client);
  */
 async function signUp(email: string, password: string, name: string) {
   try {
-    const response = await account.create('unique()', email, password, name);
+    const response = await account.create(ID.unique(), email, password, name);
     console.log('User created successfully:', response);
     return response;
   } catch (error) {
@@ -41,8 +42,8 @@ async function addBookmark(userId: string, jobId: string) {
   try {
     // Check if bookmark already exists
     const existing = await databases.listDocuments(
-      '67b885ed000038dd7ab9',
-      '67b8860100311b7d7939',
+      APPWRITE_CONFIG.DATABASES.BOOKMARKS,
+      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS,
       [Query.equal('userId', userId), Query.equal('jobId', jobId)]
     );
 
@@ -50,12 +51,17 @@ async function addBookmark(userId: string, jobId: string) {
       return existing.documents[0];
     }
 
-    const response = await databases.createDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', ID.unique(), {
-      userId,
-      jobId,
-      createdAt: new Date().toISOString(),
-      bookmarkId: ID.unique(),
-    });
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.BOOKMARKS, 
+      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS, 
+      ID.unique(), 
+      {
+        userId,
+        jobId,
+        createdAt: new Date().toISOString(),
+        bookmarkId: ID.unique(),
+      }
+    );
     
     console.log('Bookmark added successfully:', response);
     return response;
@@ -67,7 +73,11 @@ async function addBookmark(userId: string, jobId: string) {
 
 async function removeBookmark(bookmarkId: string) {
   try {
-    await databases.deleteDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', bookmarkId);
+    await databases.deleteDocument(
+      APPWRITE_CONFIG.DATABASES.BOOKMARKS,
+      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS,
+      bookmarkId
+    );
     console.log('Bookmark removed successfully');
     return true;
   } catch (error) {
@@ -81,14 +91,19 @@ async function removeBookmark(bookmarkId: string) {
  */
 async function addTransaction(userId: string, amount: number, type: string, status: string, transactionId: string) {
   try {
-    const response = await databases.createDocument('67b8866c00265d466063', '67b8867b001643b2585a', ID.unique(), {
-      userId,
-      amount,
-      type,
-      createdAt: new Date().toISOString(),
-      status,
-      transactionId,
-    });
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
+      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+      ID.unique(),
+      {
+        userId,
+        amount,
+        type,
+        createdAt: new Date().toISOString(),
+        status,
+        transactionId,
+      }
+    );
     console.log('Transaction added successfully:', response);
     return response;
   } catch (error) {
@@ -102,14 +117,19 @@ async function addTransaction(userId: string, amount: number, type: string, stat
  */
 async function sendMessage(senderId: string, receiverId: string, message: string, status: string) {
   try {
-    const response = await databases.createDocument('67b8864c0020483351b5', '67b88658000bea7a7c7e', ID.unique(), {
-      senderId,
-      receiverId,
-      message,
-      timestamp: new Date().toISOString(),
-      messageId: ID.unique(),
-      status,
-    });
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.MESSAGES,
+      APPWRITE_CONFIG.COLLECTIONS.MESSAGES,
+      ID.unique(),
+      {
+        senderId,
+        receiverId,
+        message,
+        timestamp: new Date().toISOString(),
+        messageId: ID.unique(),
+        status,
+      }
+    );
     console.log('Message sent successfully:', response);
     
     // Also create notification for recipient
@@ -127,14 +147,19 @@ async function sendMessage(senderId: string, receiverId: string, message: string
  */
 async function addNotification(userId: string, message: string, type: string) {
   try {
-    const response = await databases.createDocument('67b8862f00055127cd62', '67b88639000157c7909d', ID.unique(), {
-      userId,
-      message,
-      createdAt: new Date().toISOString(),
-      type,
-      notificationId: ID.unique(),
-      read: false,
-    });
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
+      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
+      ID.unique(),
+      {
+        userId,
+        message,
+        createdAt: new Date().toISOString(),
+        type,
+        notificationId: ID.unique(),
+        read: false,
+      }
+    );
     console.log('Notification added successfully:', response);
     return response;
   } catch (error) {
@@ -146,8 +171,8 @@ async function addNotification(userId: string, message: string, type: string) {
 async function markNotificationAsRead(notificationId: string) {
   try {
     const response = await databases.updateDocument(
-      '67b8862f00055127cd62',
-      '67b88639000157c7909d',
+      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
+      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
       notificationId,
       { read: true }
     );
@@ -163,16 +188,21 @@ async function markNotificationAsRead(notificationId: string) {
  */
 async function addProject(ownerId: string, title: string, description: string, participants: string[], status: string) {
   try {
-    const response = await databases.createDocument('67b88574002c6eb405a2', '67b885810006a89bc6a4', ID.unique(), {
-      ownerId,
-      title,
-      description,
-      createdAt: new Date().toISOString(),
-      participants,
-      status,
-      updatedAt: new Date().toISOString(),
-      projectId: ID.unique(),
-    });
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.PROJECTS,
+      APPWRITE_CONFIG.COLLECTIONS.PROJECTS,
+      ID.unique(),
+      {
+        ownerId,
+        title,
+        description,
+        createdAt: new Date().toISOString(),
+        participants,
+        status,
+        updatedAt: new Date().toISOString(),
+        projectId: ID.unique(),
+      }
+    );
     console.log('Project added successfully:', response);
     return response;
   } catch (error) {
@@ -184,14 +214,60 @@ async function addProject(ownerId: string, title: string, description: string, p
 async function getProjects(userId: string) {
   try {
     const response = await databases.listDocuments(
-      '67b88574002c6eb405a2',
-      '67b885810006a89bc6a4',
+      APPWRITE_CONFIG.DATABASES.PROJECTS,
+      APPWRITE_CONFIG.COLLECTIONS.PROJECTS,
       [Query.equal('ownerId', userId)]
     );
     return response.documents;
   } catch (error) {
     console.error('Error fetching projects:', error);
     throw new Error(`Failed to fetch projects: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Payment methods management
+ */
+async function addPaymentMethod(
+  userId: string,
+  type: string,
+  details: string,
+  isDefault: boolean = false
+) {
+  try {
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
+      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      ID.unique(),
+      {
+        userId,
+        type,
+        details,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        paymentMethodId: ID.unique(),
+        isDefault,
+      }
+    );
+    console.log('Payment method added successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error adding payment method:', error);
+    throw new Error(`Failed to add payment method: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function getUserPaymentMethods(userId: string) {
+  try {
+    const response = await databases.listDocuments(
+      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
+      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      [Query.equal('userId', userId)]
+    );
+    return response.documents;
+  } catch (error) {
+    console.error('Error fetching payment methods:', error);
+    throw new Error(`Failed to fetch payment methods: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -226,5 +302,7 @@ export {
   addProject,
   getProjects,
   addUser,
+  addPaymentMethod,
+  getUserPaymentMethods,
   Query
 };
