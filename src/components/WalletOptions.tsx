@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useConnect } from 'wagmi';
-import { Box, Button, Typography, Grid, Paper, CircularProgress, Alert } from '@mui/material';
+import { Box, Button, Typography, Grid, Paper, CircularProgress, Alert, Tooltip } from '@mui/material';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,51 @@ export function WalletOptions() {
   const { connectors, connect, status, error, isLoading } = useConnect();
   const router = useRouter();
   const [connecting, setConnecting] = React.useState<string | null>(null);
+  
+  // Handle injected wallets - detect Ethereum provider
+  const [detectedWallets, setDetectedWallets] = React.useState<string[]>([]);
+  
+  React.useEffect(() => {
+    // Function to detect wallets
+    const detectWallets = () => {
+      const ethereum = window.ethereum;
+      const detectedProviders: string[] = [];
+      
+      if (ethereum) {
+        // Check for multiple providers in window.ethereum
+        if (ethereum.providers?.length) {
+          ethereum.providers.forEach((provider: any) => {
+            if (provider.isMetaMask) detectedProviders.push('MetaMask');
+            if (provider.isCoinbaseWallet) detectedProviders.push('Coinbase Wallet');
+            if (provider.isBraveWallet) detectedProviders.push('Brave Wallet');
+            if (provider.isOKXWallet) detectedProviders.push('OKX Wallet');
+            if (provider.isPhantom) detectedProviders.push('Phantom');
+            // Add other wallet detections as needed
+          });
+        } else {
+          // Single provider
+          if (ethereum.isMetaMask) detectedProviders.push('MetaMask');
+          if (ethereum.isCoinbaseWallet) detectedProviders.push('Coinbase Wallet');
+          if (ethereum.isBraveWallet) detectedProviders.push('Brave Wallet');
+          if (ethereum.isOKXWallet) detectedProviders.push('OKX Wallet');
+          if (ethereum.isPhantom) detectedProviders.push('Phantom');
+          // Add other wallet detections as needed
+        }
+        
+        // If we can't identify the specific wallet but Ethereum is available
+        if (detectedProviders.length === 0) {
+          detectedProviders.push('Browser Wallet');
+        }
+      }
+      
+      setDetectedWallets(detectedProviders);
+    };
+    
+    // Run detection
+    if (typeof window !== 'undefined') {
+      detectWallets();
+    }
+  }, []);
   
   const handleConnect = (connector: any) => {
     setConnecting(connector.id);
@@ -29,9 +74,6 @@ export function WalletOptions() {
       router.push('/dashboard');
     }
   }, [status, router]);
-
-  // Check if there are available connectors
-  const hasAvailableConnectors = connectors.some(connector => connector.ready);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -85,67 +127,93 @@ export function WalletOptions() {
         </MotionPaper>
       )}
 
-      {!hasAvailableConnectors && !isLoading && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          No wallet detected. Please install a Web3 wallet extension like MetaMask.
+      {detectedWallets.length > 0 && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Detected wallet(s): {detectedWallets.join(', ')}
         </Alert>
       )}
 
       <Grid container spacing={2}>
-        {connectors.map((connector) => (
-          <Grid item xs={12} key={connector.id}>
-            <MotionButton
-              component={motion.button}
-              variants={itemVariants}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleConnect(connector)}
-              variant="outlined"
-              disabled={!connector.ready || connecting === connector.id}
-              sx={{
-                py: 1.5,
-                px: 3,
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                gap: 2,
-                bgcolor: 'background.paper',
-                borderRadius: 3,
-                border: '1px solid rgba(0, 0, 0, 0.08)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                textTransform: 'none',
-                fontSize: '1rem',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              <Box sx={{ 
-                position: 'relative', 
-                width: 32, 
-                height: 32,
-                flexShrink: 0,
-              }}>
-                {getWalletIcon(connector.id)}
-              </Box>
-              
-              <Box sx={{ flexGrow: 1, textAlign: 'left' }}>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {connector.name}
-                </Typography>
-                {!connector.ready && (
-                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                    {connector.id === 'metaMask' ? 'MetaMask not installed' : 'Not installed'}
-                  </Typography>
-                )}
-              </Box>
+        {connectors.map((connector) => {
+          // Determine if this is an injected connector
+          const isInjected = connector.id === 'injected';
+          // For injected connector, check if we detected a wallet
+          const isDetected = isInjected && detectedWallets.length > 0;
+          // Display injected connector differently if we detected a specific wallet
+          const displayName = isInjected ? (detectedWallets[0] || 'Browser Wallet') : connector.name;
 
-              {connecting === connector.id && (
-                <CircularProgress size={24} sx={{ ml: 1 }} />
-              )}
-            </MotionButton>
-          </Grid>
-        ))}
+          return (
+            <Grid item xs={12} key={connector.id}>
+              <Tooltip 
+                title={
+                  !connector.ready 
+                    ? `${connector.name} is not available` 
+                    : isInjected 
+                      ? "Connect to your browser's built-in wallet or extension" 
+                      : `Connect with ${connector.name}`
+                }
+              >
+                <span style={{ display: 'block', width: '100%' }}>
+                  <MotionButton
+                    component={motion.button}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleConnect(connector)}
+                    variant="outlined"
+                    disabled={!connector.ready || connecting === connector.id}
+                    sx={{
+                      py: 1.5,
+                      px: 3,
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      alignItems: 'center',
+                      gap: 2,
+                      bgcolor: 'background.paper',
+                      borderRadius: 3,
+                      border: '1px solid rgba(0, 0, 0, 0.08)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Box sx={{ 
+                      position: 'relative', 
+                      width: 32, 
+                      height: 32,
+                      flexShrink: 0,
+                    }}>
+                      {getWalletIcon(isInjected ? (detectedWallets[0]?.toLowerCase() || 'browser') : connector.id)}
+                    </Box>
+                    
+                    <Box sx={{ flexGrow: 1, textAlign: 'left' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        {displayName}
+                      </Typography>
+                      {!connector.ready && (
+                        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                          Not installed
+                        </Typography>
+                      )}
+                      {isDetected && (
+                        <Typography variant="caption" sx={{ display: 'block', color: 'success.main' }}>
+                          Detected
+                        </Typography>
+                      )}
+                    </Box>
+  
+                    {connecting === connector.id && (
+                      <CircularProgress size={24} sx={{ ml: 1 }} />
+                    )}
+                  </MotionButton>
+                </span>
+              </Tooltip>
+            </Grid>
+          );
+        })}
       </Grid>
       
       <Typography variant="body2" sx={{ mt: 3, textAlign: 'center', color: 'text.secondary' }}>
@@ -166,17 +234,27 @@ export function WalletOptions() {
 }
 
 function getWalletIcon(id: string) {
-  switch(id) {
-    case 'metaMask':
+  // Handle some common wallet types
+  switch(id.toLowerCase()) {
+    case 'metamask':
       return <Image src="/wallets/metamask.svg" alt="MetaMask" fill style={{ objectFit: 'contain' }} />;
-    case 'coinbaseWallet':
+    case 'coinbase wallet':
+    case 'coinbasewallet':
       return <Image src="/wallets/coinbase.svg" alt="Coinbase Wallet" fill style={{ objectFit: 'contain' }} />;
-    case 'walletConnect':
+    case 'walletconnect':
       return <Image src="/wallets/walletconnect.svg" alt="WalletConnect" fill style={{ objectFit: 'contain' }} />;
+    case 'brave wallet':
+    case 'brave':
+      return <Image src="/wallets/brave.svg" alt="Brave Wallet" fill style={{ objectFit: 'contain' }} />;
+    case 'okx wallet':
+    case 'okx':
+      return <Image src="/wallets/okx.svg" alt="OKX Wallet" fill style={{ objectFit: 'contain' }} />;
+    case 'phantom':
+      return <Image src="/wallets/phantom.svg" alt="Phantom" fill style={{ objectFit: 'contain' }} />;
     case 'injected':
+    case 'browser':
+    case 'browser wallet':
       return <Image src="/wallets/browser-wallet.svg" alt="Browser Wallet" fill style={{ objectFit: 'contain' }} />;
-    case 'safe':
-      return <Image src="/wallets/safe.svg" alt="Safe" fill style={{ objectFit: 'contain' }} />;
     default:
       return <Box sx={{ bgcolor: 'primary.light', width: '100%', height: '100%', borderRadius: '50%' }} />;
   }
