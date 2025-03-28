@@ -26,8 +26,7 @@ async function signUp(email: string, password: string, name: string) {
 
 async function signIn(email: string, password: string) {
   try {
-    // Fix: use createEmailPasswordSession based on appwrite docs
-    const response = await account.createEmailPasswordSession(email, password);
+    const response = await account.createSession(email, password);
     console.log('User signed in successfully:', response);
     return response;
   } catch (error) {
