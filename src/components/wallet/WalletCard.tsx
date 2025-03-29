@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, CircularProgress, Button, Tabs, Tab, Divider, Chip } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Button, Tabs, Tab } from '@mui/material';
 import { useWallet } from '@/hooks/useWallet';
 import { getUserPaymentMethods } from '@/utils/api';
 import { PaymentMethodForm } from './PaymentMethodForm';
+import { WalletDetails } from './WalletDetails';
+import { WalletBalances } from './WalletBalances';
+import { PaymentMethodsList } from './PaymentMethodsList';
 
 interface WalletCardProps {
   userId: string;
 }
 
 export function WalletCard({ userId }: WalletCardProps) {
-  const { wallet, balances, loading, error, sendCrypto, addFunds } = useWallet(userId);
+  const { wallet, balances, loading, error } = useWallet(userId);
   const [tab, setTab] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
@@ -61,69 +64,8 @@ export function WalletCard({ userId }: WalletCardProps) {
       
       {tab === 0 && (
         <>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary">Wallet Address</Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                fontFamily: 'monospace',
-                bgcolor: 'background.paper',
-                p: 1.5,
-                borderRadius: 1,
-                overflow: 'auto',
-                border: '1px solid',
-                borderColor: 'divider',
-              }}
-            >
-              {wallet?.walletAddress || 'No wallet address available'}
-            </Typography>
-          </Box>
-          
-          <Typography variant="h6" gutterBottom>Balances</Typography>
-          
-          {balances.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">No balances found</Typography>
-          ) : (
-            <Box sx={{ mb: 3 }}>
-              {balances.map((balance) => (
-                <Box 
-                  key={balance.currency}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    p: 1.5,
-                    mb: 1,
-                    borderRadius: 1,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="body1">{balance.currency}</Typography>
-                    {balance.currency === 'USD' && (
-                      <Chip 
-                        label="FIAT" 
-                        size="small" 
-                        sx={{ ml: 1, bgcolor: 'info.light', color: 'info.contrastText' }} 
-                      />
-                    )}
-                    {(balance.currency === 'BTC' || balance.currency === 'ETH') && (
-                      <Chip 
-                        label="CRYPTO" 
-                        size="small" 
-                        sx={{ ml: 1, bgcolor: 'warning.light', color: 'warning.contrastText' }} 
-                      />
-                    )}
-                  </Box>
-                  <Typography variant="body1" fontWeight="bold">
-                    {balance.amount} {balance.currency}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
+          <WalletDetails wallet={wallet} />
+          <WalletBalances balances={balances} />
           
           <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
             <Button variant="contained" color="primary" onClick={() => window.location.href = '/wallet/send'}>
@@ -149,52 +91,9 @@ export function WalletCard({ userId }: WalletCardProps) {
             </Box>
           ) : (
             <>
-              {paymentMethods.length === 0 ? (
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  No payment methods found. Add one below.
-                </Typography>
-              ) : (
-                <Box sx={{ mb: 3 }}>
-                  {paymentMethods.map((method) => (
-                    <Box 
-                      key={method.$id}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        p: 1.5,
-                        mb: 1,
-                        borderRadius: 1,
-                        bgcolor: 'background.paper',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="body1">
-                          {method.type.replace('_', ' ').toUpperCase()}
-                          {method.isDefault && (
-                            <Chip 
-                              label="DEFAULT" 
-                              size="small" 
-                              sx={{ ml: 1, bgcolor: 'success.light', color: 'success.contrastText' }} 
-                            />
-                          )}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Added: {new Date(method.createdAt).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                      <Button size="small" color="primary">
-                        Edit
-                      </Button>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-              
-              <Divider sx={{ my: 3 }} />
-              
+              <PaymentMethodsList 
+                paymentMethods={paymentMethods} 
+              />
               <PaymentMethodForm userId={userId} onSuccess={fetchPaymentMethods} />
             </>
           )}
