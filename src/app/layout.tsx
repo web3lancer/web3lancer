@@ -60,6 +60,8 @@ export default function RootLayout({
                           marginLeft: { xs: 0, md: '240px' },
                           transition: 'margin 0.3s ease',
                           position: 'relative',
+                          width: '100%',
+                          boxSizing: 'border-box',
                         }}
                       >
                         <Header />
@@ -71,22 +73,21 @@ export default function RootLayout({
                           className="scrollable-content"
                           sx={{
                             flex: 1,
-                            p: { xs: 1, sm: 2, md: 3 },
+                            p: { xs: 0, sm: 0, md: 0 }, /* Remove padding to use more space */
                             pt: { xs: '80px', md: '84px' },
-                            pb: { xs: '85px', md: 3 },
+                            pb: { xs: '85px', md: 0 },
                             background: 'rgba(255, 255, 255, 0.7)',
                             backdropFilter: 'blur(10px)',
                             borderRadius: { xs: '0', md: '24px 0 0 0' },
                             position: 'relative',
                             width: '100%',
-                            maxWidth: '100%',
                             boxSizing: 'border-box',
                             overflowY: { xs: 'auto', md: 'auto' },
                             overflowX: 'hidden',
                             WebkitOverflowScrolling: 'touch',
                           }}
                         >
-                          <Box className="content-wrapper" sx={{ maxWidth: '100%', overflowX: 'hidden' }}>
+                          <Box className="content-wrapper" sx={{ width: '100%', overflowX: 'hidden' }}>
                             {children}
                           </Box>
                         </Box>

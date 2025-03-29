@@ -27,8 +27,8 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <Box sx={{ py: 15, background: '#fff' }}>
-      <Container maxWidth="xl">
+    <Box sx={{ py: 15, background: '#fff', width: '100%', overflow: 'hidden' }}>
+      <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -49,7 +49,7 @@ export default function TestimonialsSection() {
             What People Say
           </Typography>
           
-          <Grid container spacing={4}>
+          <Grid container spacing={{ xs: 2, md: 4 }} sx={{ width: '100%', mx: 0 }}>
             {testimonials.map((testimonial, index) => (
               <Grid item xs={12} md={4} key={index}>
                 <motion.div

@@ -18,10 +18,12 @@ export default function FeaturedProjects() {
     <Box 
       sx={{ 
         py: 12, 
-        background: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)'
+        background: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)',
+        width: '100%',
+        overflow: 'hidden'
       }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -47,7 +49,8 @@ export default function FeaturedProjects() {
               position: 'relative',
               mx: 'auto',
               overflow: 'hidden',
-              pb: 4 
+              pb: 4,
+              width: '100%'
             }}
           >
             <motion.div

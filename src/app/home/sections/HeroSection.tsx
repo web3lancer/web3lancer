@@ -16,8 +16,8 @@ export default function HeroSection() {
         position: 'relative',
         pt: { xs: 8, md: 0 },
         width: '100%',
-        maxWidth: '100%',
         overflowX: 'hidden',
+        boxSizing: 'border-box',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -32,16 +32,26 @@ export default function HeroSection() {
       }}
     >
       <Container 
-        maxWidth="xl" 
+        maxWidth={false} 
         sx={{ 
           position: 'relative', 
           zIndex: 1,
-          px: { xs: 2, sm: 3, md: 4 }, 
           width: '100%',
+          maxWidth: '100%',
+          px: { xs: 2, sm: 3, md: 4, lg: 6 }, // Reduced padding for more content space
           boxSizing: 'border-box'
         }}
       >
-        <Grid container spacing={4} alignItems="center" sx={{ minHeight: '100vh' }}>
+        <Grid 
+          container 
+          spacing={{ xs: 2, md: 4 }} 
+          alignItems="center" 
+          sx={{ 
+            minHeight: '100vh',
+            width: '100%',
+            mx: 0
+          }}
+        >
           <Grid item xs={12} md={6}>
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -51,7 +61,7 @@ export default function HeroSection() {
               <Typography
                 variant="h1"
                 sx={{
-                  fontSize: { xs: '2.5rem', md: '4rem', lg: '5rem' },
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem', lg: '4.5rem' },
                   fontWeight: 800,
                   lineHeight: 1.2,
                   background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #60A5FA 100%)',

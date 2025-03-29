@@ -15,14 +15,16 @@ export default function StatisticsSection() {
     <Box 
       sx={{ 
         py: 12, 
-        background: 'linear-gradient(135deg, #EFF6FF 0%, #F3F4F6 100%)'
+        background: 'linear-gradient(135deg, #EFF6FF 0%, #F3F4F6 100%)',
+        width: '100%',
+        overflow: 'hidden'
       }}
       component={motion.div}
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
         <Typography
           variant="h2"
           align="center"
@@ -37,7 +39,7 @@ export default function StatisticsSection() {
           Growing Fast
         </Typography>
         
-        <Grid container spacing={4} justifyContent="center">
+        <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center" sx={{ width: '100%', mx: 0 }}>
           {statistics.map((stat, index) => (
             <Grid item xs={6} md={3} key={index}>
               <motion.div

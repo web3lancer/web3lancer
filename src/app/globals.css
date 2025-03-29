@@ -6,7 +6,8 @@ html, body {
   min-height: 100vh;
   scroll-behavior: smooth;
   color: #333;
-  overflow-x: hidden; /* Prevent horizontal scroll at root level */
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -14,7 +15,56 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Ensure no horizontal overflow */
+  overflow-x: hidden;
+}
+
+/* Container styles to use more space */
+.MuiContainer-root {
+  width: 100% !important;
+  max-width: 1600px !important; /* Wider container */
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 1200px) {
+  .MuiContainer-root {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    max-width: 95% !important; /* Use more screen space */
+  }
+}
+
+/* Ensure main content utilizes more space */
+main, .content-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Fix all grid containers */
+.MuiGrid-container {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* Ensure all sections stay within viewport */
+section, article, .MuiBox-root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Reduce padding for better space utilization */
+.MuiContainer-root.MuiContainer-maxWidthXl {
+  max-width: 98% !important;
+}
+
+/* Use more content space on larger screens */
+@media (min-width: 1400px) {
+  .MuiContainer-root {
+    max-width: 96% !important;
+  }
 }
 
 main {

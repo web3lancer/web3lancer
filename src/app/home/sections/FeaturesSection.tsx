@@ -37,8 +37,8 @@ const steps = [
 export default function FeaturesSection() {
   return (
     <>
-      <Box sx={{ py: 15, background: '#fff' }}>
-        <Container maxWidth="xl">
+      <Box sx={{ py: 15, background: '#fff', width: '100%', overflow: 'hidden' }}>
+        <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ export default function FeaturesSection() {
             >
               Why Choose Web3Lancer
             </Typography>
-            <Grid container spacing={4}>
+            <Grid container spacing={{ xs: 2, md: 4 }} sx={{ width: '100%', mx: 0 }}>
               {features.map((feature, index) => (
                 <Grid item xs={12} md={4} key={feature.title}>
                   <motion.div
@@ -90,8 +90,8 @@ export default function FeaturesSection() {
         </Container>
       </Box>
 
-      <Box sx={{ mb: 8 }}>
-        <Container maxWidth="xl">
+      <Box sx={{ mb: 8, width: '100%', overflow: 'hidden' }}>
+        <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
           <Typography variant="h2" sx={{ mb: 4, textAlign: 'center' }}>
             How It Works
           </Typography>
