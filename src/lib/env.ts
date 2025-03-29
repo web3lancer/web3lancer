@@ -81,3 +81,10 @@ export const ENV = {
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
 };
+
+/**
+ * Application configuration
+ */
+export const APP_CONFIG = {
+  APP_URL: process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+};

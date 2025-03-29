@@ -42,6 +42,63 @@ async function signIn(email: string, password: string) {
 }
 
 /**
+ * Magic URL Authentication methods
+ */
+async function createMagicURLToken(email: string) {
+  try {
+    // Get the base URL from environment variables
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    
+    // Create a unique user ID for new users or fetch existing ID
+    let userId = ID.unique();
+    
+    // Try to find if user with this email already exists
+    try {
+      const users = await databases.listDocuments(
+        APPWRITE_CONFIG.DATABASES.USERS,
+        APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+        [Query.equal('email', email)]
+      );
+      
+      if (users.documents.length > 0) {
+        // Use existing user ID if found
+        userId = users.documents[0].userId;
+      }
+    } catch (error) {
+      console.log('No existing user found, creating new user ID');
+    }
+    
+    // Create the magic URL token
+    const magicURL = `${baseURL}/verify-magic-link`;
+    const token = await account.createMagicURLToken(userId, email, magicURL);
+    
+    console.log('Magic URL token created successfully');
+    return token;
+  } catch (error) {
+    console.error('Error creating magic URL token:', error);
+    throw new Error(`Failed to create magic URL token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Create a session using magic URL token
+ */
+async function createMagicURLSession(userId: string, secret: string) {
+  try {
+    const session = await account.createSession(userId, secret);
+    console.log('Session created successfully with magic URL');
+    
+    // Now get the user details
+    const user = await account.get();
+    return user;
+  } catch (error) {
+    console.error('Error creating session with magic URL:', error);
+    throw new Error(`Failed to create session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * Create an anonymous session for guests
  * This allows guests to access basic features without signing up
  */
@@ -444,6 +501,8 @@ export {
   ID, 
   signUp, 
   signIn,
+  createMagicURLToken,
+  createMagicURLSession,
   createAnonymousSession,
   ensureSession,
   convertAnonymousSession,

@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton } from '@mui/material';
+import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton, InputAdornment, CircularProgress } from '@mui/material';
 import { GitHub, Email } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useAccount } from 'wagmi';
-import { signIn } from '@/utils/api';
+import { signIn, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
 
 export default function SignInPage() {
@@ -25,6 +25,10 @@ export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Magic link sign-in state
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   useEffect(() => {
     if (addAccountParam === 'true') {
@@ -134,6 +138,29 @@ export default function SignInPage() {
   const handleGitHubSignIn = () => {
     // Redirect to GitHub OAuth flow 
     window.location.href = '/api/auth/github';
+  };
+
+  // Handle magic link sign in
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (!magicLinkEmail || !magicLinkEmail.includes('@')) {
+        setError('Please enter a valid email address');
+        setIsLoading(false);
+        return;
+      }
+
+      await createMagicURLToken(magicLinkEmail);
+      setMagicLinkSent(true);
+    } catch (error) {
+      console.error('Error sending magic link:', error);
+      setError('Failed to send magic link. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -275,6 +302,58 @@ export default function SignInPage() {
             >
               Sign In with GitHub
             </Button>
+
+            {/* Magic Link Section */}
+            <Divider sx={{ my: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                Or sign in with magic link
+              </Typography>
+            </Divider>
+            
+            {magicLinkSent ? (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                Magic link has been sent to your email. Please check your inbox and spam folders.
+              </Alert>
+            ) : (
+              <form onSubmit={handleMagicLinkSignIn}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  variant="outlined"
+                  margin="normal"
+                  type="email"
+                  value={magicLinkEmail}
+                  onChange={(e) => setMagicLinkEmail(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Button 
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{ 
+                    mt: 2, 
+                    mb: 2,
+                    py: 1.5,
+                    background: 'linear-gradient(90deg, #3B82F6 0%, #1E40AF 100%)',
+                    boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.4)',
+                    borderRadius: '12px',
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%)',
+                      boxShadow: '0 6px 20px 0 rgba(59, 130, 246, 0.6)',
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? <CircularProgress size={24} /> : 'Send Magic Link'}
+                </Button>
+              </form>
+            )}
             
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
