@@ -35,6 +35,16 @@ body {
   }
 }
 
+/* Content width control */
+.MuiContainer-root {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding-left: max(16px, 3%) !important;
+  padding-right: max(16px, 3%) !important;
+  box-sizing: border-box !important;
+}
+
 /* Ensure main content utilizes more space */
 main, .content-wrapper {
   width: 100%;
@@ -47,12 +57,20 @@ main, .content-wrapper {
 .MuiGrid-container {
   margin: 0 !important;
   width: 100% !important;
+  max-width: none !important;
+}
+
+/* Grid item containment */
+.MuiGrid-item {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Ensure all sections stay within viewport */
 section, article, .MuiBox-root {
   max-width: 100%;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Reduce padding for better space utilization */

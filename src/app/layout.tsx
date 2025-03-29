@@ -73,21 +73,34 @@ export default function RootLayout({
                           className="scrollable-content"
                           sx={{
                             flex: 1,
-                            p: { xs: 0, sm: 0, md: 0 }, /* Remove padding to use more space */
+                            p: { xs: 2, sm: 3 },
                             pt: { xs: '80px', md: '84px' },
-                            pb: { xs: '85px', md: 0 },
+                            pb: { xs: '85px', md: 3 },
                             background: 'rgba(255, 255, 255, 0.7)',
                             backdropFilter: 'blur(10px)',
                             borderRadius: { xs: '0', md: '24px 0 0 0' },
                             position: 'relative',
                             width: '100%',
+                            maxWidth: '100%',
                             boxSizing: 'border-box',
-                            overflowY: { xs: 'auto', md: 'auto' },
+                            overflowY: 'auto',
                             overflowX: 'hidden',
-                            WebkitOverflowScrolling: 'touch',
+                            '& > *': {
+                              maxWidth: '100%',
+                              boxSizing: 'border-box'
+                            }
                           }}
                         >
-                          <Box className="content-wrapper" sx={{ width: '100%', overflowX: 'hidden' }}>
+                          <Box 
+                            className="content-wrapper" 
+                            sx={{ 
+                              maxWidth: { sm: '95%', md: '90%', lg: '85%' },
+                              mx: 'auto',
+                              width: '100%',
+                              position: 'relative',
+                              overflowX: 'hidden'
+                            }}
+                          >
                             {children}
                           </Box>
                         </Box>
