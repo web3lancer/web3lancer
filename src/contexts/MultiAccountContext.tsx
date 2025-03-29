@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 // Define the type for a user account
@@ -30,10 +30,14 @@ export function MultiAccountProvider({ children }: { children: React.ReactNode }
   const [savedAccounts, setSavedAccounts] = useLocalStorage<UserAccount[]>('web3lancer_accounts', []);
   const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [activeAccount, setActiveAccount] = useState<UserAccount | null>(null);
+  
+  // Use a ref to track initialization
+  const initialized = useRef(false);
 
-  // Initialize accounts from localStorage on mount
+  // Initialize accounts from localStorage on mount - only once
   useEffect(() => {
-    if (savedAccounts && savedAccounts.length > 0) {
+    if (!initialized.current && savedAccounts && savedAccounts.length > 0) {
+      initialized.current = true;
       setAccounts(savedAccounts);
       const active = savedAccounts.find(account => account.isActive) || savedAccounts[0];
       if (active) {
@@ -42,10 +46,14 @@ export function MultiAccountProvider({ children }: { children: React.ReactNode }
     }
   }, [savedAccounts]);
 
-  // Save accounts to localStorage when they change
+  // Save accounts to localStorage when they change - with dependency on accounts
   useEffect(() => {
-    if (accounts.length > 0) {
-      setSavedAccounts(accounts);
+    // Skip initial render and only save when accounts actually change
+    if (initialized.current && accounts.length > 0) {
+      // Prevent saving to localStorage if we're just loading from it
+      if (JSON.stringify(accounts) !== JSON.stringify(savedAccounts)) {
+        setSavedAccounts(accounts);
+      }
     }
   }, [accounts, setSavedAccounts]);
 
