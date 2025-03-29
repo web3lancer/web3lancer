@@ -13,8 +13,20 @@ import { WagmiProvider } from 'wagmi';
 import { config } from '@/utils/config';
 import { WalletProvider } from '@/components/WalletProvider';
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
 const queryClient = new QueryClient();
+
+// Ensure MUI components are loaded properly
+function SafeHydrate({ children }: { children: React.ReactNode }) {
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  return isMounted ? <>{children}</> : null;
+}
 
 export default function RootLayout({
   children,
@@ -38,67 +50,69 @@ export default function RootLayout({
               <MultiAccountProvider>
                 <AuthProvider>
                   <WalletProvider>
-                    <Box sx={{ 
-                      display: 'flex',
-                      minHeight: '100vh',
-                      width: '100%',
-                      background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
-                      position: { xs: isHomePage ? 'relative' : 'fixed', md: 'relative' },
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      overflow: { xs: isHomePage ? 'visible' : 'hidden', md: 'visible' },
-                    }}>
-                      {/* Only render sidebar if not on homepage */}
-                      {!isHomePage && <Sidebar />}
-                      
-                      <Box
-                        component={motion.div}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        sx={{ 
-                          flex: 1,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          minHeight: '100vh',
-                          marginLeft: { xs: 0, md: isHomePage ? 0 : '240px' },
-                          width: { xs: '100%', md: isHomePage ? '100%' : 'calc(100% - 240px)' },
-                          transition: 'margin 0.3s ease',
-                          position: 'relative',
-                        }}
-                      >
-                        {/* Conditionally render Header if not on homepage or adjust its width */}
-                        <Header isHomePage={isHomePage} />
+                    <SafeHydrate>
+                      <Box sx={{ 
+                        display: 'flex',
+                        minHeight: '100vh',
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+                        position: { xs: isHomePage ? 'relative' : 'fixed', md: 'relative' },
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        overflow: { xs: isHomePage ? 'visible' : 'hidden', md: 'visible' },
+                      }}>
+                        {/* Only render sidebar if not on homepage */}
+                        {!isHomePage && <Sidebar />}
                         
                         <Box
                           component={motion.div}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                          className="scrollable-content"
-                          sx={{
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          sx={{ 
                             flex: 1,
-                            p: isHomePage ? 0 : { xs: 1, sm: 2, md: 3 },
-                            pt: isHomePage ? 0 : { xs: '80px', md: '84px' },
-                            pb: isHomePage ? 0 : { xs: '85px', md: 3 },
-                            background: isHomePage ? 'transparent' : 'rgba(255, 255, 255, 0.7)',
-                            backdropFilter: isHomePage ? 'none' : 'blur(10px)',
-                            borderRadius: isHomePage ? 0 : { xs: '0', md: '24px 0 0 0' },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            minHeight: '100vh',
+                            marginLeft: { xs: 0, md: isHomePage ? 0 : '240px' },
+                            width: { xs: '100%', md: isHomePage ? '100%' : 'calc(100% - 240px)' },
+                            transition: 'margin 0.3s ease',
                             position: 'relative',
-                            width: '100%',
-                            boxSizing: 'border-box',
-                            overflowY: { xs: 'auto', md: 'auto' },
-                            overflowX: 'hidden',
-                            WebkitOverflowScrolling: 'touch',
                           }}
                         >
-                          <Box className="content-wrapper">
-                            {children}
+                          {/* Conditionally render Header if not on homepage or adjust its width */}
+                          <Header isHomePage={isHomePage} />
+                          
+                          <Box
+                            component={motion.div}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="scrollable-content"
+                            sx={{
+                              flex: 1,
+                              p: isHomePage ? 0 : { xs: 1, sm: 2, md: 3 },
+                              pt: isHomePage ? 0 : { xs: '80px', md: '84px' },
+                              pb: isHomePage ? 0 : { xs: '85px', md: 3 },
+                              background: isHomePage ? 'transparent' : 'rgba(255, 255, 255, 0.7)',
+                              backdropFilter: isHomePage ? 'none' : 'blur(10px)',
+                              borderRadius: isHomePage ? 0 : { xs: '0', md: '24px 0 0 0' },
+                              position: 'relative',
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              overflowY: { xs: 'auto', md: 'auto' },
+                              overflowX: 'hidden',
+                              WebkitOverflowScrolling: 'touch',
+                            }}
+                          >
+                            <Box className="content-wrapper">
+                              {children}
+                            </Box>
                           </Box>
                         </Box>
                       </Box>
-                    </Box>
+                    </SafeHydrate>
                   </WalletProvider>
                 </AuthProvider>
               </MultiAccountProvider>

@@ -1,6 +1,13 @@
 "use client";
-import React from "react";
-import { Box, Typography, Grid, Alert } from "@mui/material";
+
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Grid, 
+  CircularProgress, // Added missing import
+  Alert
+} from '@mui/material';
 import { useAuth } from "@/contexts/AuthContext";
 import CalendarSection from "@/components/profile/CalendarSection";
 import ProfileCard from "@/components/profile/ProfileCard";
