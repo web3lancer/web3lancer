@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Alert, Button, Divider } from '@mui/material';
+import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton } from '@mui/material';
+import { GitHub, Email } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useAccount } from 'wagmi';
-import { signIn } from '@/utils/api';
+import { signIn, signUp } from '@/utils/api';
+import Link from 'next/link';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -18,6 +20,11 @@ export default function SignInPage() {
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const redirectPath = searchParams?.get('redirect') || '/dashboard';
   const addAccountParam = searchParams?.get('addAccount');
+  
+  // Email sign-in state
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (addAccountParam === 'true') {
@@ -76,6 +83,57 @@ export default function SignInPage() {
     router.push(redirectPath);
   };
 
+  // Handle email sign in
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await signIn(email, password);
+      
+      if (response) {
+        // Add this account to multi-accounts if not already there
+        const accountId = response.$id;
+        const existingAccount = accounts.find(acc => acc.$id === accountId);
+        
+        if (!existingAccount) {
+          if (hasMaxAccounts) {
+            setError(`Maximum number of accounts (3) reached. Please remove an account before adding a new one.`);
+            setIsLoading(false);
+            return;
+          }
+          
+          try {
+            addAccount({
+              $id: accountId,
+              name: response.name,
+              email: response.email,
+              isActive: true
+            });
+          } catch (error) {
+            console.error('Error adding account:', error);
+          }
+        } else {
+          switchAccount(accountId);
+        }
+        
+        router.push(redirectPath);
+      }
+    } catch (error) {
+      console.error('Error signing in:', error);
+      setError('Invalid email or password. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle GitHub sign in
+  const handleGitHubSignIn = () => {
+    // Redirect to GitHub OAuth flow 
+    window.location.href = '/api/auth/github';
+  };
+
   return (
     <Container maxWidth="sm" sx={{ pt: 4, pb: 8 }}>
       <motion.div
@@ -89,8 +147,8 @@ export default function SignInPage() {
           </Typography>
           <Typography variant="body1" color="text.secondary">
             {isAddingAccount
-              ? 'Connect with another wallet to add as an additional account'
-              : 'Connect with your wallet to continue to the platform'}
+              ? 'Connect with another wallet or sign in with email to add as an additional account'
+              : 'Connect with your wallet or sign in with email to continue to the platform'}
           </Typography>
         </Box>
 
@@ -128,7 +186,7 @@ export default function SignInPage() {
                     backgroundColor: account.isActive ? 'rgba(59, 130, 246, 0.1)' : 'transparent' 
                   }}
                 >
-                  {account.name || (account.walletId ? `${account.walletId.substring(0, 6)}...${account.walletId.substring(account.walletId.length - 4)}` : 'Unknown Account')}
+                  {account.name || account.email || (account.walletId ? `${account.walletId.substring(0, 6)}...${account.walletId.substring(account.walletId.length - 4)}` : 'Unknown Account')}
                 </Button>
               ))}
             </Box>
@@ -138,7 +196,7 @@ export default function SignInPage() {
             <Typography variant="body2" sx={{ mb: 1 }}>
               {hasMaxAccounts 
                 ? "You've reached the maximum number of accounts (3)" 
-                : "Connect another wallet"}
+                : "Connect another wallet or account"}
             </Typography>
             
             <Button
@@ -164,7 +222,65 @@ export default function SignInPage() {
             border: '1px solid rgba(255, 255, 255, 0.18)',
           }}
         >
+          <Typography variant="h6" sx={{ mb: 3 }}>Connect Wallet</Typography>
           <ConnectWallet />
+          
+          <Divider sx={{ my: 4 }}>
+            <Typography variant="body2" color="text.secondary">OR</Typography>
+          </Divider>
+          
+          {/* Email Sign In Form */}
+          <Box component="form" onSubmit={handleEmailSignIn} sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>Sign in with Email</Typography>
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={isLoading}
+              startIcon={<Email />}
+            >
+              {isLoading ? 'Signing In...' : 'Sign In with Email'}
+            </Button>
+          </Box>
+          
+          {/* GitHub Sign In */}
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<GitHub />}
+            onClick={handleGitHubSignIn}
+            sx={{ mb: 2 }}
+          >
+            Sign In with GitHub
+          </Button>
+          
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Don't have an account?{' '}
+              <Link href="/signup" style={{ color: '#1E40AF', fontWeight: 600 }}>
+                Sign Up
+              </Link>
+            </Typography>
+          </Box>
         </Paper>
         
         {isAddingAccount && (
