@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { account, ensureSession } from '@/utils/api';
+import { account, ensureSession, ensureValidOAuthToken, createGitHubOAuthSession } from '@/utils/api';
 import { useAccount as useWagmiAccount } from 'wagmi';
 import { useMultiAccount, UserAccount } from './MultiAccountContext';
 
@@ -11,6 +11,9 @@ interface User {
   email?: string;
   walletId?: string;
   profilePicture?: string;
+  provider?: string;
+  providerUid?: string;
+  githubUser?: boolean;
 }
 
 interface AuthContextType {
@@ -18,7 +21,7 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isLoading: boolean;
   signOut: () => Promise<void>;
-  handleGitHubOAuth?: (code: string) => Promise<void>;
+  handleGitHubOAuth?: () => Promise<void>;
   isAnonymous: boolean;
   setIsAnonymous: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -55,6 +58,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // Set user from session
           setUser(session);
+          
+          // Check for GitHub OAuth session
+          if (session.provider === 'github') {
+            // Ensure OAuth token is valid
+            await ensureValidOAuthToken();
+            
+            // Store GitHub details in user object
+            setUser(prevUser => ({
+              ...prevUser,
+              provider: session.provider,
+              providerUid: session.providerUid,
+              // Add GitHub-specific fields
+              githubUser: true
+            }));
+          }
           
           // Only add to multi-account if not anonymous
           if (!isAnonymous && session.$id) {
@@ -136,10 +154,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeAccount]);
 
-  // Mock GitHub OAuth handler (add if you need this functionality)
-  const handleGitHubOAuth = async (code: string) => {
-    // Implementation would go here
-    console.log("Processing GitHub OAuth with code:", code);
+  // Add GitHub OAuth handler
+  const handleGitHubOAuth = async () => {
+    try {
+      await createGitHubOAuthSession(['user:email', 'read:user']);
+      // Note: This will redirect the user to GitHub, so we don't need to handle the response here
+    } catch (error) {
+      console.error('GitHub OAuth error:', error);
+      throw error;
+    }
   };
 
   // Sign out matches Appwrite docs for deleting session
@@ -162,9 +185,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, 
       setUser, 
       isLoading, 
-      signOut,
+      signOut, 
       isAnonymous,
-      setIsAnonymous
+      setIsAnonymous,
+      handleGitHubOAuth
     }}>
       {children}
     </AuthContext.Provider>

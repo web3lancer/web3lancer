@@ -10,12 +10,14 @@ import { ConnectWallet } from '@/components/ConnectWallet';
 import { useAccount } from 'wagmi';
 import { signIn, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
   const { accounts, activeAccount, addAccount, switchAccount, hasMaxAccounts } = useMultiAccount();
+  const { handleGitHubOAuth } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const redirectPath = searchParams?.get('redirect') || '/dashboard';
@@ -135,10 +137,28 @@ export default function SignInPage() {
   };
 
   // Handle GitHub sign in
-  const handleGitHubSignIn = () => {
-    // Redirect to GitHub OAuth flow 
-    window.location.href = '/api/auth/github';
+  const handleGitHubSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await handleGitHubOAuth();
+      // This will redirect to GitHub, so no need to handle the response
+    } catch (error) {
+      console.error('Error signing in with GitHub:', error);
+      setError('Failed to initiate GitHub sign in. Please try again.');
+      setIsLoading(false);
+    }
   };
+
+  // Check if there's an error parameter in the URL (from GitHub redirect)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const error = searchParams.get('error');
+    if (error === 'github_auth_failed') {
+      setError('GitHub authentication failed. Please try again or use another sign-in method.');
+    }
+  }, []);
 
   // Handle magic link sign in
   const handleMagicLinkSignIn = async (e: React.FormEvent) => {
@@ -315,16 +335,33 @@ export default function SignInPage() {
                 </Button>
               </Box>
               
-              {/* GitHub Sign In */}
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<GitHub />}
-                onClick={handleGitHubSignIn}
-                sx={{ mb: 2 }}
-              >
-                Sign In with GitHub
-              </Button>
+              {/* Social logins section */}
+              <Divider sx={{ my: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Or continue with
+                </Typography>
+              </Divider>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<GitHub />}
+                  onClick={handleGitHubSignIn}
+                  disabled={isLoading}
+                  sx={{
+                    py: 1.5,
+                    borderRadius: '12px',
+                    borderColor: 'rgba(0, 0, 0, 0.2)',
+                    color: '#333',
+                    '&:hover': {
+                      borderColor: '#333',
+                      background: 'rgba(0, 0, 0, 0.05)',
+                    }
+                  }}
+                >
+                  GitHub
+                </Button>
+              </Box>
 
               {/* Magic Link Section */}
               <Divider sx={{ my: 4 }}>

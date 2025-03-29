@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
+import { Client, Account, Databases, Storage, ID, Query, OAuthProvider } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { APP_CONFIG } from '@/lib/env';
 
@@ -550,6 +550,87 @@ async function getFilePreview(bucketId: string, fileId: string, width?: number, 
 }
 
 /**
+ * OAuth Authentication functions
+ */
+async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
+  try {
+    const baseURL = APP_CONFIG.APP_URL;
+    const successURL = `${baseURL}/dashboard`;
+    const failureURL = `${baseURL}/signin?error=github_auth_failed`;
+    
+    // Create GitHub OAuth session
+    await account.createOAuth2Session(
+      OAuthProvider.Github,
+      successURL,
+      failureURL,
+      scopes
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error creating GitHub OAuth session:', error);
+    throw new Error(`Failed to create GitHub OAuth session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get current session details including OAuth provider information
+ */
+async function getCurrentSession() {
+  try {
+    const session = await account.getSession('current');
+    return session;
+  } catch (error) {
+    console.error('Error getting current session:', error);
+    return null;
+  }
+}
+
+/**
+ * Refresh OAuth token if needed
+ */
+async function refreshOAuthSession(sessionId: string) {
+  try {
+    const session = await account.updateSession(sessionId);
+    console.log('OAuth session refreshed successfully');
+    return session;
+  } catch (error) {
+    console.error('Error refreshing OAuth session:', error);
+    throw new Error(`Failed to refresh OAuth session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Check if session token needs refresh and refresh if needed
+ */
+async function ensureValidOAuthToken() {
+  try {
+    const session = await getCurrentSession();
+    
+    if (!session) return null;
+    
+    // Only proceed if this is an OAuth session
+    if (session.provider && session.provider === 'github') {
+      // Check if token is expired or about to expire (within 5 minutes)
+      const expiryTime = session.providerAccessTokenExpiry;
+      const now = Math.floor(Date.now() / 1000); // Current time in seconds
+      const expiresIn = expiryTime - now;
+      
+      // If token expires in less than 5 minutes, refresh it
+      if (expiresIn < 300) {
+        console.log('OAuth token about to expire, refreshing...');
+        return await refreshOAuthSession(session.$id);
+      }
+    }
+    
+    return session;
+  } catch (error) {
+    console.error('Error ensuring valid OAuth token:', error);
+    return null;
+  }
+}
+
+/**
  * User management functions
  */
 async function addUser(email: string, password: string, name: string) {
@@ -597,5 +678,9 @@ export {
   getFilePreview,
   fetchJobs,
   fetchJob,
+  createGitHubOAuthSession,
+  getCurrentSession,
+  refreshOAuthSession,
+  ensureValidOAuthToken,
   Query
 };

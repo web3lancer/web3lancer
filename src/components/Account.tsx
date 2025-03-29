@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, ListItemIcon, ListItemText, Alert } from '@mui/material';
-import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount, ArrowDropDown, Login, PersonAdd, VerifiedUser, MarkEmailRead } from '@mui/icons-material';
+import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount, ArrowDropDown, Login, PersonAdd, VerifiedUser, MarkEmailRead, GitHub } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAccount, useDisconnect } from 'wagmi';
@@ -22,6 +22,9 @@ export function Account() {
   const [isVerified, setIsVerified] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const open = Boolean(anchorEl);
+
+  // Display GitHub info if available
+  const isGitHubUser = user?.provider === 'github';
 
   // Fetch profile picture when user or active account changes
   useEffect(() => {
@@ -289,6 +292,14 @@ export function Account() {
                 <VerifiedUser fontSize="small" sx={{ color: 'success.main' }} />
               </ListItemIcon>
               <ListItemText primary="Email Verified" />
+            </MenuItem>
+          )}
+          {isGitHubUser && (
+            <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
+              <ListItemIcon>
+                <GitHub fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText primary="Connected with GitHub" />
             </MenuItem>
           )}
           {verificationSent && (

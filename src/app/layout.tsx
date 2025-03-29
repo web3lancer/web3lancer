@@ -13,6 +13,7 @@ import { WagmiProvider } from 'wagmi';
 import { config } from '@/utils/config';
 import { WalletProvider } from '@/components/WalletProvider';
 import { usePathname } from 'next/navigation';
+import OAuthRefresher from '@/components/OAuthRefresher';
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,9 @@ export default function RootLayout({
                 <AuthProvider>
                   <WalletProvider>
                     <SafeHydrate>
+                      {/* Add OAuth token refresher */}
+                      <OAuthRefresher />
+                      
                       <Box sx={{ 
                         display: 'flex',
                         minHeight: '100vh',
