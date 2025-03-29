@@ -1,73 +1,107 @@
-import { Client, Storage } from "appwrite";
-import { client } from "@/app/appwrite";
+import { storage, ID } from './api';
 
-const storage = new Storage(client);
-
-export interface UploadProgressCallback {
-  (progress: number): void;
-}
-
-export async function uploadFile(bucketId: string, file: File, filePath: string, onProgress?: UploadProgressCallback) {
+/**
+ * Upload a file to Appwrite Storage
+ * @param bucketId - The ID of the storage bucket
+ * @param file - The file to upload
+ * @param filePath - Optional path/name for the file
+ * @param onProgress - Optional callback for upload progress
+ * @returns The uploaded file data
+ */
+export async function uploadFile(
+  bucketId: string,
+  file: File,
+  filePath?: string,
+  onProgress?: (progress: number) => void
+) {
   try {
+    // Currently Appwrite doesn't support progress tracking in the web SDK
+    // When they add this feature, we can implement the onProgress callback
+    
+    const fileId = ID.unique();
     const response = await storage.createFile(
-      bucketId, 
-      filePath, 
-      file,
-      // Add upload progress tracking
-      onProgress ? {
-        onProgress: (progress) => {
-          onProgress(Math.round((progress.loaded / progress.total) * 100));
-        }
-      } : undefined
+      bucketId,
+      fileId,
+      file
     );
-    console.log('File uploaded successfully:', response);
+    
+    if (onProgress) {
+      // Simulate progress since we don't have real progress tracking
+      onProgress(100);
+    }
+    
     return response;
   } catch (error) {
     console.error('Error uploading file:', error);
-    throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw error;
   }
 }
 
-export async function getFile(bucketId: string, fileId: string) {
+/**
+ * Get a preview URL for a file
+ * @param bucketId - The ID of the storage bucket
+ * @param fileId - The ID of the file
+ * @param width - Optional width for the preview
+ * @param height - Optional height for the preview
+ * @returns A URL to the file preview
+ */
+export async function getFilePreview(
+  bucketId: string,
+  fileId: string,
+  width?: number,
+  height?: number
+) {
   try {
-    const response = await storage.getFile(bucketId, fileId);
-    console.log('File retrieved successfully:', response);
-    return response;
-  } catch (error) {
-    console.error('Error retrieving file:', error);
-    throw new Error(`Failed to get file: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-export async function getFilePreview(bucketId: string, fileId: string, width?: number, height?: number) {
-  try {
-    return storage.getFilePreview(bucketId, fileId, width, height);
+    return storage.getFilePreview(
+      bucketId,
+      fileId,
+      width,
+      height
+    );
   } catch (error) {
     console.error('Error getting file preview:', error);
-    throw new Error(`Failed to get file preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw error;
   }
 }
 
-export async function deleteFile(bucketId: string, fileId: string) {
+/**
+ * Get a download URL for a file
+ * @param bucketId - The ID of the storage bucket
+ * @param fileId - The ID of the file
+ * @returns A URL to download the file
+ */
+export async function getFileDownload(
+  bucketId: string,
+  fileId: string
+) {
   try {
-    await storage.deleteFile(bucketId, fileId);
-    console.log('File deleted successfully');
-    return true;
+    return storage.getFileDownload(
+      bucketId,
+      fileId
+    );
+  } catch (error) {
+    console.error('Error getting file download:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a file from storage
+ * @param bucketId - The ID of the storage bucket
+ * @param fileId - The ID of the file to delete
+ * @returns Success response
+ */
+export async function deleteFile(
+  bucketId: string,
+  fileId: string
+) {
+  try {
+    return storage.deleteFile(
+      bucketId,
+      fileId
+    );
   } catch (error) {
     console.error('Error deleting file:', error);
-    throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw error;
   }
 }
-
-export async function listFiles(bucketId: string) {
-  try {
-    const response = await storage.listFiles(bucketId);
-    return response.files;
-  } catch (error) {
-    console.error('Error listing files:', error);
-    throw new Error(`Failed to list files: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-// Remove redundant exports that are already exported above
-export { storage };

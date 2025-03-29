@@ -36,6 +36,38 @@ async function signIn(email: string, password: string) {
 }
 
 /**
+ * User profile functions
+ */
+async function getUserProfile(userId: string) {
+  try {
+    const response = await databases.getDocument(
+      APPWRITE_CONFIG.DATABASES.USERS,
+      APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+      userId
+    );
+    return response;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    throw new Error(`Failed to fetch user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function updateUserProfile(userId: string, data: any) {
+  try {
+    const response = await databases.updateDocument(
+      APPWRITE_CONFIG.DATABASES.USERS,
+      APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+      userId,
+      data
+    );
+    return response;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * Bookmark management functions
  */
 async function addBookmark(userId: string, jobId: string) {
@@ -272,6 +304,39 @@ async function getUserPaymentMethods(userId: string) {
 }
 
 /**
+ * File storage functions
+ */
+async function uploadFile(bucketId: string, file: File, filePath: string, onProgress?: (progress: number) => void) {
+  try {
+    const response = await storage.createFile(
+      bucketId,
+      ID.unique(),
+      file
+    );
+    console.log('File uploaded successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function getFilePreview(bucketId: string, fileId: string, width?: number, height?: number) {
+  try {
+    const response = await storage.getFilePreview(
+      bucketId,
+      fileId,
+      width,
+      height
+    );
+    return response;
+  } catch (error) {
+    console.error('Error getting file preview:', error);
+    throw new Error(`Failed to get file preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * User management functions
  */
 async function addUser(email: string, password: string, name: string) {
@@ -293,6 +358,8 @@ export {
   ID, 
   signUp, 
   signIn, 
+  getUserProfile,
+  updateUserProfile,
   addBookmark, 
   removeBookmark,
   addTransaction,
@@ -304,5 +371,7 @@ export {
   addUser,
   addPaymentMethod,
   getUserPaymentMethods,
+  uploadFile,
+  getFilePreview,
   Query
 };

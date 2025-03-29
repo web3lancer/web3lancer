@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Avatar, Button, Input, Chip, TextField, CircularProgress, Paper, Grid } from "@mui/material";
+import { Box, Typography, Avatar, Button, Input, Chip, TextField, CircularProgress, Paper, Grid, Alert } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
-import { uploadFile, getFilePreview } from "@/utils/storage";
-import { databases } from "@/utils/api";
+import { uploadFile, getFilePreview, getUserProfile, updateUserProfile } from "@/utils/api";
 import { motion } from "framer-motion";
 import { useMultiAccount } from "@/contexts/MultiAccountContext";
 import CalendarSection from "@/components/profile/CalendarSection";
+import { ID, Query } from "appwrite";
+import { APPWRITE_CONFIG } from "@/lib/env";
 
 const MotionPaper = motion(Paper);
 
@@ -21,33 +22,65 @@ export default function ProfilePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchUserProfile();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   const fetchUserProfile = async () => {
     if (!user?.$id) return;
     
+    setError(null);
     try {
-      const response = await databases.getDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id);
-      setSkills(response.skills || []);
-      setBio(response.bio || "");
+      let profileData;
+      try {
+        profileData = await getUserProfile(user.$id);
+      } catch (err) {
+        console.log('Profile not found, creating new profile');
+        profileData = await createNewProfile(user.$id);
+      }
       
-      if (response.profilePicture) {
-        try {
-          const imageUrl = await getFilePreview('67b889200019e3d3519d', response.profilePicture, 200, 200);
-          setImagePreview(imageUrl.toString());
-        } catch (error) {
-          console.error('Error fetching profile image:', error);
+      if (profileData) {
+        setSkills(profileData.skills || []);
+        setBio(profileData.bio || "");
+        
+        if (profileData.profilePicture) {
+          try {
+            const imageUrl = await getFilePreview('67b889200019e3d3519d', profileData.profilePicture, 200, 200);
+            setImagePreview(imageUrl.toString());
+          } catch (error) {
+            console.error('Error fetching profile image:', error);
+          }
         }
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Error in profile management:', error);
+      setError('Could not load profile data. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createNewProfile = async (userId: string) => {
+    try {
+      const response = await updateUserProfile(userId, {
+        userId: userId,
+        name: user?.name || "",
+        email: user?.email || "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        skills: [],
+        bio: ""
+      });
+      return response;
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      throw error;
     }
   };
 
@@ -56,7 +89,6 @@ export default function ProfilePage() {
       const file = event.target.files[0];
       setProfilePicture(file);
       
-      // Create a preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target?.result as string);
@@ -68,22 +100,22 @@ export default function ProfilePage() {
   const handleUpload = async () => {
     if (profilePicture && user) {
       setIsUploading(true);
+      setError(null);
       try {
-        const filePath = `users/${user.$id}/profile-pictures/${profilePicture.name}`;
         const response = await uploadFile(
-          '67b889200019e3d3519d', 
+          '67b889200019e3d3519d',
           profilePicture, 
-          filePath,
+          `users/${user.$id}/profile-pictures/${profilePicture.name}`,
           (progress) => {
             setUploadProgress(progress);
           }
         );
         
-        await databases.updateDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id, {
+        await updateUserProfile(user.$id, {
           profilePicture: response.$id,
+          updatedAt: new Date().toISOString()
         });
         
-        // If using multi-account, update the profile picture for the active account
         if (activeAccount) {
           const updatedAccount = { ...activeAccount, profilePicture: response.$id };
           const updatedAccounts = accounts.map(acc => 
@@ -94,12 +126,13 @@ export default function ProfilePage() {
             acc.$id === activeAccount.$id ? { ...acc, profilePicture: response.$id } : acc
           );
           localStorage.setItem('web3lancer_accounts', JSON.stringify(updatedLocalStorageAccounts));
-          switchAccount(activeAccount.$id); // Refresh the active account
+          switchAccount(activeAccount.$id);
         }
         
         console.log('Profile picture uploaded:', response);
       } catch (error) {
         console.error('Error uploading profile picture:', error);
+        setError('Failed to upload profile picture. Please try again.');
       } finally {
         setIsUploading(false);
         setUploadProgress(0);
@@ -121,14 +154,17 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     if (user) {
       setLoading(true);
+      setError(null);
       try {
-        await databases.updateDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id, {
+        await updateUserProfile(user.$id, {
           skills,
           bio,
+          updatedAt: new Date().toISOString()
         });
         console.log('Profile updated successfully');
       } catch (error) {
         console.error('Error updating profile:', error);
+        setError('Failed to save profile. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -148,6 +184,12 @@ export default function ProfilePage() {
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
         My Profile
       </Typography>
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
       
       <Grid container spacing={4}>
         <Grid item xs={12} md={4}>
