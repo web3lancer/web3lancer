@@ -1,5 +1,6 @@
 import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/env';
+import { APP_CONFIG } from '@/lib/env';
 
 // Initialize client according to Appwrite docs
 const client = new Client();
@@ -16,9 +17,24 @@ const storage = new Storage(client);
  */
 async function signUp(email: string, password: string, name: string) {
   try {
-    // Create user according to Appwrite docs pattern
-    const response = await account.create(ID.unique(), email, password, name);
+    // Create a unique user ID
+    const userId = ID.unique();
+    
+    // Create the user
+    const response = await account.create(userId, email, password, name);
     console.log('User created successfully:', response);
+    
+    // Send email verification after successful signup
+    try {
+      const baseURL = APP_CONFIG.APP_URL;
+      const verificationURL = `${baseURL}/verify-email`;
+      await account.createVerification(verificationURL);
+      console.log('Verification email sent');
+    } catch (verificationError) {
+      console.error('Error sending verification email:', verificationError);
+      // We don't throw here to allow account creation to succeed even if verification fails
+    }
+    
     return response;
   } catch (error) {
     console.error('Error creating user:', error);
@@ -38,6 +54,60 @@ async function signIn(email: string, password: string) {
   } catch (error) {
     console.error('Error signing in:', error);
     throw new Error(`Failed to sign in: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Email verification functions
+ */
+async function createEmailVerification() {
+  try {
+    const baseURL = APP_CONFIG.APP_URL;
+    const verificationURL = `${baseURL}/verify-email`;
+    const response = await account.createVerification(verificationURL);
+    console.log('Verification email sent successfully');
+    return response;
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    throw new Error(`Failed to send verification email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function completeEmailVerification(userId: string, secret: string) {
+  try {
+    const response = await account.updateVerification(userId, secret);
+    console.log('Email verified successfully');
+    return response;
+  } catch (error) {
+    console.error('Error verifying email:', error);
+    throw new Error(`Failed to verify email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Password recovery functions
+ */
+async function createPasswordRecovery(email: string) {
+  try {
+    const baseURL = APP_CONFIG.APP_URL;
+    const recoveryURL = `${baseURL}/reset-password`;
+    const response = await account.createRecovery(email, recoveryURL);
+    console.log('Password recovery email sent successfully');
+    return response;
+  } catch (error) {
+    console.error('Error sending password recovery email:', error);
+    throw new Error(`Failed to send recovery email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function completePasswordRecovery(userId: string, secret: string, newPassword: string) {
+  try {
+    const response = await account.updateRecovery(userId, secret, newPassword);
+    console.log('Password recovery completed successfully');
+    return response;
+  } catch (error) {
+    console.error('Error completing password recovery:', error);
+    throw new Error(`Failed to complete recovery: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -501,6 +571,10 @@ export {
   ID, 
   signUp, 
   signIn,
+  createEmailVerification,
+  completeEmailVerification,
+  createPasswordRecovery,
+  completePasswordRecovery,
   createMagicURLToken,
   createMagicURLSession,
   createAnonymousSession,

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, ListItemIcon, ListItemText } from '@mui/material';
-import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount, ArrowDropDown, Login, PersonAdd } from '@mui/icons-material';
+import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, ListItemIcon, ListItemText, Alert } from '@mui/material';
+import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount, ArrowDropDown, Login, PersonAdd, VerifiedUser, MarkEmailRead } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
 import { AccountSwitcher } from './account/AccountSwitcher';
-import { databases } from '@/utils/api';
+import { databases, createEmailVerification } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 
 export function Account() {
@@ -19,6 +19,8 @@ export function Account() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const open = Boolean(anchorEl);
 
   // Fetch profile picture when user or active account changes
@@ -53,6 +55,34 @@ export function Account() {
     
     fetchProfilePicture();
   }, [user, activeAccount]);
+
+  // Check if user is verified
+  useEffect(() => {
+    const checkVerification = async () => {
+      try {
+        if (user && !user.walletId) {
+          const prefs = await account.getPrefs();
+          setIsVerified(prefs.emailVerification === true);
+        }
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+      }
+    };
+    
+    checkVerification();
+  }, [user]);
+
+  const handleResendVerification = async () => {
+    try {
+      await createEmailVerification();
+      setVerificationSent(true);
+      setTimeout(() => {
+        setVerificationSent(false);
+      }, 5000);
+    } catch (error) {
+      console.error('Error sending verification:', error);
+    }
+  };
 
   // Format wallet address for display
   const formatAddress = (addr?: string) => {
@@ -244,6 +274,27 @@ export function Account() {
               <SwitchAccount fontSize="small" sx={{ mr: 1.5 }} />
               <Typography variant="body2">Switch Accounts</Typography>
             </MenuItem>
+          )}
+          {!isVerified && !user?.walletId && (
+            <MenuItem onClick={handleResendVerification}>
+              <ListItemIcon>
+                <MarkEmailRead fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText primary="Verify Email" />
+            </MenuItem>
+          )}
+          {isVerified && !user?.walletId && (
+            <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
+              <ListItemIcon>
+                <VerifiedUser fontSize="small" sx={{ color: 'success.main' }} />
+              </ListItemIcon>
+              <ListItemText primary="Email Verified" />
+            </MenuItem>
+          )}
+          {verificationSent && (
+            <Alert severity="success" sx={{ mx: 2, my: 1 }}>
+              Verification email sent!
+            </Alert>
           )}
           <Divider />
           <MenuItem onClick={handleSignOut}>

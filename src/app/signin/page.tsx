@@ -280,6 +280,20 @@ export default function SignInPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
+                <Link href="/reset-password" passHref>
+                  <Typography 
+                    variant="body2" 
+                    color="primary"
+                    sx={{ 
+                      cursor: 'pointer',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                  >
+                    Forgot password?
+                  </Typography>
+                </Link>
+              </Box>
               <Button
                 type="submit"
                 variant="contained"
