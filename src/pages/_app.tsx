@@ -1,16 +1,14 @@
-import { AppProps } from 'next/app';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { CustomMuiThemeProvider } from '@/providers/MuiThemeProvider';
-import { GeometricBackground } from '@/components/GeometricBackground';
-import '../app/globals.css';
+import { IntegrationProvider } from '@/context/IntegrationContext';
 
-export default function App({ Component, pageProps }: AppProps) {
+// ... other imports
+
+function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ThemeProvider>
-      <CustomMuiThemeProvider>
-        <GeometricBackground />
-        <Component {...pageProps} />
-      </CustomMuiThemeProvider>
-    </ThemeProvider>
+    <IntegrationProvider>
+      {/* Other providers */}
+      <Component {...pageProps} />
+    </IntegrationProvider>
   );
 }
+
+export default MyApp;
