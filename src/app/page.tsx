@@ -168,7 +168,7 @@ export default function HomePage() {
                   }}
                 >
                   <Image 
-                    src="/images/earn.png" 
+                    src="/images/earn.jpg" 
                     alt="Earn with Web3Lancer" 
                     layout="fill" 
                     objectFit="cover"
