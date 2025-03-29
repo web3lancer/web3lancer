@@ -183,6 +183,7 @@ export default function Sidebar() {
           borderTop: '1px solid rgba(255,255,255,0.1)',
           zIndex: 1300,
           height: 70,
+          transition: 'none', // Prevent transition effects that could cause layout shifts
         }}
       >
         {menuItems.map((item, index) => (

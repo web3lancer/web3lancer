@@ -36,6 +36,9 @@ export default function Header() {
         width: { xs: '100%', md: `calc(100% - 240px)` },
         ml: { xs: 0, md: '240px' },
         zIndex: (theme) => theme.zIndex.drawer + 1,
+        position: 'fixed',
+        top: 0,
+        left: 0,
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>

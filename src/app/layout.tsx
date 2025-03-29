@@ -69,6 +69,9 @@ export default function RootLayout({
                           overflow: 'auto',
                           position: 'relative',
                           width: '100%',
+                          height: '100vh', // Set explicit height
+                          boxSizing: 'border-box', // Include padding in height calculation
+                          overflowX: 'hidden',
                         }}
                       >
                         {children}
