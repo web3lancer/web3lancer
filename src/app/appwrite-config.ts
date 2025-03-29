@@ -1,18 +1,15 @@
-import { Client, Account, Databases, Storage } from 'appwrite';
+// Re-export from the main API file and env file
+import { client, account, databases, storage, ID } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 
-// Initialize the Appwrite client
-const client = new Client();
+// Export for backward compatibility
+export { 
+  client, 
+  account, 
+  databases, 
+  storage, 
+  ID, 
+  APPWRITE_CONFIG 
+};
 
-client
-    .setEndpoint(APPWRITE_CONFIG.ENDPOINT)
-    .setProject(APPWRITE_CONFIG.PROJECT_ID);
-
-// Initialize Appwrite services
-export const account = new Account(client);
-export const databases = new Databases(client);
-export const storage = new Storage(client);
-
-// Export client and ID for convenience
-export { client };
-export { ID } from 'appwrite';
+console.log('Note: Consider importing from @/utils/api and @/lib/env instead for better code organization');

@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID, Query, OAuthProvider } from 'appwrite';
+import { Client, Account, Databases, Storage, ID, Query, OAuthProvider, Avatars } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { APP_CONFIG } from '@/lib/env';
 
@@ -11,6 +11,7 @@ client
 const account = new Account(client);
 const databases = new Databases(client);
 const storage = new Storage(client);
+const avatars = new Avatars(client);
 
 /**
  * User authentication functions
@@ -323,7 +324,7 @@ async function updateMfaChallenge(challengeId: string, otp: string) {
 }
 
 // Verify the user's email before enabling MFA
-async function createEmailVerification() {
+async function createMfaEmailVerification() {
   try {
     const baseURL = APP_CONFIG.APP_URL;
     const verificationURL = `${baseURL}/verify-email`;
@@ -767,6 +768,7 @@ export {
   account, 
   databases, 
   storage,
+  avatars,
   ID, 
   signUp, 
   signIn,
@@ -786,6 +788,7 @@ export {
   listMfaFactors,
   createMfaChallenge,
   updateMfaChallenge,
+  createMfaEmailVerification,
   getUserProfile,
   updateUserProfile,
   addBookmark, 

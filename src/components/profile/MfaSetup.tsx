@@ -38,7 +38,7 @@ import {
   listMfaFactors, 
   createMfaRecoveryCodes, 
   updateMfa, 
-  createEmailVerification,
+  createMfaEmailVerification, // Updated import
   createMfaChallenge,
   updateMfaChallenge
 } from '@/utils/api';
@@ -93,7 +93,7 @@ export default function MfaSetup() {
   const handleSendVerification = async () => {
     try {
       setLoading(true);
-      await createEmailVerification();
+      await createMfaEmailVerification(); // Updated function call
       setVerificationSent(true);
       setError(null);
     } catch (error) {
