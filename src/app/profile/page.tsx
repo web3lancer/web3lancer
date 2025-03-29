@@ -6,6 +6,7 @@ import { uploadFile, getFilePreview } from "@/utils/storage";
 import { databases } from "@/utils/api";
 import { motion } from "framer-motion";
 import { useMultiAccount } from "@/contexts/MultiAccountContext";
+import CalendarSection from "@/components/profile/CalendarSection";
 
 const MotionPaper = motion(Paper);
 
@@ -270,6 +271,10 @@ export default function ProfilePage() {
               {loading ? <CircularProgress size={24} /> : 'Save Profile'}
             </Button>
           </MotionPaper>
+        </Grid>
+
+        <Grid item xs={12}>
+          <CalendarSection />
         </Grid>
       </Grid>
     </Box>

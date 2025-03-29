@@ -1,17 +1,15 @@
 "use client";
 
 import { Drawer, List, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction, Divider, ListItemButton } from "@mui/material";
-import { CalendarToday, Dashboard, EventNote, Work, Store, Home, WorkOutline, CalendarMonth, Bookmarks, Storefront, Person } from "@mui/icons-material";
+import { Dashboard, Work, Bookmarks, Storefront, Person } from "@mui/icons-material";
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
 
 const menuItems = [
   { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
-  { text: 'Jobs', icon: WorkOutline, path: '/jobs' },
   { text: 'Projects', icon: Work, path: '/projects' },
   { text: 'Marketplace', icon: Storefront, path: '/marketplace' },
-  { text: 'Calendar', icon: CalendarMonth, path: '/calendar' },
   { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
   { text: 'Profile', icon: Person, path: '/profile' },
 ];
