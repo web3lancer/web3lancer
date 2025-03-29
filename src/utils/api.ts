@@ -219,6 +219,46 @@ async function convertAnonymousSession(email: string, password: string, name: st
 }
 
 /**
+ * Email OTP Authentication functions
+ */
+async function createEmailOTP(email: string, enableSecurityPhrase: boolean = false) {
+  try {
+    // Generate a unique user ID
+    const userId = ID.unique();
+    
+    // Create an email token with optional security phrase
+    const response = await account.createEmailToken(userId, email, enableSecurityPhrase);
+    console.log('Email OTP sent successfully');
+    
+    return {
+      userId: response.userId,
+      securityPhrase: enableSecurityPhrase ? response.phrase : null
+    };
+  } catch (error) {
+    console.error('Error creating email OTP:', error);
+    throw new Error(`Failed to create email OTP: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Verify email OTP code and create session
+ */
+async function verifyEmailOTP(userId: string, secret: string) {
+  try {
+    // Create a session using the OTP code
+    const session = await account.createSession(userId, secret);
+    console.log('Email OTP verified successfully');
+    
+    // After successful verification, get the user
+    const user = await account.get();
+    return user;
+  } catch (error) {
+    console.error('Error verifying email OTP:', error);
+    throw new Error(`Failed to verify email OTP: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * User profile functions
  */
 async function getUserProfile(userId: string) {
@@ -661,6 +701,8 @@ export {
   createAnonymousSession,
   ensureSession,
   convertAnonymousSession,
+  createEmailOTP,
+  verifyEmailOTP,
   getUserProfile,
   updateUserProfile,
   addBookmark, 

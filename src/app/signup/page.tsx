@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton } from '@mui/material';
+import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton, Tabs, Tab } from '@mui/material';
 import { GitHub, Email } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -10,6 +10,7 @@ import { signUp, convertAnonymousSession } from '@/utils/api';
 import Link from 'next/link';
 import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { useAuth } from '@/contexts/AuthContext';
+import EmailOTPForm from '@/components/EmailOTPForm';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function SignUpPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [signupMethod, setSignupMethod] = useState<'email' | 'otp'>('email');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -91,114 +93,101 @@ export default function SignUpPage() {
       alignItems: 'center',
       minHeight: '100vh',
       p: { xs: 2, sm: 4 },
-      pt: { xs: '80px', sm: '100px' }, // Add padding-top to account for header
+      pt: { xs: '80px', sm: '100px' },
       background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
     }}>
-      <Container maxWidth="sm" sx={{ pt: 4, pb: 8 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Typography variant="h4" component="h1" sx={{ mb: 2, fontWeight: 700 }}>
-              Create an Account
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Join Web3Lancer to start your decentralized freelancing journey
-            </Typography>
-          </Box>
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 4,
-              background: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.18)',
-            }}
+      <Paper sx={{ 
+        maxWidth: 480,
+        width: '100%',
+        p: { xs: 3, sm: 4 },
+        borderRadius: 2,
+        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(20px)',
+      }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+          Create Account
+        </Typography>
+        
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          Sign up to get started with Web3Lancer
+        </Typography>
+        
+        {/* Sign up method selector */}
+        <Box sx={{ mb: 3 }}>
+          <Tabs 
+            value={signupMethod} 
+            onChange={(_, value) => setSignupMethod(value)}
+            variant="fullWidth"
+            sx={{ mb: 3 }}
           >
-            <Typography variant="h6" sx={{ mb: 3 }}>Connect Wallet</Typography>
-            <ConnectWallet />
-            
-            <Divider sx={{ my: 4 }}>
-              <Typography variant="body2" color="text.secondary">OR</Typography>
-            </Divider>
-            
-            {/* Email Sign Up Form */}
-            <Box component="form" onSubmit={handleSignUp} sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Sign up with Email</Typography>
-              <TextField
-                label="Name"
-                name="name"
-                fullWidth
-                margin="normal"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-              <TextField
-                label="Email"
-                name="email"
-                type="email"
-                fullWidth
-                margin="normal"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-              <TextField
-                label="Password"
-                name="password"
-                type="password"
-                fullWidth
-                margin="normal"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2 }}
-                disabled={isLoading}
-                startIcon={<Email />}
-              >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </Button>
-            </Box>
-            
-            {/* GitHub Sign Up */}
-            <Button
-              variant="outlined"
+            <Tab label="Email/Password" value="email" />
+            <Tab label="Email OTP" value="otp" />
+          </Tabs>
+        </Box>
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {/* Email/Password form */}
+        {signupMethod === 'email' && (
+          <form onSubmit={handleSignUp}>
+            <TextField
+              label="Name"
+              name="name"
               fullWidth
-              startIcon={<GitHub />}
-              onClick={handleGitHubSignUp}
-              sx={{ mb: 2 }}
+              margin="normal"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={isLoading}
+              startIcon={<Email />}
             >
-              Sign Up with GitHub
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
-            
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Link href="/signin" style={{ color: '#1E40AF', fontWeight: 600 }}>
-                  Sign In
-                </Link>
-              </Typography>
-            </Box>
-          </Paper>
-        </motion.div>
-      </Container>
+          </form>
+        )}
+        
+        {/* Email OTP form */}
+        {signupMethod === 'otp' && (
+          <EmailOTPForm redirectPath="/dashboard" />
+        )}
+        
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Typography variant="body2">
+            Already have an account? <Link href="/signin">Sign in</Link>
+          </Typography>
+        </Box>
+      </Paper>
     </Box>
   );
 }
