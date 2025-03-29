@@ -1,13 +1,19 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Box, Grid, Typography, Button, Card, CardContent, useTheme, useMediaQuery, Container, Fab } from '@mui/material';
-import { motion } from 'framer-motion';
+import { Box, Grid, Typography, Button, Card, CardContent, useTheme, useMediaQuery, Container, Fab, Avatar, Divider, IconButton, Stack, Paper } from '@mui/material';
+import { motion, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { databases } from '../utils/api';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import CountUp from 'react-countup';
 
 const MotionCard = motion(Card);
+const MotionPaper = motion(Paper);
 
 interface Job {
   $id: string;
@@ -18,7 +24,8 @@ interface Job {
 export default function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); as Job[]);
+  const controls = useAnimation();
 
   useEffect(() => {
     async function fetchJobs() {
@@ -30,7 +37,13 @@ export default function HomePage() {
       }
     }
     fetchJobs();
-  }, []);
+
+    controls.start((i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1 }
+    }));
+  }, [controls]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -141,22 +154,9 @@ export default function HomePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4, duration: 0.8 }}
               >
-                {/* Add 3D illustration or animation here */}
                 <Box
                   sx={{
                     position: 'relative',
-                    height: { xs: '300px', md: '600px' },
-                    width: '100%',
-                    background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(59, 130, 246, 0.2) 100%)',
-                    borderRadius: '30px',
-                    overflow: 'hidden',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: '0 30px 60px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-              </motion.div>
-            </Grid>
           </Grid>
         </Container>
       </Box>
