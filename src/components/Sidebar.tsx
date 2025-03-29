@@ -154,7 +154,7 @@ export default function Sidebar() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.5 }}
             >
-              © 2023 Web3Lancer
+              © {new Date().getFullYear()} Web3Lancer
               <br />
               All rights reserved
             </motion.div>
