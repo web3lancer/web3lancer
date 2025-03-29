@@ -40,12 +40,8 @@ export default function RootLayout({
                       minHeight: '100vh',
                       width: '100%',
                       background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
-                      position: { xs: 'fixed', md: 'relative' },
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      overflow: { xs: 'hidden', md: 'visible' },
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}>
                       <Sidebar />
                       <Box
@@ -57,10 +53,10 @@ export default function RootLayout({
                           display: 'flex',
                           flexDirection: 'column',
                           minHeight: '100vh',
-                          marginLeft: { xs: 0, md: '240px' },
+                          marginLeft: { xs: 0, md: '240px' }, // Fixed space for sidebar
+                          width: { xs: '100%', md: 'calc(100% - 240px)' }, // Adjust width to account for sidebar
                           transition: 'margin 0.3s ease',
                           position: 'relative',
-                          width: '100%',
                           boxSizing: 'border-box',
                         }}
                       >
@@ -73,7 +69,7 @@ export default function RootLayout({
                           className="scrollable-content"
                           sx={{
                             flex: 1,
-                            p: { xs: 2, sm: 3 },
+                            p: { xs: 1, sm: 2, md: 3 },
                             pt: { xs: '80px', md: '84px' },
                             pb: { xs: '85px', md: 3 },
                             background: 'rgba(255, 255, 255, 0.7)',
@@ -81,26 +77,12 @@ export default function RootLayout({
                             borderRadius: { xs: '0', md: '24px 0 0 0' },
                             position: 'relative',
                             width: '100%',
-                            maxWidth: '100%',
                             boxSizing: 'border-box',
                             overflowY: 'auto',
                             overflowX: 'hidden',
-                            '& > *': {
-                              maxWidth: '100%',
-                              boxSizing: 'border-box'
-                            }
                           }}
                         >
-                          <Box 
-                            className="content-wrapper" 
-                            sx={{ 
-                              maxWidth: { sm: '95%', md: '90%', lg: '85%' },
-                              mx: 'auto',
-                              width: '100%',
-                              position: 'relative',
-                              overflowX: 'hidden'
-                            }}
-                          >
+                          <Box className="content-wrapper">
                             {children}
                           </Box>
                         </Box>

@@ -88,7 +88,7 @@ section, article, .MuiBox-root {
 main {
   padding: 20px;
   width: 100%;
-  max-width: 100%;
+  max-width: 100vw;
   overflow-x: hidden; /* Prevent horizontal scroll in main content */
   box-sizing: border-box; /* Include padding in width calculation */
 }
@@ -230,4 +230,31 @@ main {
     padding-top: calc(64px + env(safe-area-inset-top));
     padding-bottom: calc(70px + env(safe-area-inset-bottom));
   }
+}
+
+/* Add proper sidebar handling */
+@media (min-width: 900px) {
+  .content-area {
+    margin-left: 240px;
+    width: calc(100% - 240px);
+  }
+}
+
+/* Ensure proper stacking without overflow */
+.MuiAppBar-root,
+.MuiDrawer-root {
+  position: fixed !important;
+}
+
+.MuiDrawer-root.MuiDrawer-permanent {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+/* Ensure scrollable area doesn't overflow horizontally */
+.scrollable-content,
+.content-wrapper {
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
