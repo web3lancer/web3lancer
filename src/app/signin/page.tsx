@@ -307,90 +307,100 @@ export default function SignInPage() {
                   type="submit"
                   variant="contained"
                   fullWidth
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<GitHub />}
-              onClick={handleGitHubSignIn}
-              sx={{ mb: 2 }}
-            >
-              Sign In with GitHub
-            </Button>
-
-            {/* Magic Link Section */}
-            <Divider sx={{ my: 4 }}>
-              <Typography variant="body2" color="text.secondary">
-                Or sign in with magic link
-              </Typography>
-            </Divider>
-            
-            {magicLinkSent ? (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Magic link has been sent to your email. Please check your inbox and spam folders.
-              </Alert>
-            ) : (
-              <form onSubmit={handleMagicLinkSignIn}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  variant="outlined"
-                  margin="normal"
-                  type="email"
-                  value={magicLinkEmail}
-                  onChange={(e) => setMagicLinkEmail(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <Button 
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ 
-                    mt: 2, 
-                    mb: 2,
-                    py: 1.5,
-                    background: 'linear-gradient(90deg, #3B82F6 0%, #1E40AF 100%)',
-                    boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.4)',
-                    borderRadius: '12px',
-                    '&:hover': {
-                      background: 'linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%)',
-                      boxShadow: '0 6px 20px 0 rgba(59, 130, 246, 0.6)',
-                    }
-                  }}
+                  sx={{ mt: 2 }}
                   disabled={isLoading}
+                  startIcon={<Email />}
                 >
-                  {isLoading ? <CircularProgress size={24} /> : 'Send Magic Link'}
+                  {isLoading ? 'Signing In...' : 'Sign In with Email'}
                 </Button>
-              </form>
-            )}
-            
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Don't have an account?{' '}
-                <Link href="/signup" style={{ color: '#1E40AF', fontWeight: 600 }}>
-                  Sign Up
-                </Link>
-              </Typography>
+              </Box>
+              
+              {/* GitHub Sign In */}
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<GitHub />}
+                onClick={handleGitHubSignIn}
+                sx={{ mb: 2 }}
+              >
+                Sign In with GitHub
+              </Button>
+
+              {/* Magic Link Section */}
+              <Divider sx={{ my: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Or sign in with magic link
+                </Typography>
+              </Divider>
+              
+              {magicLinkSent ? (
+                <Alert severity="success" sx={{ mb: 3 }}>
+                  Magic link has been sent to your email. Please check your inbox and spam folders.
+                </Alert>
+              ) : (
+                <form onSubmit={handleMagicLinkSignIn}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    variant="outlined"
+                    margin="normal"
+                    type="email"
+                    value={magicLinkEmail}
+                    onChange={(e) => setMagicLinkEmail(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button 
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ 
+                      mt: 2, 
+                      mb: 2,
+                      py: 1.5,
+                      background: 'linear-gradient(90deg, #3B82F6 0%, #1E40AF 100%)',
+                      boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.4)',
+                      borderRadius: '12px',
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%)',
+                        boxShadow: '0 6px 20px 0 rgba(59, 130, 246, 0.6)',
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <CircularProgress size={24} /> : 'Send Magic Link'}
+                  </Button>
+                </form>
+              )}
+              
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Don't have an account?{' '}
+                  <Link href="/signup" style={{ color: '#1E40AF', fontWeight: 600 }}>
+                    Sign Up
+                  </Link>
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        </Paper>
-        
-        {isAddingAccount && (
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Button 
-              variant="text" 
-              onClick={() => setIsAddingAccount(false)}
-            >
-              Cancel Adding Account
-            </Button>
-          </Box>
-        )}
-      </motion.div>
-    </Container>
+          </Paper>
+          
+          {isAddingAccount && (
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Button 
+                variant="text" 
+                onClick={() => setIsAddingAccount(false)}
+              >
+                Cancel Adding Account
+              </Button>
+            </Box>
+          )}
+        </motion.div>
+      </Container>
+    </Box>
   );
 }
