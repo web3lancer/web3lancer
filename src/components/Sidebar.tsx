@@ -175,12 +175,13 @@ export default function Sidebar() {
           display: { xs: 'flex', md: 'none' },
           position: 'fixed',
           bottom: 0,
+          left: 0,
           width: '100%',
           background: 'rgba(30, 58, 138, 0.95)',
           backdropFilter: 'blur(15px)',
           boxShadow: '0 -5px 25px 0 rgba(31, 38, 135, 0.15)',
           borderTop: '1px solid rgba(255,255,255,0.1)',
-          zIndex: 1000,
+          zIndex: 1300,
           height: 70,
         }}
       >

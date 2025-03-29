@@ -61,12 +61,14 @@ export default function RootLayout({
                         sx={{
                           flex: 1,
                           p: { xs: 1, sm: 2, md: 3 },
-                          pt: '64px',
+                          pt: { xs: '80px', md: '84px' }, // Increased padding top to account for fixed header
+                          pb: { xs: '85px', md: 3 }, // Added padding bottom for mobile to account for bottom nav
                           background: 'rgba(255, 255, 255, 0.7)',
                           backdropFilter: 'blur(10px)',
                           borderRadius: { xs: '0', md: '24px 0 0 0' },
                           overflow: 'auto',
                           position: 'relative',
+                          width: '100%',
                         }}
                       >
                         {children}
