@@ -1,31 +1,17 @@
 "use client";
-import { Box, Grid, Card, CardContent, Typography, IconButton, LinearProgress, useTheme } from '@mui/material';
+import { Box, Grid, Typography, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
-import { ArrowUpward, MoreVert, Assessment, AccountBalance, WorkOutline, TrendingUp } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { databases } from '@/utils/api';
-
-const MotionCard = motion(Card);
-
-const statsData = [
-  { title: 'Total Earnings', value: '$12,350', icon: AccountBalance, increase: '+15%', color: '#1E40AF' },
-  { title: 'Active Projects', value: '8', icon: WorkOutline, increase: '+5%', color: '#3B82F6' },
-  { title: 'Completion Rate', value: '94%', icon: Assessment, increase: '+2%', color: '#60A5FA' },
-  { title: 'Client Rating', value: '4.9/5', icon: TrendingUp, increase: '+0.3', color: '#93C5FD' },
-];
-
-const activities = [
-  { title: 'Project Completed', description: 'Blockchain Integration', time: '2 hours ago' },
-  { title: 'New Project', description: 'Smart Contract Development', time: '5 hours ago' },
-  { title: 'Payment Received', description: 'DApp Development', time: '1 day ago' },
-];
+import { DashboardStats } from '@/components/dashboard/DashboardStats';
+import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { ProjectProgress } from '@/components/dashboard/ProjectProgress';
 
 export default function DashboardPage() {
   const theme = useTheme();
   const { user } = useAuth();
-  const [userStats, setUserStats] = useState(statsData);
-  const [userActivities, setUserActivities] = useState(activities);
+  const [userStats, setUserStats] = useState<any[]>([]);
+  const [userActivities, setUserActivities] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -36,9 +22,23 @@ export default function DashboardPage() {
 
   const fetchUserStats = async () => {
     try {
-      // Fetch user-specific stats from the database
-      // Example: const response = await databases.listDocuments('databaseId', 'collectionId', [query]);
-      // setUserStats(response.documents);
+      // In a real app, this would fetch from your database
+      setUserStats([
+        { title: 'Total Earnings', value: '$12,350', icon: 'AccountBalance', increase: '+15%', color: '#1E40AF' },
+        { title: 'Active Projects', value: '8', icon: 'WorkOutline', increase: '+5%', color: '#3B82F6' },
+        { title: 'Completion Rate', value: '94%', icon: 'Assessment', increase: '+2%', color: '#60A5FA' },
+        { title: 'Client Rating', value: '4.9/5', icon: 'TrendingUp', increase: '+0.3', color: '#93C5FD' },
+      ]);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const fetchUserActivities = async () => {
+    try {
+      // In a real app, this would fetch from your database
+      setUserActivities([
+        { title: 'Project Completed', description: 'Blockchain Integration', time: '2 hours ago' },
     } catch (error) {
       console.error('Error fetching user stats:', error);
     }
