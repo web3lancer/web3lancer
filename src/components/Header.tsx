@@ -9,9 +9,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from 'wagmi';
 import { Account } from './Account';
 
-export default function Header() {
+interface HeaderProps {
+  isHomePage?: boolean;
+}
+
+export default function Header({ isHomePage = false }: HeaderProps) {
   const { user } = useAuth();
   const { address } = useAccount();
+
+  // If it's home page, potentially return a different (or no) header
+  if (isHomePage) {
+    return null; // No header on homepage
+  }
 
   return (
     <AppBar
@@ -21,9 +30,9 @@ export default function Header() {
         background: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(231, 231, 231, 0.8)',
-        width: { xs: '100%', md: `calc(100% - 240px)` }, // Adjust width to account for sidebar
-        ml: { xs: 0, md: '240px' }, // Align with sidebar width
-        zIndex: (theme) => theme.zIndex.drawer + 1, // Ensure above sidebar
+        width: { xs: '100%', md: `calc(100% - 240px)` },
+        ml: { xs: 0, md: '240px' },
+        zIndex: (theme) => theme.zIndex.drawer + 1,
         position: 'fixed',
         top: 0,
         left: 0,
