@@ -13,9 +13,18 @@ import { WagmiProvider } from 'wagmi';
 import { config } from '@/utils/config';
 import { WalletProvider } from '@/components/WalletProvider';
 import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
 
 const queryClient = new QueryClient();
+
+// Define pre-auth pages where sidebar and bottom bar should not appear
+const PRE_AUTH_ROUTES = [
+  '/signin', 
+  '/signup', 
+  '/reset-password', 
+  '/verify-email',
+  '/verify-magic-link',
+  '/forgot-password'
+];
 
 // Ensure MUI components are loaded properly
 function SafeHydrate({ children }: { children: React.ReactNode }) {
@@ -36,6 +45,12 @@ export default function RootLayout({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  
+  // Check if the current route is a pre-auth page
+  const isPreAuthPage = PRE_AUTH_ROUTES.some(route => pathname?.startsWith(route));
+  
+  // Determine if sidebar should be shown
+  const showSidebar = !isHomePage && !isPreAuthPage;
 
   return (
     <html lang="en">
@@ -56,15 +71,15 @@ export default function RootLayout({
                         minHeight: '100vh',
                         width: '100%',
                         background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
-                        position: { xs: isHomePage ? 'relative' : 'fixed', md: 'relative' },
+                        position: { xs: isHomePage || isPreAuthPage ? 'relative' : 'fixed', md: 'relative' },
                         top: 0,
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        overflow: { xs: isHomePage ? 'visible' : 'hidden', md: 'visible' },
+                        overflow: { xs: isHomePage || isPreAuthPage ? 'visible' : 'hidden', md: 'visible' },
                       }}>
-                        {/* Only render sidebar if not on homepage */}
-                        {!isHomePage && <Sidebar />}
+                        {/* Only render sidebar if it should be shown */}
+                        {showSidebar && <Sidebar />}
                         
                         <Box
                           component={motion.div}
@@ -75,14 +90,14 @@ export default function RootLayout({
                             display: 'flex',
                             flexDirection: 'column',
                             minHeight: '100vh',
-                            marginLeft: { xs: 0, md: isHomePage ? 0 : '240px' },
-                            width: { xs: '100%', md: isHomePage ? '100%' : 'calc(100% - 240px)' },
+                            marginLeft: { xs: 0, md: showSidebar ? '240px' : 0 },
+                            width: { xs: '100%', md: showSidebar ? 'calc(100% - 240px)' : '100%' },
                             transition: 'margin 0.3s ease',
                             position: 'relative',
                           }}
                         >
-                          {/* Conditionally render Header if not on homepage or adjust its width */}
-                          <Header isHomePage={isHomePage} />
+                          {/* Conditionally render Header if not on homepage or with adjusted properties for pre-auth pages */}
+                          <Header isHomePage={isHomePage} isPreAuthPage={isPreAuthPage} />
                           
                           <Box
                             component={motion.div}
@@ -92,12 +107,12 @@ export default function RootLayout({
                             className="scrollable-content"
                             sx={{
                               flex: 1,
-                              p: isHomePage ? 0 : { xs: 1, sm: 2, md: 3 },
-                              pt: isHomePage ? 0 : { xs: '80px', md: '84px' },
-                              pb: isHomePage ? 0 : { xs: '85px', md: 3 },
-                              background: isHomePage ? 'transparent' : 'rgba(255, 255, 255, 0.7)',
-                              backdropFilter: isHomePage ? 'none' : 'blur(10px)',
-                              borderRadius: isHomePage ? 0 : { xs: '0', md: '24px 0 0 0' },
+                              p: isHomePage || isPreAuthPage ? 0 : { xs: 1, sm: 2, md: 3 },
+                              pt: isHomePage || isPreAuthPage ? 0 : { xs: '80px', md: '84px' },
+                              pb: isHomePage || isPreAuthPage ? 0 : { xs: '85px', md: 3 },
+                              background: isHomePage || isPreAuthPage ? 'transparent' : 'rgba(255, 255, 255, 0.7)',
+                              backdropFilter: isHomePage || isPreAuthPage ? 'none' : 'blur(10px)',
+                              borderRadius: isHomePage || isPreAuthPage ? 0 : { xs: '0', md: '24px 0 0 0' },
                               position: 'relative',
                               width: '100%',
                               boxSizing: 'border-box',
@@ -110,6 +125,22 @@ export default function RootLayout({
                               {children}
                             </Box>
                           </Box>
+                          
+                          {/* Only render bottom navigation on mobile when not on pre-auth pages or homepage */}
+                          {isMobile && showSidebar && (
+                            <Box sx={{ 
+                              position: 'fixed', 
+                              bottom: 0, 
+                              left: 0, 
+                              right: 0, 
+                              zIndex: 1000,
+                              background: 'rgba(255, 255, 255, 0.9)',
+                              backdropFilter: 'blur(10px)',
+                              borderTop: '1px solid rgba(231, 231, 231, 0.8)'
+                            }}>
+                              {/* Mobile bottom navigation component */}
+                            </Box>
+                          )}
                         </Box>
                       </Box>
                     </SafeHydrate>

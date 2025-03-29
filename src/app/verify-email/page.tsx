@@ -77,7 +77,8 @@ export default function VerifyEmail() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          py: 4
+          py: 4,
+          pt: { xs: '80px', sm: '100px' }, // Add padding-top to account for header
         }}
       >
         <Paper

@@ -8,20 +8,66 @@ import { motion } from "framer-motion";
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from 'wagmi';
 import { Account } from './Account';
+import Link from 'next/link';
 
 interface HeaderProps {
   isHomePage?: boolean;
+  isPreAuthPage?: boolean;
 }
 
-export default function Header({ isHomePage = false }: HeaderProps) {
+export default function Header({ isHomePage = false, isPreAuthPage = false }: HeaderProps) {
   const { user } = useAuth();
   const { address } = useAccount();
 
-  // If it's home page, potentially return a different (or no) header
+  // If it's home page, return null (no header)
   if (isHomePage) {
-    return null; // No header on homepage
+    return null;
   }
 
+  // If it's a pre-auth page, return a simplified header
+  if (isPreAuthPage) {
+    return (
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          background: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(231, 231, 231, 0.8)',
+          width: '100%',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>
+          <Link href="/" passHref>
+            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <Box sx={{ position: 'relative', width: 40, height: 40, mr: 2 }}>
+                <Image
+                  src="/logo/web3lancer.jpg"
+                  alt="Web3Lancer"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                />
+              </Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontWeight: 700,
+                }}
+              >
+                Web3Lancer
+              </Typography>
+            </Box>
+          </Link>
+        </Toolbar>
+      </AppBar>
+    );
+  }
+
+  // Regular header for authenticated routes
   return (
     <AppBar
       position="fixed"

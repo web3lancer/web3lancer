@@ -164,35 +164,95 @@ export default function SignInPage() {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ pt: 4, pb: 8 }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Typography variant="h4" component="h1" sx={{ mb: 2, fontWeight: 700 }}>
-            {isAddingAccount ? 'Add Another Account' : 'Welcome to Web3Lancer'}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {isAddingAccount
-              ? 'Connect with another wallet or sign in with email to add as an additional account'
-              : 'Connect with your wallet or sign in with email to continue to the platform'}
-          </Typography>
-        </Box>
+    <Box sx={{ 
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      p: { xs: 2, sm: 4 },
+      pt: { xs: '80px', sm: '100px' }, // Add padding-top to account for header
+      background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+    }}>
+      <Container maxWidth="sm" sx={{ pt: 4, pb: 8 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography variant="h4" component="h1" sx={{ mb: 2, fontWeight: 700 }}>
+              {isAddingAccount ? 'Add Another Account' : 'Welcome to Web3Lancer'}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {isAddingAccount
+                ? 'Connect with another wallet or sign in with email to add as an additional account'
+                : 'Connect with your wallet or sign in with email to continue to the platform'}
+            </Typography>
+          </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
 
-        {accounts.length > 0 && !isAddingAccount && (
+          {accounts.length > 0 && !isAddingAccount && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                borderRadius: 4,
+                background: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2 }}>Your Accounts</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {accounts.map((account) => (
+                  <Button 
+                    key={account.$id}
+                    variant="outlined"
+                    onClick={() => handleSignInWithAccount(account)}
+                    sx={{ 
+                      justifyContent: 'flex-start',
+                      py: 1.5,
+                      px: 2,
+                      borderColor: account.isActive ? 'primary.main' : 'divider',
+                      backgroundColor: account.isActive ? 'rgba(59, 130, 246, 0.1)' : 'transparent' 
+                    }}
+                  >
+                    {account.name || account.email || (account.walletId ? `${account.walletId.substring(0, 6)}...${account.walletId.substring(account.walletId.length - 4)}` : 'Unknown Account')}
+                  </Button>
+                ))}
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                {hasMaxAccounts 
+                  ? "You've reached the maximum number of accounts (3)" 
+                  : "Connect another wallet"}
+              </Typography>
+              
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={hasMaxAccounts}
+                onClick={() => setIsAddingAccount(true)}
+              >
+                Add New Account
+              </Button>
+            </Paper>
+          )}
+
           <Paper
             elevation={0}
             sx={{
               p: 3,
-              mb: 3,
               borderRadius: 4,
               background: 'rgba(255, 255, 255, 0.7)',
               backdropFilter: 'blur(10px)',
@@ -200,113 +260,53 @@ export default function SignInPage() {
               border: '1px solid rgba(255, 255, 255, 0.18)',
             }}
           >
-            <Typography variant="h6" sx={{ mb: 2 }}>Your Accounts</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {accounts.map((account) => (
-                <Button 
-                  key={account.$id}
-                  variant="outlined"
-                  onClick={() => handleSignInWithAccount(account)}
-                  sx={{ 
-                    justifyContent: 'flex-start',
-                    py: 1.5,
-                    px: 2,
-                    borderColor: account.isActive ? 'primary.main' : 'divider',
-                    backgroundColor: account.isActive ? 'rgba(59, 130, 246, 0.1)' : 'transparent' 
-                  }}
-                >
-                  {account.name || account.email || (account.walletId ? `${account.walletId.substring(0, 6)}...${account.walletId.substring(account.walletId.length - 4)}` : 'Unknown Account')}
-                </Button>
-              ))}
-            </Box>
-            
-            <Divider sx={{ my: 2 }} />
-            
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              {hasMaxAccounts 
-                ? "You've reached the maximum number of accounts (3)" 
-                : "Connect another wallet"}
-            </Typography>
-            
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              disabled={hasMaxAccounts}
-              onClick={() => setIsAddingAccount(true)}
-            >
-              Add New Account
-            </Button>
-          </Paper>
-        )}
-
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            borderRadius: 4,
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-          }}
-        >
-          <Box>
-            <Typography variant="h6" sx={{ mb: 3 }}>Connect Wallet</Typography>
-            <ConnectWallet />
-            
-            <Divider sx={{ my: 4 }}>
-              <Typography variant="body2" color="text.secondary">OR</Typography>
-            </Divider>
-            
-            {/* Email Sign In Form */}
-            <Box component="form" onSubmit={handleEmailSignIn} sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Sign in with Email</Typography>
-              <TextField
-                label="Email"
-                type="email"
-                fullWidth
-                margin="normal"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                margin="normal"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
-                <Link href="/reset-password" passHref>
-                  <Typography 
-                    variant="body2" 
-                    color="primary"
-                    sx={{ 
-                      cursor: 'pointer',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
-                    Forgot password?
-                  </Typography>
-                </Link>
-              </Box>
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2 }}
-                disabled={isLoading}
-                startIcon={<Email />}
-              >
-                {isLoading ? 'Signing In...' : 'Sign In with Email'}
-              </Button>
-            </Box>
-            
-            {/* GitHub Sign In */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 3 }}>Connect Wallet</Typography>
+              <ConnectWallet />
+              
+              <Divider sx={{ my: 4 }}>
+                <Typography variant="body2" color="text.secondary">OR</Typography>
+              </Divider>
+              
+              {/* Email Sign In Form */}
+              <Box component="form" onSubmit={handleEmailSignIn} sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>Sign in with Email</Typography>
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  margin="normal"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <TextField
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  margin="normal"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
+                  <Link href="/reset-password" passHref>
+                    <Typography 
+                      variant="body2" 
+                      color="primary"
+                      sx={{ 
+                        cursor: 'pointer',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      Forgot password?
+                    </Typography>
+                  </Link>
+                </Box>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
             <Button
               variant="outlined"
               fullWidth
