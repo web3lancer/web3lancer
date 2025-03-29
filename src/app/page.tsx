@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Fab } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { databases } from '../utils/api';
+import { databases, ensureSession } from '../utils/api';
 import HeroSection from './home/sections/HeroSection';
 import StatisticsSection from './home/sections/StatisticsSection';
 import FeaturesSection from './home/sections/FeaturesSection';
@@ -22,7 +22,11 @@ export default function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
 
   useEffect(() => {
-    async function fetchJobs() {
+    async function init() {
+      // Ensure a session exists (anonymous or authenticated)
+      await ensureSession().catch(console.error);
+      
+      // Then fetch jobs
       try {
         const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
         setJobs(response.documents as unknown as Job[]);
@@ -30,7 +34,8 @@ export default function HomePage() {
         console.error('Error fetching jobs:', error);
       }
     }
-    fetchJobs();
+    
+    init();
   }, []);
 
   const scrollToTop = () => {

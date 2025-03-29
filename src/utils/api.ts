@@ -42,6 +42,56 @@ async function signIn(email: string, password: string) {
 }
 
 /**
+ * Create an anonymous session for guests
+ * This allows guests to access basic features without signing up
+ */
+async function createAnonymousSession() {
+  try {
+    const response = await account.createAnonymousSession();
+    console.log('Anonymous session created successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error creating anonymous session:', error);
+    throw new Error(`Failed to create anonymous session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Check if user is authenticated, if not create an anonymous session
+ * This ensures all users have at least guest access to permitted resources
+ */
+async function ensureSession() {
+  try {
+    // Try to get current session
+    const session = await account.get();
+    return session;
+  } catch (error) {
+    console.log('No active session, creating anonymous session');
+    return createAnonymousSession();
+  }
+}
+
+/**
+ * Convert anonymous session to permanent account
+ * @param email User's email
+ * @param password User's password
+ * @param name User's name
+ */
+async function convertAnonymousSession(email: string, password: string, name: string) {
+  try {
+    const response = await account.updateEmail(email, password);
+    if (response) {
+      await account.updateName(name);
+    }
+    console.log('Anonymous account converted successfully');
+    return response;
+  } catch (error) {
+    console.error('Error converting anonymous account:', error);
+    throw new Error(`Failed to convert anonymous account: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * User profile functions
  */
 async function getUserProfile(userId: string) {
@@ -393,7 +443,10 @@ export {
   storage,
   ID, 
   signUp, 
-  signIn, 
+  signIn,
+  createAnonymousSession,
+  ensureSession,
+  convertAnonymousSession,
   getUserProfile,
   updateUserProfile,
   addBookmark, 

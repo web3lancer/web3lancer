@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider } from '@mui/material';
-import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount } from '@mui/icons-material';
+import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, ListItemIcon, ListItemText } from '@mui/material';
+import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount, ArrowDropDown, Login, PersonAdd } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAccount, useDisconnect } from 'wagmi';
@@ -14,7 +14,7 @@ export function Account() {
   const router = useRouter();
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { user, setUser, signOut } = useAuth();
+  const { user, setUser, signOut, isAnonymous } = useAuth();
   const { activeAccount, accounts } = useMultiAccount();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -94,6 +94,66 @@ export function Account() {
       console.error("Error signing out:", error);
     }
   };
+
+  // If user is anonymous, let's show a different display
+  if (isAnonymous) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Button
+          onClick={handleMenuClick}
+          sx={{
+            borderRadius: '12px',
+            background: 'rgba(59, 130, 246, 0.1)',
+            color: '#1E40AF',
+            fontWeight: 600,
+            '&:hover': {
+              background: 'rgba(59, 130, 246, 0.2)',
+            }
+          }}
+          endIcon={<ArrowDropDown />}
+        >
+          Guest User
+        </Button>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          PaperProps={{
+            sx: {
+              borderRadius: '12px',
+              boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+              mt: 1
+            }
+          }}
+        >
+          <MenuItem 
+            onClick={() => {
+              handleClose();
+              router.push('/signin');
+            }} 
+            sx={{ py: 1.5, px: 2 }}
+          >
+            <ListItemIcon>
+              <Login fontSize="small" sx={{ color: '#1E40AF' }} />
+            </ListItemIcon>
+            <ListItemText>Sign In</ListItemText>
+          </MenuItem>
+          <MenuItem 
+            onClick={() => {
+              handleClose();
+              router.push('/signup');
+            }} 
+            sx={{ py: 1.5, px: 2 }}
+          >
+            <ListItemIcon>
+              <PersonAdd fontSize="small" sx={{ color: '#1E40AF' }} />
+            </ListItemIcon>
+            <ListItemText>Create Account</ListItemText>
+          </MenuItem>
+        </Menu>
+      </Box>
+    );
+  }
 
   return (
     <>

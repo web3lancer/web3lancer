@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { account } from '@/utils/api';
+import { account, ensureSession } from '@/utils/api';
 import { useAccount as useWagmiAccount } from 'wagmi';
 import { useMultiAccount, UserAccount } from './MultiAccountContext';
 
@@ -19,6 +19,8 @@ interface AuthContextType {
   isLoading: boolean;
   signOut: () => Promise<void>;
   handleGitHubOAuth?: (code: string) => Promise<void>;
+  isAnonymous: boolean;
+  setIsAnonymous: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,43 +28,55 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const { address } = useWagmiAccount();
   const { activeAccount, addAccount, switchAccount, accounts } = useMultiAccount();
 
-  // Check for existing user session on mount - following Appwrite pattern
+  // Check for existing user session on mount
   useEffect(() => {
     async function checkSession() {
       try {
         setIsLoading(true);
         
-        // Wrap get() in try/catch to handle unauthorized errors gracefully
-        const session = await account.get().catch(error => {
-          console.log('User not logged in or session expired', error);
+        // Use ensureSession to get current session or create anonymous session
+        const session = await ensureSession().catch(error => {
+          console.log('Error ensuring session:', error);
           return null;
         });
         
         if (session) {
+          // Check if this is an anonymous session
+          if (session.$id && (!session.name || !session.email)) {
+            setIsAnonymous(true);
+            console.log('Anonymous session active');
+          } else {
+            setIsAnonymous(false);
+          }
+          
           // Set user from session
           setUser(session);
           
-          // Handle multi-account management
-          const existingAccount = accounts.find(acc => acc.$id === session.$id);
-          if (existingAccount) {
-            if (!existingAccount.isActive) {
-              switchAccount(session.$id);
-            }
-          } else {
-            const newAccount: UserAccount = {
-              $id: session.$id,
-              name: session.name || '',
-              email: session.email || '',
-              isActive: true
-            };
-            
-            try {
-              addAccount(newAccount);
-            } catch (error) {
-              console.error('Error adding account to multi-account context:', error);
+          // Only add to multi-account if not anonymous
+          if (!isAnonymous && session.$id) {
+            // Handle multi-account management
+            const existingAccount = accounts.find(acc => acc.$id === session.$id);
+            if (existingAccount) {
+              if (!existingAccount.isActive) {
+                switchAccount(session.$id);
+              }
+            } else {
+              const newAccount: UserAccount = {
+                $id: session.$id,
+                name: session.name || '',
+                email: session.email || '',
+                isActive: true
+              };
+              
+              try {
+                addAccount(newAccount);
+              } catch (error) {
+                console.error('Error adding account to multi-account context:', error);
+              }
             }
           }
         }
@@ -144,7 +158,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoading, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      setUser, 
+      isLoading, 
+      signOut,
+      isAnonymous,
+      setIsAnonymous
+    }}>
       {children}
     </AuthContext.Provider>
   );

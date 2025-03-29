@@ -6,13 +6,15 @@ import { GitHub, Email } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { signUp } from '@/utils/api';
+import { signUp, convertAnonymousSession } from '@/utils/api';
 import Link from 'next/link';
 import { useMultiAccount } from '@/contexts/MultiAccountContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { addAccount, hasMaxAccounts } = useMultiAccount();
+  const { isAnonymous, setIsAnonymous } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -38,22 +40,30 @@ export default function SignUpPage() {
     }
 
     try {
-      // This matches the Appwrite docs pattern for creating users
-      const response = await signUp(formData.email, formData.password, formData.name);
-      
+      let response;
+
+      // If user has an anonymous session, convert it instead of creating new account
+      if (isAnonymous) {
+        response = await convertAnonymousSession(formData.email, formData.password, formData.name);
+        setIsAnonymous(false);
+      } else {
+        // Regular signup flow
+        response = await signUp(formData.email, formData.password, formData.name);
+      }
+
       if (response) {
         // Add the new account to multi-accounts
         try {
           addAccount({
             $id: response.$id,
-            name: response.name,
-            email: response.email,
+            name: response.name || '',
+            email: response.email || '',
             isActive: true
           });
         } catch (error) {
           console.error('Error adding account:', error);
         }
-        
+
         router.push('/dashboard');
       }
     } catch (error) {
