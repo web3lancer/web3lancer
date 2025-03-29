@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
 
 const menuItems = [
-  { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
+  { text: 'home', icon: Dashboard, path: '/dashboard' },
   { text: 'Projects', icon: Work, path: '/projects' },
   { text: 'Marketplace', icon: Storefront, path: '/marketplace' },
   { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
