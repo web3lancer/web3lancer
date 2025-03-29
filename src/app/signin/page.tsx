@@ -83,13 +83,14 @@ export default function SignInPage() {
     router.push(redirectPath);
   };
 
-  // Handle email sign in
+  // Handle email sign in - ensure it matches Appwrite docs pattern
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
+      // This matches the Appwrite docs pattern for email/password sessions
       const response = await signIn(email, password);
       
       if (response) {

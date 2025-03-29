@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { account } from '@/utils/api';
-import { useAccount } from 'wagmi';
+import { useAccount as useWagmiAccount } from 'wagmi';
 import { useMultiAccount, UserAccount } from './MultiAccountContext';
 
 interface User {
@@ -26,35 +26,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { address } = useAccount();
+  const { address } = useWagmiAccount();
   const { activeAccount, addAccount, switchAccount, accounts } = useMultiAccount();
 
-  // Check for existing user session on mount
+  // Check for existing user session on mount - following Appwrite pattern
   useEffect(() => {
     async function checkSession() {
       try {
         setIsLoading(true);
+        // Get current session user - matches Appwrite docs
         const session = await account.get();
         
         if (session) {
-          // If we have a session, set the user
+          // Set user from session
           setUser(session);
           
-          // Check if this user is already in our accounts list
+          // Handle multi-account management
           const existingAccount = accounts.find(acc => acc.$id === session.$id);
           if (existingAccount) {
-            // If it exists but isn't active, make it active
             if (!existingAccount.isActive) {
               switchAccount(session.$id);
             }
           } else {
-            // If it doesn't exist in our accounts list, add it
             const newAccount: UserAccount = {
               $id: session.$id,
               name: session.name,
               email: session.email,
               isActive: true
             };
+            
             try {
               addAccount(newAccount);
             } catch (error) {
@@ -124,10 +124,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("Processing GitHub OAuth with code:", code);
   };
 
+  // Sign out matches Appwrite docs for deleting session
   const signOut = async () => {
     try {
       // Only call destroy session if it's not a wallet connection
       if (user && !user.walletId) {
+        // Follows Appwrite docs for session deletion
         await account.deleteSession('current');
       }
       setUser(null);
@@ -138,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoading, signOut, handleGitHubOAuth }}>
+    <AuthContext.Provider value={{ user, setUser, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

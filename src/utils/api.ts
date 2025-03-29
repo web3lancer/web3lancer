@@ -1,6 +1,7 @@
 import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/env';
 
+// Initialize client according to Appwrite docs
 const client = new Client();
 client
   .setEndpoint('https://cloud.appwrite.io/v1')
@@ -15,6 +16,7 @@ const storage = new Storage(client);
  */
 async function signUp(email: string, password: string, name: string) {
   try {
+    // Create user according to Appwrite docs pattern
     const response = await account.create(ID.unique(), email, password, name);
     console.log('User created successfully:', response);
     return response;
@@ -26,7 +28,8 @@ async function signUp(email: string, password: string, name: string) {
 
 async function signIn(email: string, password: string) {
   try {
-    const response = await account.createSession(email, password);
+    // Create session according to Appwrite docs pattern
+    const response = await account.createEmailPasswordSession(email, password);
     console.log('User signed in successfully:', response);
     return response;
   } catch (error) {

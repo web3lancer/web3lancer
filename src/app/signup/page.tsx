@@ -38,6 +38,7 @@ export default function SignUpPage() {
     }
 
     try {
+      // This matches the Appwrite docs pattern for creating users
       const response = await signUp(formData.email, formData.password, formData.name);
       
       if (response) {

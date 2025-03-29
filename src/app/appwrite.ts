@@ -1,18 +1,7 @@
-import { Client, Account, Databases, Storage, ID } from 'appwrite';
-import { APPWRITE_CONFIG } from '@/lib/env';
+import { client, account, databases, storage, ID, Query } from '@/utils/api';
 
-// Initialize the Appwrite client
-const client = new Client();
+// Re-export everything from the main API file to maintain compatibility
+export { client, account, databases, storage, ID, Query };
 
-client
-    .setEndpoint('https://cloud.appwrite.io/v1')
-    .setProject('67aed8360001b6dd8cb3'); // Your project ID
-
-// Initialize Appwrite services
-export const account = new Account(client);
-export const databases = new Databases(client);
-export const storage = new Storage(client);
-
-// Export client and ID for convenience
-export { client, ID };
-export { Query } from 'appwrite';
+// Add a comment to encourage use of the central API file
+console.log('Note: Consider importing from @/utils/api instead of this file for better code organization');
