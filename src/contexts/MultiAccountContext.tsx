@@ -28,22 +28,25 @@ const MAX_ACCOUNTS = 3;
 
 export function MultiAccountProvider({ children }: { children: React.ReactNode }) {
   const [savedAccounts, setSavedAccounts] = useLocalStorage<UserAccount[]>('web3lancer_accounts', []);
-  const [accounts, setAccounts] = useState<UserAccount[]>(savedAccounts || []);
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [activeAccount, setActiveAccount] = useState<UserAccount | null>(null);
 
-  // Initialize active account on load
+  // Initialize accounts from localStorage on mount
   useEffect(() => {
-    if (accounts.length > 0) {
-      const active = accounts.find(account => account.isActive) || accounts[0];
-      setActiveAccount(active);
-    } else {
-      setActiveAccount(null);
+    if (savedAccounts && savedAccounts.length > 0) {
+      setAccounts(savedAccounts);
+      const active = savedAccounts.find(account => account.isActive) || savedAccounts[0];
+      if (active) {
+        setActiveAccount({...active, isActive: true});
+      }
     }
-  }, [accounts]);
+  }, [savedAccounts]);
 
   // Save accounts to localStorage when they change
   useEffect(() => {
-    setSavedAccounts(accounts);
+    if (accounts.length > 0) {
+      setSavedAccounts(accounts);
+    }
   }, [accounts, setSavedAccounts]);
 
   // Add a new account
@@ -55,12 +58,17 @@ export function MultiAccountProvider({ children }: { children: React.ReactNode }
     // Check if the account already exists
     const exists = accounts.some(acc => acc.$id === newAccount.$id);
     if (exists) {
-      throw new Error('This account is already added');
+      // If the account exists but isn't active, make it active
+      switchAccount(newAccount.$id);
+      return;
     }
 
     // Add the new account and set it as active
     const updatedAccounts = accounts.map(acc => ({ ...acc, isActive: false }));
-    setAccounts([...updatedAccounts, { ...newAccount, isActive: true }]);
+    const accountToAdd = { ...newAccount, isActive: true };
+    
+    setAccounts([...updatedAccounts, accountToAdd]);
+    setActiveAccount(accountToAdd);
   };
 
   // Remove an account
@@ -70,6 +78,9 @@ export function MultiAccountProvider({ children }: { children: React.ReactNode }
     // If we removed the active account, set a new active account
     if (activeAccount?.$id === accountId && updatedAccounts.length > 0) {
       updatedAccounts[0].isActive = true;
+      setActiveAccount(updatedAccounts[0]);
+    } else if (updatedAccounts.length === 0) {
+      setActiveAccount(null);
     }
     
     setAccounts(updatedAccounts);

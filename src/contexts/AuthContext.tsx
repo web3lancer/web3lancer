@@ -18,6 +18,7 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isLoading: boolean;
   signOut: () => Promise<void>;
+  handleGitHubOAuth?: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function checkSession() {
       try {
+        setIsLoading(true);
         const session = await account.get();
         
         if (session) {
@@ -74,18 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Handle wallet connection
   useEffect(() => {
     if (address && !user) {
+      const walletId = `wallet-${address}`;
       const walletUser = {
-        $id: `wallet-${address}`,
+        $id: walletId,
         walletId: address
       };
       setUser(walletUser);
       
       // Add this wallet to our accounts
-      const existingAccount = accounts.find(acc => acc.walletId === address);
+      const existingAccount = accounts.find(acc => acc.$id === walletId || acc.walletId === address);
       if (!existingAccount) {
         try {
           const newAccount: UserAccount = {
-            $id: `wallet-${address}`,
+            $id: walletId,
             walletId: address,
             isActive: true
           };
@@ -115,6 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeAccount]);
 
+  // Mock GitHub OAuth handler (add if you need this functionality)
+  const handleGitHubOAuth = async (code: string) => {
+    // Implementation would go here
+    console.log("Processing GitHub OAuth with code:", code);
+  };
+
   const signOut = async () => {
     try {
       // Only call destroy session if it's not a wallet connection
@@ -129,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoading, signOut }}>
+    <AuthContext.Provider value={{ user, setUser, isLoading, signOut, handleGitHubOAuth }}>
       {children}
     </AuthContext.Provider>
   );

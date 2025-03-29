@@ -61,6 +61,8 @@ export function AccountSwitcher() {
   const { disconnect } = useDisconnect();
 
   const handleSwitchAccount = (accountId: string) => {
+    if (activeAccount?.$id === accountId) return; // Don't switch if already active
+    
     switchAccount(accountId);
     
     // Redirect to dashboard or reload
