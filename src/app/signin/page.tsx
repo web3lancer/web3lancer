@@ -8,7 +8,7 @@ import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useAccount } from 'wagmi';
-import { signIn, signUp } from '@/utils/api';
+import { signIn } from '@/utils/api';
 import Link from 'next/link';
 
 export default function SignInPage() {
@@ -32,7 +32,7 @@ export default function SignInPage() {
     }
   }, [addAccountParam]);
 
-  // Handle successful connection
+  // Handle successful wallet connection
   useEffect(() => {
     if (address) {
       const accountId = `wallet-${address}`;
@@ -196,7 +196,7 @@ export default function SignInPage() {
             <Typography variant="body2" sx={{ mb: 1 }}>
               {hasMaxAccounts 
                 ? "You've reached the maximum number of accounts (3)" 
-                : "Connect another wallet or account"}
+                : "Connect another wallet"}
             </Typography>
             
             <Button
@@ -222,64 +222,66 @@ export default function SignInPage() {
             border: '1px solid rgba(255, 255, 255, 0.18)',
           }}
         >
-          <Typography variant="h6" sx={{ mb: 3 }}>Connect Wallet</Typography>
-          <ConnectWallet />
-          
-          <Divider sx={{ my: 4 }}>
-            <Typography variant="body2" color="text.secondary">OR</Typography>
-          </Divider>
-          
-          {/* Email Sign In Form */}
-          <Box component="form" onSubmit={handleEmailSignIn} sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Sign in with Email</Typography>
-            <TextField
-              label="Email"
-              type="email"
-              fullWidth
-              margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              margin="normal"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <Box>
+            <Typography variant="h6" sx={{ mb: 3 }}>Connect Wallet</Typography>
+            <ConnectWallet />
+            
+            <Divider sx={{ my: 4 }}>
+              <Typography variant="body2" color="text.secondary">OR</Typography>
+            </Divider>
+            
+            {/* Email Sign In Form */}
+            <Box component="form" onSubmit={handleEmailSignIn} sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Sign in with Email</Typography>
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                margin="normal"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                margin="normal"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{ mt: 2 }}
+                disabled={isLoading}
+                startIcon={<Email />}
+              >
+                {isLoading ? 'Signing In...' : 'Sign In with Email'}
+              </Button>
+            </Box>
+            
+            {/* GitHub Sign In */}
             <Button
-              type="submit"
-              variant="contained"
+              variant="outlined"
               fullWidth
-              sx={{ mt: 2 }}
-              disabled={isLoading}
-              startIcon={<Email />}
+              startIcon={<GitHub />}
+              onClick={handleGitHubSignIn}
+              sx={{ mb: 2 }}
             >
-              {isLoading ? 'Signing In...' : 'Sign In with Email'}
+              Sign In with GitHub
             </Button>
-          </Box>
-          
-          {/* GitHub Sign In */}
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<GitHub />}
-            onClick={handleGitHubSignIn}
-            sx={{ mb: 2 }}
-          >
-            Sign In with GitHub
-          </Button>
-          
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Don't have an account?{' '}
-              <Link href="/signup" style={{ color: '#1E40AF', fontWeight: 600 }}>
-                Sign Up
-              </Link>
-            </Typography>
+            
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{' '}
+                <Link href="/signup" style={{ color: '#1E40AF', fontWeight: 600 }}>
+                  Sign Up
+                </Link>
+              </Typography>
+            </Box>
           </Box>
         </Paper>
         
