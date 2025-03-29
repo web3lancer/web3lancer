@@ -39,7 +39,7 @@ export default function Header() {
         >
           <Box sx={{ position: 'relative', width: 40, height: 40, mr: 2 }}>
             <Image
-              src="/logo.svg"
+              src="/logo/web3lancer.jpg"
               alt="Web3Lancer"
               fill
               style={{ objectFit: 'contain' }}
