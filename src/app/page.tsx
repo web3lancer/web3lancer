@@ -24,14 +24,14 @@ interface Job {
 export default function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); as Job[]);
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const controls = useAnimation();
 
   useEffect(() => {
     async function fetchJobs() {
       try {
         const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
-        setJobs(response.documents as Job[]);
+        setJobs(response.documents as unknown as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);
       }
