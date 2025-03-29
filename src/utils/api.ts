@@ -259,6 +259,84 @@ async function verifyEmailOTP(userId: string, secret: string) {
 }
 
 /**
+ * Multi-Factor Authentication (MFA) functions
+ */
+
+// Generate recovery codes for MFA
+async function createMfaRecoveryCodes() {
+  try {
+    const response = await account.createMfaRecoveryCodes();
+    console.log('MFA recovery codes generated successfully');
+    return response.recoveryCodes;
+  } catch (error) {
+    console.error('Error generating MFA recovery codes:', error);
+    throw new Error(`Failed to generate MFA recovery codes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Enable or disable MFA on an account
+async function updateMfa(enable: boolean) {
+  try {
+    const response = await account.updateMFA(enable);
+    console.log(`MFA ${enable ? 'enabled' : 'disabled'} successfully`);
+    return response;
+  } catch (error) {
+    console.error(`Error ${enable ? 'enabling' : 'disabling'} MFA:`, error);
+    throw new Error(`Failed to ${enable ? 'enable' : 'disable'} MFA: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// List available MFA factors for the current user
+async function listMfaFactors() {
+  try {
+    const response = await account.listMfaFactors();
+    console.log('MFA factors listed successfully');
+    return response;
+  } catch (error) {
+    console.error('Error listing MFA factors:', error);
+    throw new Error(`Failed to list MFA factors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Create an MFA challenge for a specific factor
+async function createMfaChallenge(factor: 'email' | 'totp' | 'phone' | 'recoverycode') {
+  try {
+    const response = await account.createMfaChallenge(factor);
+    console.log(`MFA challenge created successfully for factor: ${factor}`);
+    return response;
+  } catch (error) {
+    console.error(`Error creating MFA challenge for factor ${factor}:`, error);
+    throw new Error(`Failed to create MFA challenge: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Complete an MFA challenge
+async function updateMfaChallenge(challengeId: string, otp: string) {
+  try {
+    const response = await account.updateMfaChallenge(challengeId, otp);
+    console.log('MFA challenge completed successfully');
+    return response;
+  } catch (error) {
+    console.error('Error completing MFA challenge:', error);
+    throw new Error(`Failed to complete MFA challenge: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Verify the user's email before enabling MFA
+async function createEmailVerification() {
+  try {
+    const baseURL = APP_CONFIG.APP_URL;
+    const verificationURL = `${baseURL}/verify-email`;
+    const response = await account.createVerification(verificationURL);
+    console.log('Email verification sent for MFA setup');
+    return response;
+  } catch (error) {
+    console.error('Error creating email verification for MFA:', error);
+    throw new Error(`Failed to create email verification: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * User profile functions
  */
 async function getUserProfile(userId: string) {
@@ -703,6 +781,11 @@ export {
   convertAnonymousSession,
   createEmailOTP,
   verifyEmailOTP,
+  createMfaRecoveryCodes,
+  updateMfa,
+  listMfaFactors,
+  createMfaChallenge,
+  updateMfaChallenge,
   getUserProfile,
   updateUserProfile,
   addBookmark, 

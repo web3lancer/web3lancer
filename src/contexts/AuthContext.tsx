@@ -20,8 +20,10 @@ interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isLoading: boolean;
+  isMfaRequired: boolean;
+  setIsMfaRequired: React.Dispatch<React.SetStateAction<boolean>>;
   signOut: () => Promise<void>;
-  handleGitHubOAuth?: () => Promise<void>;
+  handleGitHubOAuth?: (code: string) => Promise<void>;
   isAnonymous: boolean;
   setIsAnonymous: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isMfaRequired, setIsMfaRequired] = useState(false);
   const { address } = useWagmiAccount();
   const { activeAccount, addAccount, switchAccount, accounts } = useMultiAccount();
 
@@ -41,42 +44,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setIsLoading(true);
         
-        // Use ensureSession to get current session or create anonymous session
-        const session = await ensureSession().catch(error => {
-          console.log('Error ensuring session:', error);
-          return null;
-        });
-        
-        if (session) {
-          // Check if this is an anonymous session
-          if (session.$id && (!session.name || !session.email)) {
-            setIsAnonymous(true);
-            console.log('Anonymous session active');
-          } else {
-            setIsAnonymous(false);
-          }
+        try {
+          // Use ensureSession to get current session or create anonymous session
+          const session = await account.get();
           
-          // Set user from session
+          // Session exists, set user
           setUser(session);
+          setIsAnonymous(false);
+          setIsMfaRequired(false);
           
-          // Check for GitHub OAuth session
-          if (session.provider === 'github') {
-            // Ensure OAuth token is valid
-            await ensureValidOAuthToken();
-            
-            // Store GitHub details in user object
-            setUser(prevUser => ({
-              ...prevUser,
-              provider: session.provider,
-              providerUid: session.providerUid,
-              // Add GitHub-specific fields
-              githubUser: true
-            }));
-          }
-          
-          // Only add to multi-account if not anonymous
+          // Handle multi-account management
           if (!isAnonymous && session.$id) {
-            // Handle multi-account management
             const existingAccount = accounts.find(acc => acc.$id === session.$id);
             if (existingAccount) {
               if (!existingAccount.isActive) {
@@ -96,6 +74,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.error('Error adding account to multi-account context:', error);
               }
             }
+          }
+        } catch (error: any) {
+          // Check if the error is due to MFA requirement
+          if (error.type === 'user_more_factors_required') {
+            setIsMfaRequired(true);
+            console.log('MFA verification required');
+          } else {
+            console.log('No active session:', error);
+            setUser(null);
           }
         }
       } catch (error) {
@@ -155,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [activeAccount]);
 
   // Add GitHub OAuth handler
-  const handleGitHubOAuth = async () => {
+  const handleGitHubOAuth = async (code: string) => {
     try {
       await createGitHubOAuthSession(['user:email', 'read:user']);
       // Note: This will redirect the user to GitHub, so we don't need to handle the response here
@@ -185,6 +172,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, 
       setUser, 
       isLoading, 
+      isMfaRequired,
+      setIsMfaRequired,
       signOut, 
       isAnonymous,
       setIsAnonymous,

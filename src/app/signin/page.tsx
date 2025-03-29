@@ -12,13 +12,14 @@ import { signIn, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
+import MfaVerification from '@/components/login/MfaVerification';
 
 export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
   const { accounts, activeAccount, addAccount, switchAccount, hasMaxAccounts } = useMultiAccount();
-  const { handleGitHubOAuth } = useAuth();
+  const { handleGitHubOAuth, setUser, isMfaRequired, setIsMfaRequired } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const redirectPath = searchParams?.get('redirect') || '/dashboard';
@@ -184,6 +185,34 @@ export default function SignInPage() {
       setIsLoading(false);
     }
   };
+
+  // Handle MFA verification success
+  const handleMfaSuccess = () => {
+    setIsMfaRequired(false);
+    router.push(redirectPath);
+  };
+
+  // Handle MFA verification cancel
+  const handleMfaCancel = () => {
+    setIsMfaRequired(false);
+  };
+
+  // Show MFA verification if required
+  if (isMfaRequired) {
+    return (
+      <Box sx={{ 
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        p: { xs: 2, sm: 4 },
+        pt: { xs: '80px', sm: '100px' },
+        background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+      }}>
+        <MfaVerification onSuccess={handleMfaSuccess} onCancel={handleMfaCancel} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
