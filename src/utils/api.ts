@@ -145,6 +145,36 @@ async function addTransaction(userId: string, amount: number, type: string, stat
 }
 
 /**
+ * Job management functions
+ */
+async function fetchJobs() {
+  try {
+    const response = await databases.listDocuments(
+      APPWRITE_CONFIG.DATABASES.JOBS,
+      APPWRITE_CONFIG.COLLECTIONS.JOBS,
+    );
+    return response;
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    throw new Error(`Failed to fetch jobs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function fetchJob(jobId: string) {
+  try {
+    const response = await databases.getDocument(
+      APPWRITE_CONFIG.DATABASES.JOBS,
+      APPWRITE_CONFIG.COLLECTIONS.JOBS,
+      jobId
+    );
+    return response;
+  } catch (error) {
+    console.error('Error fetching job:', error);
+    throw new Error(`Failed to fetch job: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * Messaging functions
  */
 async function sendMessage(senderId: string, receiverId: string, message: string, status: string) {
@@ -373,5 +403,7 @@ export {
   getUserPaymentMethods,
   uploadFile,
   getFilePreview,
+  fetchJobs,
+  fetchJob,
   Query
 };

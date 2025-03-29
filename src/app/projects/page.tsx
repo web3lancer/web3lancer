@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, TextField, Chip, Tabs, Tab, Grid, Card, CardContent, CardActions } from "@mui/material";
+import { Box, Typography, Button, TextField, Chip, Tabs, Tab, Grid, Card, CardContent, CardActions, Alert, CircularProgress } from "@mui/material";
 import { databases } from "@/utils/api";
 import { ID } from 'appwrite';
 import { useAuth } from '@/contexts/AuthContext';
 import { Work, WorkOutline } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { APPWRITE_CONFIG } from "@/lib/env";
 
 const MotionCard = motion(Card);
 
@@ -41,6 +42,8 @@ export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [jobs, setJobs] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Form states for job posting
   const [title, setTitle] = useState("");
@@ -60,20 +63,36 @@ export default function ProjectsPage() {
   }, []);
 
   const fetchJobs = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
+      const response = await databases.listDocuments(
+        APPWRITE_CONFIG.DATABASES.JOBS,
+        APPWRITE_CONFIG.COLLECTIONS.JOBS
+      );
       setJobs(response.documents);
     } catch (error) {
       console.error('Error fetching jobs:', error);
+      setError('Failed to fetch jobs. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchProjects = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await databases.listDocuments('67b88574002c6eb405a2', '67b885810006a89bc6a4');
+      const response = await databases.listDocuments(
+        APPWRITE_CONFIG.DATABASES.PROJECTS,
+        APPWRITE_CONFIG.COLLECTIONS.PROJECTS
+      );
       setProjects(response.documents);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      setError('Failed to fetch projects. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,16 +114,21 @@ export default function ProjectsPage() {
 
   const handlePostJob = async () => {
     try {
-      const response = await databases.createDocument('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7', ID.unique(), {
-        title,
-        description,
-        tags,
-        createdAt: new Date().toISOString(),
-        jobId: ID.unique(),
-        employerId: user?.$id,
-        status: 'open',
-        updatedAt: new Date().toISOString(),
-      });
+      const response = await databases.createDocument(
+        APPWRITE_CONFIG.DATABASES.JOBS,
+        APPWRITE_CONFIG.COLLECTIONS.JOBS,
+        ID.unique(),
+        {
+          title,
+          description,
+          tags,
+          createdAt: new Date().toISOString(),
+          jobId: ID.unique(),
+          employerId: user?.$id,
+          status: 'open',
+          updatedAt: new Date().toISOString(),
+        }
+      );
       console.log('Job posted successfully:', response);
       
       // Reset form and refresh jobs
@@ -117,6 +141,7 @@ export default function ProjectsPage() {
       setActiveTab(0);
     } catch (error) {
       console.error('Error posting job:', error);
+      setError('Failed to post job. Please try again later.');
     }
   };
 
@@ -134,17 +159,22 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async () => {
     try {
-      const response = await databases.createDocument('67b88574002c6eb405a2', '67b885810006a89bc6a4', ID.unique(), {
-        title: projectTitle,
-        description: projectDescription,
-        tags: projectTags,
-        createdAt: new Date().toISOString(),
-        projectId: ID.unique(),
-        ownerId: user?.$id,
-        status: 'active',
-        updatedAt: new Date().toISOString(),
-        participants: [user?.$id],
-      });
+      const response = await databases.createDocument(
+        APPWRITE_CONFIG.DATABASES.PROJECTS,
+        APPWRITE_CONFIG.COLLECTIONS.PROJECTS,
+        ID.unique(),
+        {
+          title: projectTitle,
+          description: projectDescription,
+          tags: projectTags,
+          createdAt: new Date().toISOString(),
+          projectId: ID.unique(),
+          ownerId: user?.$id,
+          status: 'active',
+          updatedAt: new Date().toISOString(),
+          participants: [user?.$id],
+        }
+      );
       console.log('Project created successfully:', response);
       
       // Reset form and refresh projects
@@ -157,14 +187,29 @@ export default function ProjectsPage() {
       setActiveTab(0);
     } catch (error) {
       console.error('Error creating project:', error);
+      setError('Failed to create project. Please try again later.');
     }
   };
+
+  if (loading && activeTab === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
         Projects & Jobs
       </Typography>
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
       
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
         <Tab label="Browse" />
@@ -179,76 +224,84 @@ export default function ProjectsPage() {
             <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
               <WorkOutline sx={{ mr: 1 }} /> Available Jobs
             </Typography>
-            <Grid container spacing={2}>
-              {jobs.map((job) => (
-                <Grid item xs={12} key={job.$id}>
-                  <MotionCard 
-                    whileHover={{ y: -5 }}
-                    sx={{ 
-                      height: '100%',
-                      borderRadius: 2,
-                    }}
-                  >
-                    <CardContent>
-                      <Typography variant="h6">{job.title}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{job.description}</Typography>
-                      <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {job.tags?.map((tag: string, index: number) => (
-                          <Chip
-                            key={index}
-                            label={tag}
-                            size="small"
-                            sx={{ background: 'rgba(30, 64, 175, 0.1)', color: '#1E40AF' }}
-                          />
-                        ))}
-                      </Box>
-                    </CardContent>
-                    <CardActions>
-                      <Button size="small" color="primary">Apply</Button>
-                      <Button size="small" color="primary">Details</Button>
-                    </CardActions>
-                  </MotionCard>
-                </Grid>
-              ))}
-            </Grid>
+            {jobs.length === 0 && !loading ? (
+              <Alert severity="info">No jobs available at the moment.</Alert>
+            ) : (
+              <Grid container spacing={2}>
+                {jobs.map((job) => (
+                  <Grid item xs={12} key={job.$id}>
+                    <MotionCard 
+                      whileHover={{ y: -5 }}
+                      sx={{ 
+                        height: '100%',
+                        borderRadius: 2,
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="h6">{job.title}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{job.description}</Typography>
+                        <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {job.tags?.map((tag: string, index: number) => (
+                            <Chip
+                              key={index}
+                              label={tag}
+                              size="small"
+                              sx={{ background: 'rgba(30, 64, 175, 0.1)', color: '#1E40AF' }}
+                            />
+                          ))}
+                        </Box>
+                      </CardContent>
+                      <CardActions>
+                        <Button size="small" color="primary">Apply</Button>
+                        <Button size="small" color="primary">Details</Button>
+                      </CardActions>
+                    </MotionCard>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Grid>
           
           <Grid item xs={12} md={6}>
             <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
               <Work sx={{ mr: 1 }} /> Active Projects
             </Typography>
-            <Grid container spacing={2}>
-              {projects.map((project) => (
-                <Grid item xs={12} key={project.$id}>
-                  <MotionCard 
-                    whileHover={{ y: -5 }}
-                    sx={{ 
-                      height: '100%',
-                      borderRadius: 2,
-                    }}
-                  >
-                    <CardContent>
-                      <Typography variant="h6">{project.title}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{project.description}</Typography>
-                      <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {project.tags?.map((tag: string, index: number) => (
-                          <Chip
-                            key={index}
-                            label={tag}
-                            size="small"
-                            sx={{ background: 'rgba(30, 64, 175, 0.1)', color: '#1E40AF' }}
-                          />
-                        ))}
-                      </Box>
-                    </CardContent>
-                    <CardActions>
-                      <Button size="small" color="primary">Join</Button>
-                      <Button size="small" color="primary">Details</Button>
-                    </CardActions>
-                  </MotionCard>
-                </Grid>
-              ))}
-            </Grid>
+            {projects.length === 0 && !loading ? (
+              <Alert severity="info">No active projects at the moment.</Alert>
+            ) : (
+              <Grid container spacing={2}>
+                {projects.map((project) => (
+                  <Grid item xs={12} key={project.$id}>
+                    <MotionCard 
+                      whileHover={{ y: -5 }}
+                      sx={{ 
+                        height: '100%',
+                        borderRadius: 2,
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="h6">{project.title}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{project.description}</Typography>
+                        <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {project.tags?.map((tag: string, index: number) => (
+                            <Chip
+                              key={index}
+                              label={tag}
+                              size="small"
+                              sx={{ background: 'rgba(30, 64, 175, 0.1)', color: '#1E40AF' }}
+                            />
+                          ))}
+                        </Box>
+                      </CardContent>
+                      <CardActions>
+                        <Button size="small" color="primary">Join</Button>
+                        <Button size="small" color="primary">Details</Button>
+                      </CardActions>
+                    </MotionCard>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Grid>
         </Grid>
       </TabPanel>
