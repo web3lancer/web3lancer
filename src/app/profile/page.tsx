@@ -5,11 +5,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { uploadFile, getFilePreview } from "@/utils/storage";
 import { databases } from "@/utils/api";
 import { motion } from "framer-motion";
+import { useMultiAccount } from "@/contexts/MultiAccountContext";
 
 const MotionPaper = motion(Paper);
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
+  const { activeAccount, accounts, switchAccount } = useMultiAccount();
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
@@ -79,6 +81,20 @@ export default function ProfilePage() {
         await databases.updateDocument('67b885280000d2cb5411', '67b8853c003c55c82ff6', user.$id, {
           profilePicture: response.$id,
         });
+        
+        // If using multi-account, update the profile picture for the active account
+        if (activeAccount) {
+          const updatedAccount = { ...activeAccount, profilePicture: response.$id };
+          const updatedAccounts = accounts.map(acc => 
+            acc.$id === activeAccount.$id ? updatedAccount : acc
+          );
+          const localStorageAccounts = JSON.parse(localStorage.getItem('web3lancer_accounts') || '[]');
+          const updatedLocalStorageAccounts = localStorageAccounts.map((acc: any) => 
+            acc.$id === activeAccount.$id ? { ...acc, profilePicture: response.$id } : acc
+          );
+          localStorage.setItem('web3lancer_accounts', JSON.stringify(updatedLocalStorageAccounts));
+          switchAccount(activeAccount.$id); // Refresh the active account
+        }
         
         console.log('Profile picture uploaded:', response);
       } catch (error) {

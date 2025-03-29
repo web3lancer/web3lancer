@@ -5,7 +5,6 @@ import { Notifications } from "@mui/icons-material";
 import React from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from 'wagmi';
 import { Account } from './Account';
@@ -13,7 +12,6 @@ import { Account } from './Account';
 export default function Header() {
   const { user } = useAuth();
   const { address } = useAccount();
-  const router = useRouter();
 
   return (
     <AppBar
@@ -29,6 +27,7 @@ export default function Header() {
         position: 'fixed',
         top: 0,
         left: 0,
+        right: 0,
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>

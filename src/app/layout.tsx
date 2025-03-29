@@ -26,6 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
       </head>
       <body style={{ margin: 0, background: '#f4f4f4' }}>
         <ThemeProvider theme={theme}>

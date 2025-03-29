@@ -7,19 +7,50 @@ import { useAccount, useDisconnect } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
 import { AccountSwitcher } from './account/AccountSwitcher';
+import { databases } from '@/utils/api';
+import { APPWRITE_CONFIG } from '@/lib/env';
 
 export function Account() {
   const router = useRouter();
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
   const { user, setUser, signOut } = useAuth();
-  const { activeAccount } = useMultiAccount();
+  const { activeAccount, accounts } = useMultiAccount();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const open = Boolean(anchorEl);
 
+  // Fetch profile picture when user or active account changes
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      try {
+        if (user?.$id && !user.walletId) {
+          const response = await databases.getDocument(
+            APPWRITE_CONFIG.DATABASES.USERS,
+            APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+            user.$id
+          );
+          
+          if (response && response.profilePicture) {
+            setProfilePicture(response.profilePicture);
+            
+            // Update active account with profile picture if needed
+            if (activeAccount && !activeAccount.profilePicture) {
+              activeAccount.profilePicture = response.profilePicture;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile picture:', error);
+      }
+    };
+    
+    fetchProfilePicture();
+  }, [user, activeAccount]);
+
   // Format wallet address for display
-  const formatAddress = (addr: string) => {
+  const formatAddress = (addr?: string) => {
     if (!addr) return '';
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
@@ -51,7 +82,7 @@ export function Account() {
   const handleSignOut = async () => {
     try {
       await disconnect();
-      setUser(null);
+      await signOut();
       router.push('/signin');
       handleClose();
     } catch (error) {
@@ -74,7 +105,7 @@ export function Account() {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Avatar
-                src={activeAccount?.profilePicture}
+                src={activeAccount?.profilePicture || profilePicture || undefined}
                 sx={{
                   background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                   cursor: 'pointer',
@@ -143,10 +174,12 @@ export function Account() {
             <Person fontSize="small" sx={{ mr: 1.5 }} />
             <Typography variant="body2">Profile</Typography>
           </MenuItem>
-          <MenuItem onClick={handleAccountsClick}>
-            <SwitchAccount fontSize="small" sx={{ mr: 1.5 }} />
-            <Typography variant="body2">Switch Accounts</Typography>
-          </MenuItem>
+          {accounts.length > 1 && (
+            <MenuItem onClick={handleAccountsClick}>
+              <SwitchAccount fontSize="small" sx={{ mr: 1.5 }} />
+              <Typography variant="body2">Switch Accounts</Typography>
+            </MenuItem>
+          )}
           <Divider />
           <MenuItem onClick={handleSignOut}>
             <ExitToApp fontSize="small" sx={{ mr: 1.5, color: 'error.main' }} />
