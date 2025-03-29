@@ -39,9 +39,21 @@ export default function Header() {
         position: 'fixed',
         top: 0,
         left: 0,
+        right: 0,
+        boxSizing: 'border-box',
+        '@supports (padding-top: env(safe-area-inset-top))': {
+          paddingTop: 'env(safe-area-inset-top)',
+        },
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>
+      <Toolbar 
+        sx={{ 
+          justifyContent: 'space-between', 
+          px: { xs: 2, sm: 4, md: 6 },
+          height: 64, // Explicit height for the toolbar
+          minHeight: { xs: 64, sm: 64 }, // Override default minHeight
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}

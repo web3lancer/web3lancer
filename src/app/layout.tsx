@@ -37,6 +37,12 @@ export default function RootLayout({
                     minHeight: '100vh',
                     width: '100%',
                     background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+                    position: { xs: 'fixed', md: 'relative' }, // Fix position on mobile
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    overflow: { xs: 'hidden', md: 'visible' }, // Hide overflow on mobile
                   }}>
                     <Sidebar />
                     <Box
@@ -50,6 +56,7 @@ export default function RootLayout({
                         minHeight: '100vh',
                         marginLeft: { xs: 0, md: '240px' },
                         transition: 'margin 0.3s ease',
+                        position: 'relative',
                       }}
                     >
                       <Header />
@@ -58,23 +65,26 @@ export default function RootLayout({
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
+                        className="scrollable-content" // Add class for targeting in CSS
                         sx={{
                           flex: 1,
                           p: { xs: 1, sm: 2, md: 3 },
-                          pt: { xs: '80px', md: '84px' }, // Increased padding top to account for fixed header
-                          pb: { xs: '85px', md: 3 }, // Added padding bottom for mobile to account for bottom nav
+                          pt: { xs: '80px', md: '84px' },
+                          pb: { xs: '85px', md: 3 },
                           background: 'rgba(255, 255, 255, 0.7)',
                           backdropFilter: 'blur(10px)',
                           borderRadius: { xs: '0', md: '24px 0 0 0' },
-                          overflow: 'auto',
                           position: 'relative',
                           width: '100%',
-                          height: '100vh', // Set explicit height
-                          boxSizing: 'border-box', // Include padding in height calculation
+                          boxSizing: 'border-box',
+                          overflowY: { xs: 'auto', md: 'auto' },
                           overflowX: 'hidden',
+                          WebkitOverflowScrolling: 'touch',
                         }}
                       >
-                        {children}
+                        <Box className="content-wrapper">
+                          {children}
+                        </Box>
                       </Box>
                     </Box>
                   </Box>

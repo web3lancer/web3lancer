@@ -183,7 +183,12 @@ export default function Sidebar() {
           borderTop: '1px solid rgba(255,255,255,0.1)',
           zIndex: 1300,
           height: 70,
-          transition: 'none', // Prevent transition effects that could cause layout shifts
+          transition: 'none',
+          boxSizing: 'border-box',
+          '@supports (padding-bottom: env(safe-area-inset-bottom))': {
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            height: 'calc(70px + env(safe-area-inset-bottom))',
+          },
         }}
       >
         {menuItems.map((item, index) => (
