@@ -79,13 +79,14 @@ export default function RootLayout({
                             borderRadius: { xs: '0', md: '24px 0 0 0' },
                             position: 'relative',
                             width: '100%',
+                            maxWidth: '100%',
                             boxSizing: 'border-box',
                             overflowY: { xs: 'auto', md: 'auto' },
                             overflowX: 'hidden',
                             WebkitOverflowScrolling: 'touch',
                           }}
                         >
-                          <Box className="content-wrapper">
+                          <Box className="content-wrapper" sx={{ maxWidth: '100%', overflowX: 'hidden' }}>
                             {children}
                           </Box>
                         </Box>

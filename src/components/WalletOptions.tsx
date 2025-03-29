@@ -104,6 +104,9 @@ export function WalletOptions() {
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
         border: '1px solid rgba(255, 255, 255, 0.18)',
         overflow: 'hidden',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box'
       }}
     >
       <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>

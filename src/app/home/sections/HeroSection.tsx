@@ -15,6 +15,9 @@ export default function HeroSection() {
         background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.05) 0%, rgba(59, 130, 246, 0.1) 100%)',
         position: 'relative',
         pt: { xs: 8, md: 0 },
+        width: '100%',
+        maxWidth: '100%',
+        overflowX: 'hidden',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -28,7 +31,16 @@ export default function HeroSection() {
         }
       }}
     >
-      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
+      <Container 
+        maxWidth="xl" 
+        sx={{ 
+          position: 'relative', 
+          zIndex: 1,
+          px: { xs: 2, sm: 3, md: 4 }, 
+          width: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
         <Grid container spacing={4} alignItems="center" sx={{ minHeight: '100vh' }}>
           <Grid item xs={12} md={6}>
             <motion.div

@@ -38,7 +38,12 @@ export default function HomePage() {
   };
 
   return (
-    <Box sx={{ overflowX: 'hidden' }}>
+    <Box sx={{ 
+      overflowX: 'hidden',
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box'
+    }}>
       <HeroSection />
       <StatisticsSection />
       <FeaturesSection />

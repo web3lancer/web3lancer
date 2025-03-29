@@ -29,7 +29,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
   const theme = useTheme();
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3} sx={{ width: '100%', mx: 0, boxSizing: 'border-box' }}>
       {stats.map((stat, index) => {
         const StatIcon = iconComponents[stat.icon] || AccountBalance;
         
@@ -39,6 +39,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              style={{ width: '100%' }}
             >
               <MotionCard
                 whileHover={{ y: -5, boxShadow: theme.shadows[8] }}
@@ -46,6 +47,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
                   background: 'rgba(255, 255, 255, 0.7)',
                   backdropFilter: 'blur(10px)',
                   borderRadius: 2,
+                  width: '100%',
                 }}
               >
                 <CardContent>
