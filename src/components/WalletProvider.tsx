@@ -9,6 +9,19 @@ interface WalletProviderProps {
   children: React.ReactNode;
 }
 
+// Add a check to ensure user is authenticated before accessing account features
+const checkAuthBeforeAction = async (action: () => Promise<any>) => {
+  try {
+    return await action();
+  } catch (error: any) {
+    if (error.message?.includes('missing scope (account)')) {
+      console.log('User not authenticated for this action');
+      return null;
+    }
+    throw error;
+  }
+};
+
 export function WalletProvider({ children }: WalletProviderProps) {
   // Create a client for TanStack Query
   const [queryClient] = useState(() => new QueryClient({

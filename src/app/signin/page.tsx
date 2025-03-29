@@ -108,8 +108,9 @@ export default function SignInPage() {
           try {
             addAccount({
               $id: accountId,
-              name: response.name,
-              email: response.email,
+              // Handle the case where name or email might be undefined
+              name: response.name || '',
+              email: response.email || '',
               isActive: true
             });
           } catch (error) {

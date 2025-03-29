@@ -29,9 +29,12 @@ async function signUp(email: string, password: string, name: string) {
 async function signIn(email: string, password: string) {
   try {
     // Create session according to Appwrite docs pattern
-    const response = await account.createEmailPasswordSession(email, password);
-    console.log('User signed in successfully:', response);
-    return response;
+    await account.createEmailPasswordSession(email, password);
+    
+    // After creating the session, get the user details
+    const user = await account.get();
+    console.log('User signed in successfully:', user);
+    return user;
   } catch (error) {
     console.error('Error signing in:', error);
     throw new Error(`Failed to sign in: ${error instanceof Error ? error.message : 'Unknown error'}`);

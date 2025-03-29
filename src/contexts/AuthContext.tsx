@@ -34,8 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function checkSession() {
       try {
         setIsLoading(true);
-        // Get current session user - matches Appwrite docs
-        const session = await account.get();
+        
+        // Wrap get() in try/catch to handle unauthorized errors gracefully
+        const session = await account.get().catch(error => {
+          console.log('User not logged in or session expired', error);
+          return null;
+        });
         
         if (session) {
           // Set user from session
@@ -50,8 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             const newAccount: UserAccount = {
               $id: session.$id,
-              name: session.name,
-              email: session.email,
+              name: session.name || '',
+              email: session.email || '',
               isActive: true
             };
             

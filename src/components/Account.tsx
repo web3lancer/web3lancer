@@ -26,23 +26,28 @@ export function Account() {
     const fetchProfilePicture = async () => {
       try {
         if (user?.$id && !user.walletId) {
-          const response = await databases.getDocument(
-            APPWRITE_CONFIG.DATABASES.USERS,
-            APPWRITE_CONFIG.COLLECTIONS.PROFILES,
-            user.$id
-          );
-          
-          if (response && response.profilePicture) {
-            setProfilePicture(response.profilePicture);
+          // Wrap in try/catch to handle unauthorized access gracefully
+          try {
+            const response = await databases.getDocument(
+              APPWRITE_CONFIG.DATABASES.USERS,
+              APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+              user.$id
+            );
             
-            // Update active account with profile picture if needed
-            if (activeAccount && !activeAccount.profilePicture) {
-              activeAccount.profilePicture = response.profilePicture;
+            if (response && response.profilePicture) {
+              setProfilePicture(response.profilePicture);
+              
+              // Update active account with profile picture if needed
+              if (activeAccount && !activeAccount.profilePicture) {
+                activeAccount.profilePicture = response.profilePicture;
+              }
             }
+          } catch (error) {
+            console.log('Error fetching profile, may need authentication:', error);
           }
         }
       } catch (error) {
-        console.error('Error fetching profile picture:', error);
+        console.error('Error in profile picture fetch flow:', error);
       }
     };
     
