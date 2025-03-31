@@ -1,4 +1,6 @@
-import { Networks, Server, Transaction, Asset } from '@stellar/stellar-sdk';
+import { Networks, Transaction, Asset } from '@stellar/stellar-sdk';
+import  StellarSdk  from '@stellar/stellar-sdk';
+import { Server } from '@stellar/stellar-sdk/rpc';
 
 // Create a Stellar server instance for the testnet
 const server = new Server('https://horizon-testnet.stellar.org');
@@ -10,7 +12,7 @@ const server = new Server('https://horizon-testnet.stellar.org');
 export async function fundWithFriendbot(publicKey: string): Promise<void> {
   console.log(`Requesting Friendbot funding for ${publicKey}`);
   try {
-    await server.friendbot(publicKey).call();
+    await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
     console.log(`Successfully funded account ${publicKey}`);
   } catch (error) {
     console.error('Error funding account with Friendbot:', error);
