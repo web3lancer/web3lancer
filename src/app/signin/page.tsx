@@ -19,13 +19,13 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const { address } = useAccount();
   const { accounts, activeAccount, addAccount, switchAccount, hasMaxAccounts } = useMultiAccount();
-  const { handleGitHubOAuth, setUser, isMfaRequired, setIsMfaRequired } = useAuth();
+  const { user, setUser, isMfaRequired, setIsMfaRequired } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
+  const [showWalletConnect, setShowWalletConnect] = useState(false);
   const redirectPath = searchParams?.get('redirect') || '/dashboard';
   const addAccountParam = searchParams?.get('addAccount');
   const [authMethod, setAuthMethod] = useState<'email' | 'otp' | 'magic'>('email');
-  const [showWalletConnect, setShowWalletConnect] = useState(false);
   // Email sign-in state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -149,8 +149,8 @@ export default function SignInPage() {
     setError(null);
     
     try {
-      await handleGitHubOAuth();
-      // This will redirect to GitHub, so no need to handle the response
+      // Redirect to GitHub OAuth flow, using the same approach as in SignUpPage
+      window.location.href = '/api/auth/github';
     } catch (error) {
       console.error('Error signing in with GitHub:', error);
       setError('Failed to initiate GitHub sign in. Please try again.');
@@ -218,6 +218,7 @@ export default function SignInPage() {
     );
   }
 
+  // Main render for sign-in page
   return (
     <Box sx={{ 
       display: 'flex',
@@ -386,7 +387,43 @@ export default function SignInPage() {
           >
             GitHub
           </Button>
-        </Box>  
+          
+          <Button
+            variant="outlined"
+            onClick={() => setShowWalletConnect(true)}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Box>
+        
+        {/* Add wallet connection modal */}
+        {showWalletConnect && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom align="center">
+              Connect Your Wallet
+            </Typography>
+            <ConnectWallet />
+            <Button
+              variant="text"
+              color="primary" 
+              onClick={() => setShowWalletConnect(false)}
+              sx={{ mt: 2, display: 'block', mx: 'auto' }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        )}
         
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Typography variant="body2">
