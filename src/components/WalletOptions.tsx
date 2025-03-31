@@ -9,15 +9,16 @@ const MotionButton = motion(Button);
 const MotionPaper = motion(Paper);
 
 export function WalletOptions() {
-  const { connectors, connect, status, error, isLoading } = useConnect();
+  const { connectors, connect, status, error } = useConnect();
   const router = useRouter();
   const [connecting, setConnecting] = React.useState<string | null>(null);
   
   // Handle injected wallets - detect Ethereum provider
   const [detectedWallets, setDetectedWallets] = React.useState<string[]>([]);
   
-  // Reset connection state when component mounts or is re-rendered
+  // Clear connection state on mount and unmount
   React.useEffect(() => {
+    // Reset connecting state
     setConnecting(null);
     
     // Function to detect wallets
@@ -59,10 +60,23 @@ export function WalletOptions() {
     if (typeof window !== 'undefined') {
       detectWallets();
     }
-    
-    // Clean up function
+
+    // Cleanup function to reset state when component unmounts
     return () => {
       setConnecting(null);
+      
+      // Cancel pending connection requests
+      if (window.ethereum) {
+        try {
+          // Use type assertion to handle the Ethereum provider
+          const provider = window.ethereum as any;
+          if (typeof provider.removeAllListeners === 'function') {
+            provider.removeAllListeners();
+          }
+        } catch (e) {
+          console.log("Couldn't remove ethereum listeners", e);
+        }
+      }
     };
   }, []);
   
@@ -80,6 +94,9 @@ export function WalletOptions() {
     if (status === 'success') {
       setConnecting(null);
       router.push('/dashboard');
+    } else if (status === 'error') {
+      // Also reset the connecting state on error
+      setConnecting(null);
     }
   }, [status, router]);
 
@@ -100,7 +117,6 @@ export function WalletOptions() {
 
   return (
     <MotionPaper
-      component={motion.div}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -123,7 +139,6 @@ export function WalletOptions() {
       
       {error && (
         <MotionPaper
-          component={motion.div}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           sx={{ 
@@ -166,7 +181,6 @@ export function WalletOptions() {
               >
                 <span style={{ display: 'block', width: '100%' }}>
                   <MotionButton
-                    component={motion.button}
                     variants={itemVariants}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}

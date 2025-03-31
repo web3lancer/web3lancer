@@ -1,14 +1,38 @@
-import { useAccount, useConnect } from 'wagmi';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { Box, CircularProgress, Typography, Alert, Backdrop } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Account } from './Account';
 import { WalletOptions } from './WalletOptions';
+import { useEffect } from 'react';
 
 export function ConnectWallet() {
   const { isConnected, isConnecting, isReconnecting } = useAccount();
-  const { isLoading: isConnectLoading, error: connectError } = useConnect();
+  const { isLoading: isConnectLoading, error: connectError, reset: resetConnect } = useConnect();
+  const { disconnect } = useDisconnect();
   
   const isLoading = isConnecting || isReconnecting || isConnectLoading;
+  
+  // Reset state when component mounts - important for modal reopening
+  useEffect(() => {
+    // Cancel any pending wallet connection attempts
+    if (window.ethereum) {
+      if (window.ethereum.removeAllListeners) {
+        try {
+          window.ethereum.removeAllListeners();
+        } catch (e) {
+          console.log("Couldn't remove ethereum listeners", e);
+        }
+      }
+    }
+    
+    // Reset wagmi connection state
+    resetConnect?.();
+    
+    return () => {
+      // Also cleanup on unmount
+      resetConnect?.();
+    };
+  }, [resetConnect]);
   
   if (isLoading) {
     return (
