@@ -164,9 +164,9 @@ export async function findStrictReceivePaths({
   destinationAsset, 
   destinationAmount 
 }: { 
-  sourcePublicKey: string; 
+  sourcePublicKey: string;
   destinationAsset: string; 
-  destinationAmount: string; 
+  destinationAmount: string;
 }): Promise<any[]> {
   try {
     let destAsset;
@@ -185,6 +185,40 @@ export async function findStrictReceivePaths({
     return pathsResponse.records;
   } catch (error) {
     console.error('Error finding strict receive paths:', error);
+    return [];
+  }
+}
+
+/**
+ * Get transaction details from a transaction hash
+ * @param txHash Transaction hash
+ */
+export async function getTransactionDetails(txHash: string): Promise<any> {
+  try {
+    return await server.transactions().transaction(txHash).call();
+  } catch (error) {
+    console.error('Error fetching transaction details:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get transaction history for an account
+ * @param publicKey Account public key
+ * @param limit Number of records to return (default 10)
+ */
+export async function getAccountTransactions(publicKey: string, limit: number = 10): Promise<any[]> {
+  try {
+    const response = await server
+      .transactions()
+      .forAccount(publicKey)
+      .limit(limit)
+      .order('desc')
+      .call();
+    
+    return response.records;
+  } catch (error) {
+    console.error('Error fetching account transactions:', error);
     return [];
   }
 }

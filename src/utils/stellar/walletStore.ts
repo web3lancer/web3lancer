@@ -1,178 +1,193 @@
-import { KeyManager, KeyManagerPlugins, KeyType } from "@stellar/wallet-sdk";
-import { TransactionBuilder } from "@stellar/stellar-sdk";
+import { Keypair, Transaction, Networks } from '@stellar/stellar-sdk';
+import CryptoJS from 'crypto-js';
 
-// Interface for the wallet store state
-interface WalletStoreState {
-  keyId: string;
+// Local storage key for encrypted wallet data
+const STORAGE_KEY = 'stellar_wallet';
+
+// WalletStore state interface
+interface WalletState {
+  publicKey: string | null;
+  hasSecret: boolean;
+}
+
+// Registration parameters interface
+interface RegisterParams {
   publicKey: string;
-  devInfo?: {
-    secretKey: string;
-  };
+  secretKey: string;
+  pincode: string;
 }
 
-// Function to create a wallet store
-function createWalletStore() {
-  // Initialize state from localStorage or with default values
-  const getInitialState = (): WalletStoreState => {
-    if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem('web3lancer:walletStore');
-      if (storedData) {
-        return JSON.parse(storedData);
+// Signing parameters interface
+interface SignParams {
+  transactionXDR: string;
+  network: string;
+  pincode: string;
+}
+
+/**
+ * Creates a wallet store to manage a Stellar wallet
+ */
+class WalletStore {
+  private state: WalletState = {
+    publicKey: null,
+    hasSecret: false
+  };
+  private listeners: Array<(state: WalletState) => void> = [];
+
+  constructor() {
+    this.loadFromStorage();
+  }
+
+  /**
+   * Load wallet data from local storage
+   */
+  private loadFromStorage() {
+    if (typeof window === 'undefined') return;
+    
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        this.state = {
+          publicKey: parsed.publicKey,
+          hasSecret: !!parsed.encryptedSecret
+        };
+        this.notifyListeners();
+      } catch (err) {
+        console.error('Failed to parse wallet data from storage:', err);
       }
     }
-    return { keyId: "", publicKey: "" };
-  };
+  }
 
-  // Store the current state
-  let state = getInitialState();
-  
-  // Subscribe function for reactivity (similar to Svelte's store)
-  const subscribers = new Set<(state: WalletStoreState) => void>();
+  /**
+   * Save wallet data to local storage
+   */
+  private saveToStorage(publicKey: string, encryptedSecret: string) {
+    if (typeof window === 'undefined') return;
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      publicKey,
+      encryptedSecret
+    }));
+    
+    this.state = {
+      publicKey,
+      hasSecret: true
+    };
+    
+    this.notifyListeners();
+  }
 
-  // Update state and notify subscribers
-  const setState = (newState: WalletStoreState) => {
-    state = newState;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('web3lancer:walletStore', JSON.stringify(state));
+  /**
+   * Encrypt secret key with pincode
+   */
+  private encryptSecret(secretKey: string, pincode: string): string {
+    return CryptoJS.AES.encrypt(secretKey, pincode).toString();
+  }
+
+  /**
+   * Decrypt secret key with pincode
+   */
+  private decryptSecret(encryptedSecret: string, pincode: string): string {
+    try {
+      const bytes = CryptoJS.AES.decrypt(encryptedSecret, pincode);
+      return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+      throw new Error('Incorrect pincode');
     }
-    subscribers.forEach(callback => callback(state));
-  };
+  }
 
-  return {
-    // Subscribe to state changes
-    subscribe: (callback: (state: WalletStoreState) => void) => {
-      subscribers.add(callback);
-      callback(state); // Call immediately with current value
+  /**
+   * Notify all listeners of state changes
+   */
+  private notifyListeners() {
+    for (const listener of this.listeners) {
+      listener(this.state);
+    }
+  }
+
+  /**
+   * Subscribe to state changes
+   */
+  subscribe(listener: (state: WalletState) => void) {
+    this.listeners.push(listener);
+    // Immediately notify the new listener of current state
+    listener(this.state);
+    
+    // Return unsubscribe function
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  /**
+   * Register a new wallet
+   */
+  async register({ publicKey, secretKey, pincode }: RegisterParams): Promise<void> {
+    const encryptedSecret = this.encryptSecret(secretKey, pincode);
+    this.saveToStorage(publicKey, encryptedSecret);
+  }
+
+  /**
+   * Sign a transaction using the stored keypair
+   */
+  async sign({ transactionXDR, network, pincode }: SignParams): Promise<Transaction> {
+    if (typeof window === 'undefined') {
+      throw new Error('Cannot access storage in server environment');
+    }
+    
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (!savedData) {
+      throw new Error('No wallet found');
+    }
+    
+    try {
+      const { publicKey, encryptedSecret } = JSON.parse(savedData);
       
-      // Return unsubscribe function
-      return () => {
-        subscribers.delete(callback);
-      };
-    },
-
-    // Get current state
-    getState: () => state,
-
-    // Register a user by storing their encrypted keypair
-    register: async ({ 
-      publicKey, 
-      secretKey, 
-      pincode 
-    }: { 
-      publicKey: string; 
-      secretKey: string; 
-      pincode: string 
-    }) => {
-      try {
-        // Get KeyManager to interact with stored keypairs
-        const keyManager = setupKeyManager();
-
-        // Store the key in local storage
-        const keyMetadata = await keyManager.storeKey({
-          key: {
-            type: KeyType.plaintextKey,
-            publicKey,
-            privateKey: secretKey,
-          },
-          password: pincode,
-          encrypterName: KeyManagerPlugins.ScryptEncrypter.name,
-        });
-
-        // Update the wallet store state
-        setState({
-          keyId: keyMetadata.id,
-          publicKey,
-          // Dev info - not for production use
-          devInfo: {
-            secretKey,
-          },
-        });
-      } catch (err) {
-        console.error("Error saving key", err);
-        throw new Error(`Failed to register wallet: ${err instanceof Error ? err.message : String(err)}`);
+      if (!publicKey || !encryptedSecret) {
+        throw new Error('Invalid wallet data');
       }
-    },
-
-    // Confirm the pincode is correct
-    confirmCorrectPincode: async ({
-      pincode,
-      firstPincode = "",
-      signup = false,
-    }: {
-      pincode: string;
-      firstPincode?: string;
-      signup?: boolean;
-    }) => {
-      // For signup, just compare pincodes
-      if (signup) {
-        if (pincode !== firstPincode) {
-          throw new Error("Pincode mismatch");
-        }
-        return;
+      
+      // Decrypt the secret key
+      const secretKey = this.decryptSecret(encryptedSecret, pincode);
+      
+      // Create keypair from secret
+      const keypair = Keypair.fromSecret(secretKey);
+      
+      // Deserialize and sign the transaction
+      const transaction = new Transaction(transactionXDR, network);
+      transaction.sign(keypair);
+      
+      return transaction;
+    } catch (error: any) {
+      if (error.message === 'Incorrect pincode') {
+        throw new Error('Incorrect pincode');
       }
-
-      // For existing wallet, try to load the key with the pincode
-      try {
-        const keyManager = setupKeyManager();
-        const { keyId } = state;
-        await keyManager.loadKey(keyId, pincode);
-      } catch (err) {
-        throw new Error("Invalid pincode");
-      }
-    },
-
-    // Sign a transaction
-    sign: async ({ 
-      transactionXDR, 
-      network, 
-      pincode 
-    }: { 
-      transactionXDR: string; 
-      network: string; 
-      pincode: string 
-    }) => {
-      try {
-        const keyManager = setupKeyManager();
-        const signedTransaction = await keyManager.signTransaction({
-          transaction: TransactionBuilder.fromXDR(transactionXDR, network),
-          id: state.keyId,
-          password: pincode,
-        });
-        return signedTransaction;
-      } catch (err) {
-        console.error("Error signing transaction", err);
-        throw new Error(`Failed to sign transaction: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    },
-
-    // Clear wallet data (for logout)
-    clear: () => {
-      setState({ keyId: "", publicKey: "" });
+      throw new Error(`Failed to sign transaction: ${error.message}`);
     }
-  };
+  }
+
+  /**
+   * Clear wallet data from storage
+   */
+  clear() {
+    if (typeof window === 'undefined') return;
+    
+    localStorage.removeItem(STORAGE_KEY);
+    this.state = {
+      publicKey: null,
+      hasSecret: false
+    };
+    this.notifyListeners();
+  }
+
+  /**
+   * Get current wallet state
+   */
+  getState(): WalletState {
+    return { ...this.state };
+  }
 }
 
-// Configure a KeyManager for use with stored keypairs
-const setupKeyManager = () => {
-  // Create a new KeyStore
-  const localKeyStore = new KeyManagerPlugins.LocalStorageKeyStore();
-
-  // Configure it with a prefix
-  localKeyStore.configure({
-    prefix: "web3lancer",
-    storage: typeof window !== 'undefined' ? localStorage : null,
-  });
-
-  // Create a KeyManager that uses the KeyStore
-  const keyManager = new KeyManager({
-    keyStore: localKeyStore,
-  });
-
-  // Register the scrypt encrypter
-  keyManager.registerEncrypter(KeyManagerPlugins.ScryptEncrypter);
-
-  return keyManager;
-};
-
-// Export the wallet store
-export const walletStore = createWalletStore();
+// Create a singleton instance
+export const walletStore = new WalletStore();

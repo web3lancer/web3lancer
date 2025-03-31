@@ -1,6 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-import { StrKey } from "@stellar/stellar-sdk";
-
 // Define the Contact interface
 export interface Contact {
   id: string;
@@ -9,92 +6,164 @@ export interface Contact {
   favorite: boolean;
 }
 
-// Function to create a contacts store
-function createContactsStore() {
-  // Initialize the state from localStorage or with an empty array
-  const getInitialState = (): Contact[] => {
-    if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem('web3lancer:contactList');
-      if (storedData) {
-        return JSON.parse(storedData);
-      }
-    }
-    return [];
-  };
+// Local storage key for contacts
+const STORAGE_KEY = 'stellar_contacts';
 
-  // Store the current state
-  let contacts = getInitialState();
-  
-  // Subscribe function for reactivity
-  const subscribers = new Set<(contacts: Contact[]) => void>();
+/**
+ * ContactsStore for managing Stellar address contacts
+ */
+class ContactsStore {
+  private contacts: Contact[] = [];
+  private listeners: Array<(contacts: Contact[]) => void> = [];
 
-  // Update state and notify subscribers
-  const setState = (newContacts: Contact[]) => {
-    contacts = newContacts;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('web3lancer:contactList', JSON.stringify(contacts));
-    }
-    subscribers.forEach(callback => callback(contacts));
-  };
+  constructor() {
+    this.loadFromStorage();
+  }
 
-  return {
-    // Subscribe to state changes
-    subscribe: (callback: (contacts: Contact[]) => void) => {
-      subscribers.add(callback);
-      callback(contacts); // Call immediately with current value
-      
-      // Return unsubscribe function
-      return () => {
-        subscribers.delete(callback);
-      };
-    },
-
-    // Get current state
-    getState: () => contacts,
-
-    // Erases all contact entries
-    empty: () => setState([]),
-
-    // Removes the specified contact entry
-    remove: (id: string) => {
-      const filteredContacts = contacts.filter(contact => contact.id !== id);
-      setState(filteredContacts);
-    },
-
-    // Adds a new contact entry
-    add: (contact: Omit<Contact, 'id'>) => {
+  /**
+   * Load contacts from local storage
+   */
+  private loadFromStorage() {
+    if (typeof window === 'undefined') return;
+    
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
       try {
-        if (!StrKey.isValidEd25519PublicKey(contact.address)) {
-          throw new Error('Invalid public key');
-        }
-        
-        const newContact = { ...contact, id: uuidv4() };
-        setState([...contacts, newContact]);
-        return newContact;
+        this.contacts = JSON.parse(savedData);
+        this.notifyListeners();
       } catch (err) {
-        console.error('Error adding contact:', err);
-        throw new Error(`Failed to add contact: ${err instanceof Error ? err.message : String(err)}`);
+        console.error('Failed to parse contacts from storage:', err);
       }
-    },
+    }
+  }
 
-    // Toggles the "favorite" field
-    favorite: (id: string) => {
-      const updatedContacts = contacts.map(contact => {
-        if (contact.id === id) {
-          return { ...contact, favorite: !contact.favorite };
-        }
-        return contact;
-      });
-      setState(updatedContacts);
-    },
+  /**
+   * Save contacts to local storage
+   */
+  private saveToStorage() {
+    if (typeof window === 'undefined') return;
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.contacts));
+    this.notifyListeners();
+  }
 
-    // Searches for a contact by address
-    lookup: (address: string): string | false => {
-      const contact = contacts.find(contact => contact.address === address);
-      return contact ? contact.name : false;
-    },
-  };
+  /**
+   * Notify all listeners of state changes
+   */
+  private notifyListeners() {
+    for (const listener of this.listeners) {
+      listener([...this.contacts]);
+    }
+  }
+
+  /**
+   * Subscribe to contacts changes
+   */
+  subscribe(listener: (contacts: Contact[]) => void) {
+    this.listeners.push(listener);
+    // Immediately notify the new listener of current contacts
+    listener([...this.contacts]);
+    
+    // Return unsubscribe function
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  /**
+   * Add a new contact
+   */
+  addContact(contact: Omit<Contact, 'id'>): Contact {
+    // Check if contact with the same address already exists
+    if (this.contacts.some(c => c.address === contact.address)) {
+      throw new Error('A contact with this address already exists');
+    }
+    
+    const newContact: Contact = {
+      ...contact,
+      id: crypto.randomUUID ? crypto.randomUUID() : `contact_${Date.now()}_${Math.random()}`
+    };
+    
+    this.contacts.push(newContact);
+    this.saveToStorage();
+    
+    return newContact;
+  }
+
+  /**
+   * Remove a contact by ID
+   */
+  removeContact(id: string): boolean {
+    const initialLength = this.contacts.length;
+    this.contacts = this.contacts.filter(c => c.id !== id);
+    
+    if (this.contacts.length !== initialLength) {
+      this.saveToStorage();
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Toggle favorite status of a contact
+   */
+  toggleFavorite(id: string): boolean {
+    const contact = this.contacts.find(c => c.id === id);
+    
+    if (contact) {
+      contact.favorite = !contact.favorite;
+      this.saveToStorage();
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Update a contact
+   */
+  updateContact(id: string, updates: Partial<Omit<Contact, 'id'>>): boolean {
+    const contact = this.contacts.find(c => c.id === id);
+    
+    if (contact) {
+      Object.assign(contact, updates);
+      this.saveToStorage();
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Get all contacts
+   */
+  getContacts(): Contact[] {
+    return [...this.contacts];
+  }
+
+  /**
+   * Get favorite contacts
+   */
+  getFavoriteContacts(): Contact[] {
+    return this.contacts.filter(c => c.favorite);
+  }
+
+  /**
+   * Lookup a contact name by address
+   */
+  lookupByAddress(address: string): Contact | undefined {
+    return this.contacts.find(c => c.address === address);
+  }
+
+  /**
+   * Clear all contacts
+   */
+  clear() {
+    this.contacts = [];
+    this.saveToStorage();
+  }
 }
 
-// Export the contacts store
-export const contactsStore = createContactsStore();
+// Create a singleton instance
+export const contactsStore = new ContactsStore();

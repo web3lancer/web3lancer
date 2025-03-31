@@ -1,44 +1,49 @@
 import React from 'react';
 import { Box, Tooltip, Typography } from '@mui/material';
+import { useContacts } from '@/hooks/useContacts';
 
 interface TruncatedKeyProps {
   publicKey: string;
   length?: number;
-  fontSize?: string;
-  onClick?: () => void;
+  showTooltip?: boolean;
 }
 
-export function TruncatedKey({ 
-  publicKey, 
-  length = 12, 
-  fontSize = "0.875rem",
-  onClick 
-}: TruncatedKeyProps) {
+export const TruncatedKey: React.FC<TruncatedKeyProps> = ({
+  publicKey,
+  length = 6,
+  showTooltip = true
+}) => {
+  const { lookupContact } = useContacts();
+  const contactName = lookupContact(publicKey);
+  
   if (!publicKey) return null;
   
-  // Calculate how many characters to show at beginning and end
-  const halfLength = Math.floor(length / 2);
+  const shortenedKey = `${publicKey.substring(0, length)}...${publicKey.substring(publicKey.length - length)}`;
   
-  // Create the truncated display of the key
-  const displayKey = publicKey.length > length
-    ? `${publicKey.substring(0, halfLength)}...${publicKey.substring(publicKey.length - halfLength)}`
-    : publicKey;
+  if (contactName) {
+    return (
+      <Tooltip title={showTooltip ? publicKey : ''}>
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+          <Typography variant="body2" component="span">
+            {contactName}
+          </Typography>
+          <Typography variant="caption" component="span" color="text.secondary" sx={{ ml: 1 }}>
+            ({shortenedKey})
+          </Typography>
+        </Box>
+      </Tooltip>
+    );
+  }
   
   return (
-    <Tooltip title={publicKey} arrow>
-      <Typography
+    <Tooltip title={showTooltip ? publicKey : ''}>
+      <Typography 
+        variant="body2" 
         component="span"
-        variant="body2"
-        sx={{ 
-          fontFamily: 'monospace', 
-          fontSize,
-          cursor: onClick ? 'pointer' : 'default',
-          '&:hover': onClick ? { textDecoration: 'underline' } : {}
-        }}
-        onClick={onClick}
+        sx={{ fontFamily: 'monospace' }}
       >
-        {displayKey}
+        {shortenedKey}
       </Typography>
     </Tooltip>
   );
-}
+};
