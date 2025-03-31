@@ -26,6 +26,8 @@ import { fundWithFriendbot, getAccountBalance, accountExists } from '@/utils/ste
 import { ContactsManager } from './stellar/ContactsManager';
 import { useContacts } from '@/hooks/useContacts';
 import { TruncatedKey } from './stellar/TruncatedKey';
+import TrustlineManager from './stellar/TrustlineManager';
+import StellarPayment from './stellar/StellarPayment';
 
 export default function StellarWallet() {
   // State for key management
@@ -325,6 +327,8 @@ export default function StellarWallet() {
             <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 3 }}>
               <Tab label="Wallet" />
               <Tab label="Contacts" />
+              <Tab label="Trustlines" />
+              <Tab label="Send Payment" />
             </Tabs>
 
             {activeTab === 0 && (
@@ -399,6 +403,22 @@ export default function StellarWallet() {
 
             {activeTab === 1 && (
               <ContactsManager />
+            )}
+
+            {activeTab === 2 && (
+              <TrustlineManager 
+                publicKey={publicKey} 
+                balances={balance} 
+                onUpdate={() => loadAccountBalance(publicKey)}
+              />
+            )}
+
+            {activeTab === 3 && (
+              <StellarPayment 
+                publicKey={publicKey} 
+                balances={balance}
+                onSuccess={() => loadAccountBalance(publicKey)} 
+              />
             )}
           </Paper>
         ) : (

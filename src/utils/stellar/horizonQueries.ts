@@ -1,4 +1,4 @@
-import { Networks, Server } from '@stellar/stellar-sdk';
+import { Networks, Server, Transaction } from '@stellar/stellar-sdk';
 
 // Create a Stellar server instance for the testnet
 const server = new Server('https://horizon-testnet.stellar.org');
@@ -49,6 +49,29 @@ export async function accountExists(publicKey: string): Promise<boolean> {
 }
 
 /**
+ * Submit a signed transaction to the Stellar network
+ * @param signedTransaction The signed transaction to submit
+ */
+export async function submit(signedTransaction: Transaction): Promise<any> {
+  try {
+    const transactionResult = await server.submitTransaction(signedTransaction);
+    console.log(`Transaction successful: ${transactionResult.hash}`);
+    return transactionResult;
+  } catch (error: any) {
+    console.error('Transaction submission error:', error);
+    
+    // Extract more detailed error information if available
+    let errorMessage = 'Failed to submit transaction';
+    if (error.response && error.response.data && error.response.data.extras) {
+      const resultCodes = error.response.data.extras.result_codes;
+      errorMessage = `Transaction failed: ${resultCodes.transaction}, operations: ${resultCodes.operations?.join(', ')}`;
+    }
+    
+    throw new Error(errorMessage);
+  }
+}
+
+/**
  * Get the server instance
  */
 export function getServer(): Server {
@@ -60,4 +83,36 @@ export function getServer(): Server {
  */
 export function getNetwork(): string {
   return Networks.TESTNET;
+}
+
+/**
+ * Fetch account details from Stellar network
+ * @param publicKey The public key of the account to fetch
+ */
+export async function fetchAccount(publicKey: string): Promise<any> {
+  try {
+    return await server.loadAccount(publicKey);
+  } catch (error: any) {
+    // If the error is that the account doesn't exist, we want to properly handle that case
+    if (error.response && error.response.status === 404) {
+      const notFoundError = new Error('Account not found');
+      (notFoundError as any).status = 404;
+      throw notFoundError;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch account balances specifically
+ * @param publicKey The public key of the account
+ */
+export async function fetchAccountBalances(publicKey: string): Promise<any[]> {
+  try {
+    const account = await server.loadAccount(publicKey);
+    return account.balances;
+  } catch (error) {
+    console.error('Error fetching account balances:', error);
+    return [];
+  }
 }
