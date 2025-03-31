@@ -1,5 +1,6 @@
 // TypeScript declarations for wallet interfaces
 interface EthereumProvider {
+  removeAllListeners: EthereumProvider | undefined;
   isMetaMask?: boolean;
   isBraveWallet?: boolean;
   isOKXWallet?: boolean;
