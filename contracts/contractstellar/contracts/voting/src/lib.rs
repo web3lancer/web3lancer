@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, vec, Env, String, Vec, Map, Address, BytesN};
+use soroban_sdk::{contract, contractimpl, contracttype, Env, String, Vec, Address, BytesN};
 
 #[contract]
 pub struct ReputationContract;
@@ -13,6 +13,7 @@ pub enum DataKey {
 }
 
 #[contracttype]
+#[derive(Clone)] // Add Clone trait implementation
 pub struct Review {
     reviewer: Address,
     reviewee: Address,
@@ -130,7 +131,7 @@ impl ReputationContract {
         disputer: Address,
         project_id: BytesN<32>,
         reviewer: Address,
-        reason: String,
+        _reason: String, // Prefix with underscore to indicate intentionally unused
     ) -> bool {
         // Verify disputer
         disputer.require_auth();

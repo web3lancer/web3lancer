@@ -30,6 +30,18 @@ Web3Lancer leverages **Stellar** blockchain technology to enable:
 
 Stellar's fast, low-cost transaction infrastructure powers our payment system, making it possible for freelancers to receive compensation quickly regardless of geographic location.
 
+### 🌟 Stellar-Powered Trust System
+
+Our platform integrates a cutting-edge reputation system built directly on Stellar smart contracts:
+
+- **💯 Transparent Ratings** - All reputation scores are calculated and stored on-chain, ensuring manipulation-proof reviews
+- **👥 Verified Reviews** - Only clients and freelancers who have worked together can submit reviews, guaranteed by blockchain verification
+- **⚖️ Dispute Resolution** - Fair arbitration process for contested reviews, with full transparency of decisions
+- **🔍 Reputation History** - Complete on-chain history of work quality that follows freelancers across projects
+- **🧮 Decentralized Scoring** - Reputation scores (0-5) calculated automatically by smart contracts, without central authority
+
+The smart contract efficiently manages user reputation through functions like `submit_review`, `get_reputation_score`, and `dispute_review`, ensuring a trustworthy marketplace for all participants.
+
 ## 🚀 Getting Started
 
 ```bash
@@ -48,9 +60,9 @@ npm run dev
 
 - [x] Core platform architecture
 - [x] Stellar payment integration
+- [x] On-chain reputation system
 - [ ] Advanced search functionality
 - [ ] Mobile application
-- [ ] Reputation system
 
 ## 👥 Contributing
 
