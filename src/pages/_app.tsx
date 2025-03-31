@@ -1,4 +1,5 @@
 import { IntegrationProvider } from '@/context/IntegrationContext';
+import { AppProps } from 'next/app';
 
 // ... other imports
 
