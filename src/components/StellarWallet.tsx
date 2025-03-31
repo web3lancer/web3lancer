@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography, Paper, CircularProgress, Alert } from '@mui/material';
 import { generateKeypair, fundTestnetAccount, checkBalance } from '@/utils/stellar';
-import { Keypair } from 'stellar-sdk';
+import { Keypair } from '@stellar/stellar-sdk';
 
 export default function StellarWallet() {
   const [keypair, setKeypair] = useState<Keypair | null>(null);
