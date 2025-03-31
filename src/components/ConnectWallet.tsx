@@ -1,5 +1,5 @@
 import { useAccount, useConnect } from 'wagmi';
-import { Box, CircularProgress, Typography, Alert } from '@mui/material';
+import { Box, CircularProgress, Typography, Alert, Backdrop } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Account } from './Account';
 import { WalletOptions } from './WalletOptions';
@@ -41,6 +41,11 @@ export function ConnectWallet() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          width: '100%'
+        }}
       >
         {isConnected ? <Account /> : <WalletOptions />}
       </motion.div>

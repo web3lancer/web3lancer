@@ -16,7 +16,10 @@ export function WalletOptions() {
   // Handle injected wallets - detect Ethereum provider
   const [detectedWallets, setDetectedWallets] = React.useState<string[]>([]);
   
+  // Reset connection state when component mounts or is re-rendered
   React.useEffect(() => {
+    setConnecting(null);
+    
     // Function to detect wallets
     const detectWallets = () => {
       const ethereum = window.ethereum;
@@ -56,6 +59,11 @@ export function WalletOptions() {
     if (typeof window !== 'undefined') {
       detectWallets();
     }
+    
+    // Clean up function
+    return () => {
+      setConnecting(null);
+    };
   }, []);
   
   const handleConnect = (connector: any) => {
@@ -143,17 +151,17 @@ export function WalletOptions() {
           // For injected connector, check if we detected a wallet
           const isDetected = isInjected && detectedWallets.length > 0;
           // Display injected connector differently if we detected a specific wallet
-          const displayName = isInjected ? (detectedWallets[0] || 'Browser Wallet') : connector.name;
+          const displayName = isInjected ? 
+            (detectedWallets[0] || 'Default Browser Wallet') : 
+            connector.name;
 
           return (
             <Grid item xs={12} key={connector.id}>
               <Tooltip 
                 title={
-                  !connector.ready 
-                    ? `${connector.name} is not available` 
-                    : isInjected 
-                      ? "Connect to your browser's built-in wallet or extension" 
-                      : `Connect with ${connector.name}`
+                  isInjected 
+                    ? "Connect to your browser's built-in wallet or extension" 
+                    : `Connect with ${connector.name}`
                 }
               >
                 <span style={{ display: 'block', width: '100%' }}>
@@ -164,7 +172,7 @@ export function WalletOptions() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleConnect(connector)}
                     variant="outlined"
-                    disabled={!connector.ready || connecting === connector.id}
+                    disabled={connecting === connector.id}
                     sx={{
                       py: 1.5,
                       px: 3,
@@ -189,18 +197,13 @@ export function WalletOptions() {
                       height: 32,
                       flexShrink: 0,
                     }}>
-                      {getWalletIcon(isInjected ? (detectedWallets[0]?.toLowerCase() || 'browser') : connector.id)}
+                      {getWalletIcon(isInjected ? (detectedWallets[0]?.toLowerCase() || 'default') : connector.id)}
                     </Box>
                     
                     <Box sx={{ flexGrow: 1, textAlign: 'left' }}>
                       <Typography variant="body1" sx={{ fontWeight: 600 }}>
                         {displayName}
                       </Typography>
-                      {!connector.ready && (
-                        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                          Not installed
-                        </Typography>
-                      )}
                       {isDetected && (
                         <Typography variant="caption" sx={{ display: 'block', color: 'success.main' }}>
                           Detected
@@ -257,6 +260,7 @@ function getWalletIcon(id: string) {
     case 'injected':
     case 'browser':
     case 'browser wallet':
+    case 'default':
       return <Image src="/wallets/browser-wallet.svg" alt="Browser Wallet" fill style={{ objectFit: 'contain' }} />;
     default:
       return <Box sx={{ bgcolor: 'primary.light', width: '100%', height: '100%', borderRadius: '50%' }} />;

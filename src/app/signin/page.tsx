@@ -201,6 +201,15 @@ export default function SignInPage() {
     setIsMfaRequired(false);
   };
 
+  // Function to handle closing the wallet connect modal
+  const handleCloseWalletConnect = () => {
+    setShowWalletConnect(false);
+    // Reset any ongoing wallet connection attempts
+    if (window.ethereum && window.ethereum.removeAllListeners) {
+      window.ethereum.removeAllListeners();
+    }
+  };
+
   // Show MFA verification if required
   if (isMfaRequired) {
     return (
@@ -409,19 +418,46 @@ export default function SignInPage() {
         
         {/* Add wallet connection modal */}
         {showWalletConnect && (
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" gutterBottom align="center">
-              Connect Your Wallet
-            </Typography>
-            <ConnectWallet />
-            <Button
-              variant="text"
-              color="primary" 
-              onClick={() => setShowWalletConnect(false)}
-              sx={{ mt: 2, display: 'block', mx: 'auto' }}
+          <Box 
+            sx={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 1000,
+              p: 2
+            }}
+          >
+            <Box 
+              sx={{ 
+                maxWidth: '450px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                position: 'relative'
+              }}
             >
-              Cancel
-            </Button>
+              <Button
+                variant="text"
+                color="primary" 
+                onClick={handleCloseWalletConnect}
+                sx={{ 
+                  position: 'absolute', 
+                  right: 0, 
+                  top: 0, 
+                  zIndex: 10 
+                }}
+              >
+                Close
+              </Button>
+              <ConnectWallet key={`wallet-connect-${showWalletConnect}`} />
+            </Box>
           </Box>
         )}
         
