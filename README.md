@@ -46,7 +46,7 @@ The smart contract efficiently manages user reputation through functions like `s
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/web3lancer.git
+git clone https://github.com/web3lancer/web3lancer.git
 
 # Install dependencies
 cd web3lancer
