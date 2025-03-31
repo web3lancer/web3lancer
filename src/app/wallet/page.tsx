@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import StellarWallet from '@/components/StellarWallet';
 import { useAuth } from '@/contexts/AuthContext';
 import { ensureSession } from '@/utils/api';
+import { ContactsManager } from '@/components/stellar/ContactsManager';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -106,6 +107,7 @@ export default function WalletPage() {
             <Tab label="Stellar Wallet" />
             <Tab label="Connected Wallets" />
             <Tab label="Transactions" />
+            <Tab label="Stellar Contacts" />
             <Tab label="Settings" />
           </Tabs>
 
@@ -125,8 +127,12 @@ export default function WalletPage() {
                 Your transaction history will appear here.
               </Typography>
             </TabPanel>
-            
+
             <TabPanel value={activeTab} index={3}>
+              <ContactsManager />
+            </TabPanel>
+            
+            <TabPanel value={activeTab} index={4}>
               <Typography variant="body1">
                 Wallet settings and preferences will appear here.
               </Typography>

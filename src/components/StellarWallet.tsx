@@ -14,13 +14,18 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { ContentCopy, Visibility, VisibilityOff } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Keypair } from '@stellar/stellar-sdk';
 import { walletStore } from '@/utils/stellar/walletStore';
 import { fundWithFriendbot, getAccountBalance, accountExists } from '@/utils/stellar/horizonQueries';
+import { ContactsManager } from './stellar/ContactsManager';
+import { useContacts } from '@/hooks/useContacts';
+import { TruncatedKey } from './stellar/TruncatedKey';
 
 export default function StellarWallet() {
   // State for key management
@@ -47,6 +52,12 @@ export default function StellarWallet() {
   
   // State to track if the user has a wallet
   const [hasWallet, setHasWallet] = useState<boolean>(false);
+
+  // Add new tab state
+  const [activeTab, setActiveTab] = useState(0);
+  
+  // Use contacts hook
+  const { lookupContact } = useContacts();
 
   // Initialize wallet from local storage
   useEffect(() => {
@@ -269,6 +280,12 @@ export default function StellarWallet() {
     setConfirmModalOpen(true);
   };
 
+  // Check if a public key is in contacts
+  const getContactName = (key: string) => {
+    const contactName = lookupContact(key);
+    return contactName || null;
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       {/* Success and Error Messages */}
@@ -305,71 +322,84 @@ export default function StellarWallet() {
               Your Stellar Wallet
             </Typography>
             
-            <Box sx={{ mt: 2, mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>Public Key</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TextField
-                  value={publicKey}
-                  fullWidth
-                  InputProps={{
-                    readOnly: true,
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => copyToClipboard(publicKey, 'Public key')}
-                          edge="end"
-                        >
-                          <ContentCopy />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Box>
-              
-              <Typography variant="subtitle1" gutterBottom>Account Balance</Typography>
-              {isLoading ? (
-                <CircularProgress size={24} />
-              ) : balance.length > 0 ? (
-                balance.map((b, index) => (
-                  <Typography key={index} variant="body1">
-                    {b.asset}: {b.balance}
-                  </Typography>
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No balance information available
-                </Typography>
-              )}
-            </Box>
-            
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleFundWallet}
-                disabled={isLoading}
-              >
-                {isLoading ? <CircularProgress size={24} /> : 'Fund with Friendbot'}
-              </Button>
-              
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => loadAccountBalance(publicKey)}
-                disabled={isLoading}
-              >
-                Refresh Balance
-              </Button>
-              
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleClearWallet}
-              >
-                Remove Wallet
-              </Button>
-            </Box>
+            <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 3 }}>
+              <Tab label="Wallet" />
+              <Tab label="Contacts" />
+            </Tabs>
+
+            {activeTab === 0 && (
+              <>
+                <Box sx={{ mt: 2, mb: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom>Public Key</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <TextField
+                      value={publicKey}
+                      fullWidth
+                      InputProps={{
+                        readOnly: true,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => copyToClipboard(publicKey, 'Public key')}
+                              edge="end"
+                            >
+                              <ContentCopy />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
+                  
+                  <Typography variant="subtitle1" gutterBottom>Account Balance</Typography>
+                  {isLoading ? (
+                    <CircularProgress size={24} />
+                  ) : balance.length > 0 ? (
+                    balance.map((b, index) => (
+                      <Typography key={index} variant="body1">
+                        {b.asset}: {b.balance}
+                      </Typography>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No balance information available
+                    </Typography>
+                  )}
+                </Box>
+                
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleFundWallet}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <CircularProgress size={24} /> : 'Fund with Friendbot'}
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => loadAccountBalance(publicKey)}
+                    disabled={isLoading}
+                  >
+                    Refresh Balance
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleClearWallet}
+                  >
+                    Remove Wallet
+                  </Button>
+                </Box>
+              </>
+            )}
+
+            {activeTab === 1 && (
+              <ContactsManager />
+            )}
           </Paper>
         ) : (
           /* Create or Import Wallet Section */
