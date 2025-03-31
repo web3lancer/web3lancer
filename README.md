@@ -3,7 +3,7 @@
 > A decentralized marketplace connecting global talent with opportunities in the Web3 ecosystem
 
 <p align="center">
-  <img src="https://via.placeholder.com/150" alt="Web3Lancer Logo">
+  <img src="public/logo/web3lancer.jpg" alt="Web3Lancer Logo">
 </p>
 
 ## 🌟 Vision
