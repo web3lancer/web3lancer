@@ -25,12 +25,11 @@ export default function SignInPage() {
   const redirectPath = searchParams?.get('redirect') || '/dashboard';
   const addAccountParam = searchParams?.get('addAccount');
   const [authMethod, setAuthMethod] = useState<'email' | 'otp' | 'magic'>('email');
-  
+  const [showWalletConnect, setShowWalletConnect] = useState(false);
   // Email sign-in state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   // Magic link sign-in state
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -290,7 +289,7 @@ export default function SignInPage() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
               <Link href="/reset-password" passHref>
                 <Typography 
-                  variant="body2" 
+                  variant="body2"  
                   color="primary"
                   sx={{ 
                     cursor: 'pointer',
@@ -343,7 +342,7 @@ export default function SignInPage() {
               fullWidth
               variant="contained"
               sx={{ 
-                mt: 2, 
+                mt: 2,  
                 mb: 2,
                 py: 1.5,
                 background: 'linear-gradient(90deg, #3B82F6 0%, #1E40AF 100%)',
@@ -387,7 +386,7 @@ export default function SignInPage() {
           >
             GitHub
           </Button>
-        </Box>
+        </Box>  
         
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Typography variant="body2">

@@ -72,30 +72,15 @@ export default function HeroSection() {
               href="/signin"
               sx={{
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%)', // Purple gradient
-                boxShadow: '0 4px 14px rgba(109, 40, 217, 0.4)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)',
-                  boxShadow: '0 6px 20px rgba(109, 40, 217, 0.6)',
-                }
-              }}
-            >
-              Sign In
-            </Button>
-            <Button 
-              variant="contained" 
-              component={Link} 
-              href="/signup"
-              sx={{
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
+                background: 'linear-gradient(135deg, #1E40AF 0%, #8B5CF6 100%)', // Blue to purple gradient
                 boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
                 '&:hover': {
+                  background: 'linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%)',
                   boxShadow: '0 6px 20px rgba(59, 130, 246, 0.6)',
                 }
               }}
             >
-              Sign Up
+              Connect
             </Button>
           </Box>
         </Toolbar>

@@ -24,6 +24,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [signupMethod, setSignupMethod] = useState<'email' | 'otp'>('email');
+  const [showWalletConnect, setShowWalletConnect] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -187,6 +188,69 @@ export default function SignUpPage() {
             Already have an account? <Link href="/signin">Sign in</Link>
           </Typography>
         </Box>
+        
+        <Divider sx={{ my: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            Or connect with
+          </Typography>
+        </Divider>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+          <Button
+            variant="outlined"
+            startIcon={<GitHub />}
+            onClick={handleGitHubSignUp}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            GitHub
+          </Button>
+          
+          <Button
+            variant="outlined"
+            onClick={() => setShowWalletConnect(true)}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Box>
+        
+        {/* Add wallet connection modal */}
+        {showWalletConnect && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom align="center">
+              Connect Your Wallet
+            </Typography>
+            <ConnectWallet />
+            <Button
+              variant="text"
+              color="primary" 
+              onClick={() => setShowWalletConnect(false)}
+              sx={{ mt: 2, display: 'block', mx: 'auto' }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        )}
       </Paper>
     </Box>
   );
