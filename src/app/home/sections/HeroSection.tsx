@@ -66,7 +66,22 @@ export default function HeroSection() {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button color="inherit" component={Link} href="/signin">Sign In</Button>
+            <Button 
+              variant="contained" 
+              component={Link} 
+              href="/signin"
+              sx={{
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%)', // Purple gradient
+                boxShadow: '0 4px 14px rgba(109, 40, 217, 0.4)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)',
+                  boxShadow: '0 6px 20px rgba(109, 40, 217, 0.6)',
+                }
+              }}
+            >
+              Sign In
+            </Button>
             <Button 
               variant="contained" 
               component={Link} 
