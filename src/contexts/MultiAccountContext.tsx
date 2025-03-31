@@ -1,9 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { account, signOut } from '@/utils/api';
 
-// Define the type for a user account
 export interface UserAccount {
   $id: string;
   name?: string;
@@ -18,112 +17,154 @@ interface MultiAccountContextType {
   activeAccount: UserAccount | null;
   addAccount: (account: UserAccount) => void;
   removeAccount: (accountId: string) => void;
+  removeAllAccounts: () => void;
   switchAccount: (accountId: string) => void;
+  clearActiveAccount: () => void;
   hasMaxAccounts: boolean;
+  MAX_ACCOUNTS: number;
 }
 
-const MultiAccountContext = createContext<MultiAccountContextType | undefined>(undefined);
+const MultiAccountContext = createContext<MultiAccountContextType>({
+  accounts: [],
+  activeAccount: null,
+  addAccount: () => {},
+  removeAccount: () => {},
+  removeAllAccounts: () => {},
+  switchAccount: () => {},
+  clearActiveAccount: () => {},
+  hasMaxAccounts: false,
+  MAX_ACCOUNTS: 3,
+});
 
 const MAX_ACCOUNTS = 3;
 
-export function MultiAccountProvider({ children }: { children: React.ReactNode }) {
-  const [savedAccounts, setSavedAccounts] = useLocalStorage<UserAccount[]>('web3lancer_accounts', []);
+export const useMultiAccount = () => useContext(MultiAccountContext);
+
+export const MultiAccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [activeAccount, setActiveAccount] = useState<UserAccount | null>(null);
-  
-  // Use a ref to track initialization
-  const initialized = useRef(false);
+  const hasMaxAccounts = accounts.length >= MAX_ACCOUNTS;
 
-  // Initialize accounts from localStorage on mount - only once
+  // Initialize accounts from localStorage on component mount
   useEffect(() => {
-    if (!initialized.current && savedAccounts && savedAccounts.length > 0) {
-      initialized.current = true;
-      setAccounts(savedAccounts);
-      const active = savedAccounts.find(account => account.isActive) || savedAccounts[0];
-      if (active) {
-        setActiveAccount({...active, isActive: true});
+    const savedAccounts = localStorage.getItem('web3lancer_accounts');
+    if (savedAccounts) {
+      try {
+        const parsedAccounts = JSON.parse(savedAccounts);
+        setAccounts(parsedAccounts);
+        
+        // Find and set active account
+        const active = parsedAccounts.find((acc: UserAccount) => acc.isActive);
+        if (active) {
+          setActiveAccount(active);
+        }
+      } catch (error) {
+        console.error('Error parsing saved accounts:', error);
+        localStorage.removeItem('web3lancer_accounts');
       }
     }
-  }, [savedAccounts]);
+  }, []);
 
-  // Save accounts to localStorage when they change - with dependency on accounts
+  // Save accounts to localStorage when they change
   useEffect(() => {
-    // Skip initial render and only save when accounts actually change
-    if (initialized.current && accounts.length > 0) {
-      // Prevent saving to localStorage if we're just loading from it
-      if (JSON.stringify(accounts) !== JSON.stringify(savedAccounts)) {
-        setSavedAccounts(accounts);
-      }
-    }
-  }, [accounts, setSavedAccounts]);
+    localStorage.setItem('web3lancer_accounts', JSON.stringify(accounts));
+  }, [accounts]);
 
-  // Add a new account
   const addAccount = (newAccount: UserAccount) => {
-    if (accounts.length >= MAX_ACCOUNTS) {
-      throw new Error(`Maximum number of accounts (${MAX_ACCOUNTS}) reached`);
-    }
-
-    // Check if the account already exists
-    const exists = accounts.some(acc => acc.$id === newAccount.$id);
-    if (exists) {
-      // If the account exists but isn't active, make it active
-      switchAccount(newAccount.$id);
-      return;
-    }
-
-    // Add the new account and set it as active
-    const updatedAccounts = accounts.map(acc => ({ ...acc, isActive: false }));
-    const accountToAdd = { ...newAccount, isActive: true };
+    // Check if we already have this account
+    const existingAccountIndex = accounts.findIndex(acc => acc.$id === newAccount.$id);
     
-    setAccounts([...updatedAccounts, accountToAdd]);
-    setActiveAccount(accountToAdd);
+    if (existingAccountIndex !== -1) {
+      // If account exists, update it and set as active
+      const updatedAccounts = [...accounts];
+      updatedAccounts.forEach(acc => acc.isActive = false);
+      updatedAccounts[existingAccountIndex] = { ...updatedAccounts[existingAccountIndex], ...newAccount, isActive: true };
+      setAccounts(updatedAccounts);
+      setActiveAccount(updatedAccounts[existingAccountIndex]);
+    } else {
+      // Check max accounts limit
+      if (accounts.length >= MAX_ACCOUNTS) {
+        throw new Error(`Maximum number of accounts (${MAX_ACCOUNTS}) reached`);
+      }
+      
+      // If adding new account, set all accounts as inactive first
+      const updatedAccounts = accounts.map(acc => ({ ...acc, isActive: false }));
+      
+      // Then add the new account as active
+      const newAccounts = [...updatedAccounts, { ...newAccount, isActive: true }];
+      setAccounts(newAccounts);
+      setActiveAccount(newAccount);
+    }
   };
 
-  // Remove an account
   const removeAccount = (accountId: string) => {
     const updatedAccounts = accounts.filter(acc => acc.$id !== accountId);
     
-    // If we removed the active account, set a new active account
-    if (activeAccount?.$id === accountId && updatedAccounts.length > 0) {
-      updatedAccounts[0].isActive = true;
-      setActiveAccount(updatedAccounts[0]);
-    } else if (updatedAccounts.length === 0) {
-      setActiveAccount(null);
+    // If we removed the active account, set a new active account if available
+    if (activeAccount && activeAccount.$id === accountId) {
+      if (updatedAccounts.length > 0) {
+        updatedAccounts[0].isActive = true;
+        setActiveAccount(updatedAccounts[0]);
+      } else {
+        setActiveAccount(null);
+      }
     }
     
     setAccounts(updatedAccounts);
   };
 
-  // Switch to a different account
-  const switchAccount = (accountId: string) => {
-    const updatedAccounts = accounts.map(acc => ({
-      ...acc,
-      isActive: acc.$id === accountId
-    }));
-    
+  const removeAllAccounts = () => {
+    setAccounts([]);
+    setActiveAccount(null);
+    localStorage.removeItem('web3lancer_accounts');
+  };
+
+  const clearActiveAccount = () => {
+    setActiveAccount(null);
+    const updatedAccounts = accounts.map(acc => ({...acc, isActive: false}));
     setAccounts(updatedAccounts);
-    const newActive = updatedAccounts.find(acc => acc.$id === accountId) || null;
-    setActiveAccount(newActive);
+  };
+
+  const switchAccount = async (accountId: string) => {
+    // First, find the account we want to switch to
+    const targetAccount = accounts.find(acc => acc.$id === accountId);
+    if (!targetAccount) return;
+    
+    try {
+      // Sign out from current session if there is one
+      await signOut().catch(console.error);
+      
+      // Update active status for all accounts
+      const updatedAccounts = accounts.map(acc => ({
+        ...acc,
+        isActive: acc.$id === accountId
+      }));
+      
+      setAccounts(updatedAccounts);
+      setActiveAccount(targetAccount);
+      
+      // Local storage update is handled by the useEffect above
+    } catch (error) {
+      console.error('Error switching accounts:', error);
+      throw new Error('Failed to switch accounts');
+    }
   };
 
   return (
-    <MultiAccountContext.Provider value={{
-      accounts,
-      activeAccount,
-      addAccount,
-      removeAccount,
-      switchAccount,
-      hasMaxAccounts: accounts.length >= MAX_ACCOUNTS
-    }}>
+    <MultiAccountContext.Provider
+      value={{
+        accounts,
+        activeAccount,
+        addAccount,
+        removeAccount,
+        removeAllAccounts,
+        switchAccount,
+        clearActiveAccount,
+        hasMaxAccounts,
+        MAX_ACCOUNTS,
+      }}
+    >
       {children}
     </MultiAccountContext.Provider>
   );
-}
-
-export function useMultiAccount() {
-  const context = useContext(MultiAccountContext);
-  if (context === undefined) {
-    throw new Error('useMultiAccount must be used within a MultiAccountProvider');
-  }
-  return context;
-}
+};

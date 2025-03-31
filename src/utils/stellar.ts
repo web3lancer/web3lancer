@@ -49,11 +49,17 @@ export async function fundTestnetAccount(publicKey: string) {
  * @param destinationPublicKey - The recipient's public key
  * @param amount - Amount of XLM to send
  */
-export async function sendPayment(senderKeypair: Keypair, destinationPublicKey: string, amount: string) {
+export async function sendXLM(
+  senderKeypair: Keypair,
+  destinationPublicKey: string,
+  amount: string
+) {
   try {
-    const sender = await server.loadAccount(senderKeypair.publicKey());
-    
-    const transaction = new TransactionBuilder(sender, {
+    // Load the sender's account
+    const sourceAccount = await server.loadAccount(senderKeypair.publicKey());
+
+    // Create a payment transaction
+    const transaction = new TransactionBuilder(sourceAccount, {
       fee: BASE_FEE,
       networkPassphrase: Networks.TESTNET
     })
@@ -66,59 +72,22 @@ export async function sendPayment(senderKeypair: Keypair, destinationPublicKey: 
       )
       .setTimeout(30)
       .build();
-    
+
+    // Sign the transaction
     transaction.sign(senderKeypair);
-    
+
+    // Submit the transaction to the Stellar network
     const result = await server.submitTransaction(transaction);
     return result;
   } catch (error) {
-    console.error('Error sending payment:', error);
+    console.error('Error sending XLM:', error);
     throw error;
   }
 }
 
 /**
- * Create a Stellar token (asset)
- * @param issuerKeypair - The issuer's keypair
- * @param distributorPublicKey - The distributor's public key
- * @param assetCode - The code for the asset (e.g., "USD")
- * @param limit - The limit of tokens to create
- */
-export async function createToken(
-  issuerKeypair: Keypair,
-  distributorPublicKey: string,
-  assetCode: string,
-  limit: string
-) {
-  try {
-    const distributor = await server.loadAccount(distributorPublicKey);
-    
-    const transaction = new TransactionBuilder(distributor, {
-      fee: BASE_FEE,
-      networkPassphrase: Networks.TESTNET
-    })
-      .addOperation(
-        Operation.changeTrust({
-          asset: new Asset(assetCode, issuerKeypair.publicKey()),
-          limit: limit
-        })
-      )
-      .setTimeout(30)
-      .build();
-    
-    transaction.sign(issuerKeypair);
-    
-    const result = await server.submitTransaction(transaction);
-    return result;
-  } catch (error) {
-    console.error('Error creating token:', error);
-    throw error;
-  }
-}
-
-/**
- * Check XLM balance
- * @param publicKey - The public key to check
+ * Check account balance
+ * @param publicKey - The public key of the account
  */
 export async function checkBalance(publicKey: string) {
   try {
@@ -126,6 +95,61 @@ export async function checkBalance(publicKey: string) {
     return account.balances;
   } catch (error) {
     console.error('Error checking balance:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a trustline for a custom asset
+ * @param userKeypair - The user's keypair
+ * @param assetCode - The asset code
+ * @param issuerPublicKey - The asset issuer's public key
+ */
+export async function createTrustline(
+  userKeypair: Keypair,
+  assetCode: string,
+  issuerPublicKey: string
+) {
+  try {
+    const account = await server.loadAccount(userKeypair.publicKey());
+    
+    const transaction = new TransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase: Networks.TESTNET
+    })
+      .addOperation(
+        Operation.changeTrust({
+          asset: new Asset(assetCode, issuerPublicKey)
+        })
+      )
+      .setTimeout(30)
+      .build();
+
+    transaction.sign(userKeypair);
+    
+    const result = await server.submitTransaction(transaction);
+    return result;
+  } catch (error) {
+    console.error('Error creating trustline:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get transaction history for an account
+ * @param publicKey - The public key of the account
+ */
+export async function getTransactionHistory(publicKey: string) {
+  try {
+    const transactions = await server.transactions()
+      .forAccount(publicKey)
+      .order('desc')
+      .limit(10)
+      .call();
+    
+    return transactions.records;
+  } catch (error) {
+    console.error('Error fetching transaction history:', error);
     throw error;
   }
 }

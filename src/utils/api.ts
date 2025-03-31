@@ -45,6 +45,20 @@ async function signUp(email: string, password: string, name: string) {
 
 async function signIn(email: string, password: string) {
   try {
+    // Check if there's an active session first
+    try {
+      const currentSession = await account.get();
+      
+      if (currentSession) {
+        // If there's an active session, delete it before creating a new one
+        await account.deleteSession('current');
+        console.log('Deleted existing session before sign in');
+      }
+    } catch (error) {
+      // No active session, proceed with login
+      console.log('No active session found, proceeding with login');
+    }
+    
     // Create session according to Appwrite docs pattern
     await account.createEmailPasswordSession(email, password);
     
@@ -55,6 +69,26 @@ async function signIn(email: string, password: string) {
   } catch (error) {
     console.error('Error signing in:', error);
     throw new Error(`Failed to sign in: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function signOut() {
+  try {
+    await account.deleteSession('current');
+    return true;
+  } catch (error) {
+    console.error('Error signing out:', error);
+    // Don't throw on error, as we want to clear local state even if server fails
+    return false;
+  }
+}
+
+async function listSessions() {
+  try {
+    return await account.listSessions();
+  } catch (error) {
+    console.error('Error listing sessions:', error);
+    return { total: 0, sessions: [] };
   }
 }
 
@@ -772,6 +806,8 @@ export {
   ID, 
   signUp, 
   signIn,
+  signOut,
+  listSessions,
   createEmailVerification,
   completeEmailVerification,
   createPasswordRecovery,

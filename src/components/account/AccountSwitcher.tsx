@@ -55,18 +55,26 @@ const formatAddress = (addr?: string) => {
 export function AccountSwitcher() {
   const { accounts, activeAccount, removeAccount, switchAccount, hasMaxAccounts } = useMultiAccount();
   const [isAddingAccount, setIsAddingAccount] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
 
-  const handleSwitchAccount = (accountId: string) => {
+  const handleSwitchAccount = async (accountId: string) => {
     if (activeAccount?.$id === accountId) return; // Don't switch if already active
     
-    switchAccount(accountId);
-    
-    // Redirect to dashboard or reload
-    router.push('/dashboard');
+    try {
+      setIsSwitching(true);
+      await switchAccount(accountId);
+      
+      // Redirect to dashboard after successful switch
+      router.push('/dashboard');
+    } catch (error) {
+      console.error("Error switching accounts:", error);
+    } finally {
+      setIsSwitching(false);
+    }
   };
 
   const handleRemoveAccount = async (accountId: string, event: React.MouseEvent) => {
@@ -174,7 +182,7 @@ export function AccountSwitcher() {
               key={account.$id}
               onClick={() => handleSwitchAccount(account.$id)}
               sx={{ 
-                cursor: 'pointer',
+                cursor: isSwitching ? 'wait' : 'pointer',
                 '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
               }}
               secondaryAction={
@@ -182,10 +190,12 @@ export function AccountSwitcher() {
                   edge="end" 
                   aria-label="remove account"
                   onClick={(e) => handleRemoveAccount(account.$id, e)}
+                  disabled={isSwitching}
                 >
                   <Delete fontSize="small" />
                 </IconButton>
               }
+              disabled={isSwitching}
             >
               <ListItemAvatar>
                 <AccountAvatar account={account} />
@@ -194,6 +204,9 @@ export function AccountSwitcher() {
                 primary={getDisplayName(account)} 
                 secondary={account.email || (account.walletId ? 'Wallet Connected' : '')}
               />
+              {isSwitching && account.$id === activeAccount?.$id && (
+                <CircularProgress size={16} sx={{ ml: 1 }} />
+              )}
             </ListItem>
           ))}
       </List>
@@ -207,7 +220,7 @@ export function AccountSwitcher() {
           variant="outlined"
           startIcon={<Add />}
           onClick={handleAddAccount}
-          disabled={hasMaxAccounts || isAddingAccount}
+          disabled={hasMaxAccounts || isAddingAccount || isSwitching}
         >
           {isAddingAccount ? (
             <>

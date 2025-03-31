@@ -108,7 +108,7 @@ export default function SignInPage() {
         const existingAccount = accounts.find(acc => acc.$id === accountId);
         
         if (!existingAccount) {
-          if (hasMaxAccounts) {
+          if (hasMaxAccounts && !isAddingAccount) {
             setError(`Maximum number of accounts (3) reached. Please remove an account before adding a new one.`);
             setIsLoading(false);
             return;
@@ -124,6 +124,11 @@ export default function SignInPage() {
             });
           } catch (error) {
             console.error('Error adding account:', error);
+            if (error instanceof Error) {
+              setError(error.message);
+              setIsLoading(false);
+              return;
+            }
           }
         } else {
           switchAccount(accountId);
