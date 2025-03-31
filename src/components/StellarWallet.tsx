@@ -28,6 +28,7 @@ import { useContacts } from '@/hooks/useContacts';
 import { TruncatedKey } from './stellar/TruncatedKey';
 import TrustlineManager from './stellar/TrustlineManager';
 import StellarPayment from './stellar/StellarPayment';
+import PathPayment from './stellar/PathPayment';
 
 export default function StellarWallet() {
   // State for key management
@@ -329,6 +330,7 @@ export default function StellarWallet() {
               <Tab label="Contacts" />
               <Tab label="Trustlines" />
               <Tab label="Send Payment" />
+              <Tab label="Path Payment" />
             </Tabs>
 
             {activeTab === 0 && (
@@ -415,6 +417,14 @@ export default function StellarWallet() {
 
             {activeTab === 3 && (
               <StellarPayment 
+                publicKey={publicKey} 
+                balances={balance}
+                onSuccess={() => loadAccountBalance(publicKey)} 
+              />
+            )}
+            
+            {activeTab === 4 && (
+              <PathPayment 
                 publicKey={publicKey} 
                 balances={balance}
                 onSuccess={() => loadAccountBalance(publicKey)} 

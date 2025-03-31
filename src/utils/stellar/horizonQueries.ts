@@ -1,4 +1,4 @@
-import { Networks, Server, Transaction } from '@stellar/stellar-sdk';
+import { Networks, Server, Transaction, Asset } from '@stellar/stellar-sdk';
 
 // Create a Stellar server instance for the testnet
 const server = new Server('https://horizon-testnet.stellar.org');
@@ -113,6 +113,78 @@ export async function fetchAccountBalances(publicKey: string): Promise<any[]> {
     return account.balances;
   } catch (error) {
     console.error('Error fetching account balances:', error);
+    return [];
+  }
+}
+
+/**
+ * Find available paths for strict send payments
+ * @param sourceAsset The asset to send
+ * @param sourceAmount The amount to send
+ * @param destinationPublicKey The destination account
+ */
+export async function findStrictSendPaths({ 
+  sourceAsset, 
+  sourceAmount, 
+  destinationPublicKey 
+}: { 
+  sourceAsset: string; 
+  sourceAmount: string; 
+  destinationPublicKey: string;
+}): Promise<any[]> {
+  try {
+    let sendAsset;
+    
+    if (sourceAsset === 'native') {
+      sendAsset = Asset.native();
+    } else {
+      const [code, issuer] = sourceAsset.split(':');
+      sendAsset = new Asset(code, issuer);
+    }
+
+    const pathsResponse = await server
+      .strictSendPaths(sendAsset, sourceAmount, destinationPublicKey)
+      .call();
+    
+    return pathsResponse.records;
+  } catch (error) {
+    console.error('Error finding strict send paths:', error);
+    return [];
+  }
+}
+
+/**
+ * Find available paths for strict receive payments
+ * @param sourcePublicKey The source account
+ * @param destinationAsset The asset to receive
+ * @param destinationAmount The amount to receive
+ */
+export async function findStrictReceivePaths({ 
+  sourcePublicKey, 
+  destinationAsset, 
+  destinationAmount 
+}: { 
+  sourcePublicKey: string; 
+  destinationAsset: string; 
+  destinationAmount: string; 
+}): Promise<any[]> {
+  try {
+    let destAsset;
+    
+    if (destinationAsset === 'native') {
+      destAsset = Asset.native();
+    } else {
+      const [code, issuer] = destinationAsset.split(':');
+      destAsset = new Asset(code, issuer);
+    }
+
+    const pathsResponse = await server
+      .strictReceivePaths(sourcePublicKey, destAsset, destinationAmount)
+      .call();
+    
+    return pathsResponse.records;
+  } catch (error) {
+    console.error('Error finding strict receive paths:', error);
     return [];
   }
 }

@@ -174,3 +174,135 @@ export async function createCreateAccountTransaction({
     network_passphrase: networkPassphrase,
   };
 }
+
+/**
+ * Constructs and returns a Stellar transaction that will contain a path payment strict send operation
+ * to send/receive different assets.
+ */
+export async function createPathPaymentStrictSendTransaction({
+  source,
+  sourceAsset,
+  sourceAmount,
+  destination,
+  destinationAsset,
+  destinationAmount,
+  memo,
+}: {
+  source: string;
+  sourceAsset: string;
+  sourceAmount: string;
+  destination: string;
+  destinationAsset: string;
+  destinationAmount: string;
+  memo?: string;
+}): Promise<{ transaction: string; network_passphrase: string }> {
+  // Setup our transaction by loading the source account and initializing the TransactionBuilder
+  const server = new Server(horizonUrl);
+  const sourceAccount = await server.loadAccount(source);
+  const transaction = new TransactionBuilder(sourceAccount, {
+    networkPassphrase: networkPassphrase,
+    fee: maxFeePerOperation,
+  });
+
+  // Parse assets for sending and receiving
+  const sendAsset = sourceAsset === "native"
+    ? Asset.native()
+    : new Asset(sourceAsset.split(":")[0], sourceAsset.split(":")[1]);
+    
+  const destAsset = destinationAsset === "native"
+    ? Asset.native()
+    : new Asset(destinationAsset.split(":")[0], destinationAsset.split(":")[1]);
+
+  // Calculate an acceptable 2% slippage
+  const destMin = ((98 * parseFloat(destinationAmount)) / 100).toFixed(7);
+
+  // Add memo if provided
+  if (memo) {
+    transaction.addMemo(Memo.text(memo));
+  }
+
+  // Add a single `pathPaymentStrictSend` operation
+  transaction.addOperation(
+    Operation.pathPaymentStrictSend({
+      sendAsset,
+      sendAmount: sourceAmount.toString(),
+      destination,
+      destAsset,
+      destMin,
+    }),
+  );
+
+  // Build the transaction with timebounds
+  const builtTransaction = transaction.setTimeout(standardTimebounds).build();
+  
+  return {
+    transaction: builtTransaction.toXDR(),
+    network_passphrase: networkPassphrase,
+  };
+}
+
+/**
+ * Constructs and returns a Stellar transaction that will contain a path payment strict receive operation
+ * to send/receive different assets.
+ */
+export async function createPathPaymentStrictReceiveTransaction({
+  source,
+  sourceAsset,
+  sourceAmount,
+  destination,
+  destinationAsset,
+  destinationAmount,
+  memo,
+}: {
+  source: string;
+  sourceAsset: string;
+  sourceAmount: string;
+  destination: string;
+  destinationAsset: string;
+  destinationAmount: string;
+  memo?: string;
+}): Promise<{ transaction: string; network_passphrase: string }> {
+  // Setup our transaction by loading the source account and initializing the TransactionBuilder
+  const server = new Server(horizonUrl);
+  const sourceAccount = await server.loadAccount(source);
+  const transaction = new TransactionBuilder(sourceAccount, {
+    networkPassphrase: networkPassphrase,
+    fee: maxFeePerOperation,
+  });
+
+  // Parse assets for sending and receiving
+  const sendAsset = sourceAsset === "native"
+    ? Asset.native()
+    : new Asset(sourceAsset.split(":")[0], sourceAsset.split(":")[1]);
+    
+  const destAsset = destinationAsset === "native"
+    ? Asset.native()
+    : new Asset(destinationAsset.split(":")[0], destinationAsset.split(":")[1]);
+
+  // Calculate an acceptable 2% slippage
+  const sendMax = ((102 * parseFloat(sourceAmount)) / 100).toFixed(7);
+
+  // Add memo if provided
+  if (memo) {
+    transaction.addMemo(Memo.text(memo));
+  }
+
+  // Add a single `pathPaymentStrictReceive` operation
+  transaction.addOperation(
+    Operation.pathPaymentStrictReceive({
+      sendAsset,
+      sendMax,
+      destination,
+      destAsset,
+      destAmount: destinationAmount,
+    }),
+  );
+
+  // Build the transaction with timebounds
+  const builtTransaction = transaction.setTimeout(standardTimebounds).build();
+  
+  return {
+    transaction: builtTransaction.toXDR(),
+    network_passphrase: networkPassphrase,
+  };
+}
