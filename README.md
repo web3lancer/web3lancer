@@ -42,6 +42,12 @@ Our platform integrates a cutting-edge reputation system built directly on Stell
 
 The smart contract efficiently manages user reputation through functions like `submit_review`, `get_reputation_score`, and `dispute_review`, ensuring a trustworthy marketplace for all participants.
 
+## 📊 Stellar Contract Details
+
+- **Contract Address:** [CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN](https://stellar.expert/explorer/testnet/contract/CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN)
+- **Contract ID:** CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN
+- **Contract Testnet URI:** [View Deployment Transaction](https://stellar.expert/explorer/testnet/tx/3ec143da28658ea3f09b5412b45a00a142ab091106ec82d6e6df8ffa49440ffc)
+
 ## 🚀 Getting Started
 
 ```bash
