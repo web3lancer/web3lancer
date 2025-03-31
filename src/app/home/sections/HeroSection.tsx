@@ -165,11 +165,11 @@ export default function HeroSection() {
                       px: 6,
                       borderRadius: '30px',
                       fontSize: '1.2rem',
-                      background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
+                      background: 'linear-gradient(45deg, #1E40AF, #3B82F6, #8B5CF6, #6D28D9)',
                       boxShadow: '0 10px 30px rgba(59, 130, 246, 0.4)',
                       '&:hover': {
                         transform: 'translateY(-5px)',
-                        boxShadow: '0 20px 40px rgba(59, 130, 246, 0.6)',
+                        boxShadow: '0 20px 40px rgba(109, 40, 217, 0.6)',
                       },
                     }}
                   >
