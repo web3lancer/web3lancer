@@ -175,40 +175,50 @@ export function AccountSwitcher() {
       
       {/* List of Other Accounts */}
       <List sx={{ maxHeight: 300, overflow: 'auto' }}>
-        {accounts
-          .filter(account => !account.isActive)
-          .map(account => (
-            <ListItem
-              key={account.$id}
-              onClick={() => handleSwitchAccount(account.$id)}
-              sx={{ 
-                cursor: isSwitching ? 'wait' : 'pointer',
-                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
-              }}
-              secondaryAction={
-                <IconButton 
-                  edge="end" 
-                  aria-label="remove account"
-                  onClick={(e) => handleRemoveAccount(account.$id, e)}
-                  disabled={isSwitching}
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              }
-              disabled={isSwitching}
-            >
-              <ListItemAvatar>
-                <AccountAvatar account={account} />
-              </ListItemAvatar>
-              <ListItemText 
-                primary={getDisplayName(account)} 
-                secondary={account.email || (account.walletId ? 'Wallet Connected' : '')}
-              />
-              {isSwitching && account.$id === activeAccount?.$id && (
-                <CircularProgress size={16} sx={{ ml: 1 }} />
-              )}
-            </ListItem>
-          ))}
+        {accounts.length <= 1 ? (
+          // Show a message when there's only one account or none
+          <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
+            <Typography variant="body2">
+              No other accounts available
+            </Typography>
+          </Box>
+        ) : (
+          // Show other accounts if there are more than one
+          accounts
+            .filter(account => !account.isActive)
+            .map(account => (
+              <ListItem
+                key={account.$id}
+                onClick={() => handleSwitchAccount(account.$id)}
+                sx={{ 
+                  cursor: isSwitching ? 'wait' : 'pointer',
+                  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
+                }}
+                secondaryAction={
+                  <IconButton 
+                    edge="end" 
+                    aria-label="remove account"
+                    onClick={(e) => handleRemoveAccount(account.$id, e)}
+                    disabled={isSwitching}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                }
+                disabled={isSwitching}
+              >
+                <ListItemAvatar>
+                  <AccountAvatar account={account} />
+                </ListItemAvatar>
+                <ListItemText 
+                  primary={getDisplayName(account)} 
+                  secondary={account.email || (account.walletId ? 'Wallet Connected' : '')}
+                />
+                {isSwitching && account.$id === activeAccount?.$id && (
+                  <CircularProgress size={16} sx={{ ml: 1 }} />
+                )}
+              </ListItem>
+            ))
+        )}
       </List>
       
       <Divider />

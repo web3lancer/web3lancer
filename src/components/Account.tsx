@@ -276,12 +276,13 @@ export function Account() {
             <Person fontSize="small" sx={{ mr: 1.5 }} />
             <Typography variant="body2">Profile</Typography>
           </MenuItem>
-          {accounts.length > 1 && (
-            <MenuItem onClick={handleAccountsClick}>
-              <SwitchAccount fontSize="small" sx={{ mr: 1.5 }} />
-              <Typography variant="body2">Switch Accounts</Typography>
-            </MenuItem>
-          )}
+          
+          {/* Always show the Switch Accounts option, regardless of account count */}
+          <MenuItem onClick={handleAccountsClick}>
+            <SwitchAccount fontSize="small" sx={{ mr: 1.5 }} />
+            <Typography variant="body2">Switch Accounts</Typography>
+          </MenuItem>
+          
           {!isVerified && !user?.walletId && (
             <MenuItem onClick={handleResendVerification}>
               <ListItemIcon>
