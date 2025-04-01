@@ -12,6 +12,18 @@ interface UseMetaMaskReturn {
   error: string | null;
   isPending: boolean;
   switchNetwork: (chainId: string) => Promise<void>;
+  sendTransaction: (transaction: {
+    to: string;
+    value: string;
+    data?: string;
+    gas?: string;
+  }) => Promise<string>;
+  estimateGas: (transaction: {
+    to: string;
+    from?: string;
+    value: string;
+    data?: string;
+  }) => Promise<string>;
 }
 
 export function useMetaMask(): UseMetaMaskReturn {
@@ -158,6 +170,89 @@ export function useMetaMask(): UseMetaMaskReturn {
     setAccount(null);
   }, []);
 
+  // Send a transaction using MetaMask
+  const sendTransaction = useCallback(async (transaction: {
+    to: string;
+    value: string;
+    data?: string;
+    gas?: string;
+  }): Promise<string> => {
+    if (!provider) {
+      throw new Error('MetaMask SDK not initialized');
+    }
+    
+    if (!account) {
+      throw new Error('No account connected');
+    }
+    
+    setIsPending(true);
+    setError(null);
+    
+    try {
+      // Create the transaction parameters
+      const transactionParameters = {
+        from: account,
+        to: transaction.to,
+        value: transaction.value, // Value in hex
+        data: transaction.data || '0x', // Optional data
+        gas: transaction.gas // Optional gas limit
+      };
+      
+      // Send the transaction
+      const txHash = await provider.request({
+        method: 'eth_sendTransaction',
+        params: [transactionParameters],
+      });
+      
+      return txHash;
+    } catch (err: any) {
+      if (err.code === 4001) {
+        setError('User rejected transaction');
+      } else {
+        setError(err.message || 'Failed to send transaction');
+      }
+      console.error('MetaMask transaction error:', err);
+      throw err;
+    } finally {
+      setIsPending(false);
+    }
+  }, [provider, account]);
+
+  // Estimate gas for a transaction
+  const estimateGas = useCallback(async (transaction: {
+    to: string;
+    from?: string;
+    value: string;
+    data?: string;
+  }): Promise<string> => {
+    if (!provider) {
+      throw new Error('MetaMask SDK not initialized');
+    }
+    
+    try {
+      // Create the transaction parameters
+      const transactionParameters = {
+        from: transaction.from || account,
+        to: transaction.to,
+        value: transaction.value,
+        data: transaction.data || '0x'
+      };
+      
+      // Estimate the gas
+      const gasEstimate = await provider.request({
+        method: 'eth_estimateGas',
+        params: [transactionParameters],
+      });
+      
+      // Add 10% buffer to gas estimate
+      const gasWithBuffer = Math.floor(parseInt(gasEstimate, 16) * 1.1).toString(16);
+      return '0x' + gasWithBuffer;
+    } catch (err: any) {
+      console.error('Gas estimation error:', err);
+      throw new Error(`Failed to estimate gas: ${err.message || 'Unknown error'}`);
+    }
+  }, [provider, account]);
+
   return {
     provider,
     isMetaMaskInstalled,
@@ -167,6 +262,8 @@ export function useMetaMask(): UseMetaMaskReturn {
     connectMetaMask,
     disconnectMetaMask,
     switchNetwork,
+    sendTransaction,
+    estimateGas,
     error,
     isPending
   };
