@@ -14,6 +14,7 @@ import { config } from '@/utils/config';
 import { WalletProvider } from '@/components/WalletProvider';
 import { usePathname } from 'next/navigation';
 import OAuthRefresher from '@/components/OAuthRefresher';
+import { checkConfigValues, checkDatabaseConfig } from '@/utils/configChecker';
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,12 @@ function SafeHydrate({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
   
   useEffect(() => {
+    // Check configuration in development mode
+    if (process.env.NODE_ENV === 'development') {
+      checkConfigValues();
+      checkDatabaseConfig().catch(console.error);
+    }
+    
     setIsMounted(true);
   }, []);
   

@@ -797,6 +797,48 @@ async function addUser(email: string, password: string, name: string) {
   }
 }
 
+/**
+ * Utility functions for safe document retrieval
+ */
+
+/**
+ * Safe document fetching that handles "Document not found" errors gracefully
+ * @param databaseId Database ID
+ * @param collectionId Collection ID
+ * @param documentId Document ID
+ * @param defaultValue Optional default value to return if document isn't found
+ * @returns The document or the default value
+ */
+async function safeGetDocument(databaseId: string, collectionId: string, documentId: string, defaultValue: any = null) {
+  try {
+    return await databases.getDocument(databaseId, collectionId, documentId);
+  } catch (error: any) {
+    // Check if this is a "Document not found" error
+    if (error.code === 404) {
+      console.log(`Document not found: ${documentId} in collection ${collectionId}`);
+      return defaultValue;
+    }
+    // Rethrow other errors
+    throw error;
+  }
+}
+
+/**
+ * Safe list documents that handles errors gracefully
+ * @param databaseId Database ID
+ * @param collectionId Collection ID
+ * @param queries Query parameters
+ * @returns List of documents or empty array on failure
+ */
+async function safeListDocuments(databaseId: string, collectionId: string, queries: any[] = []) {
+  try {
+    return await databases.listDocuments(databaseId, collectionId, queries);
+  } catch (error: any) {
+    console.error(`Error listing documents in collection ${collectionId}:`, error);
+    return { documents: [], total: 0 };
+  }
+}
+
 export { 
   client, 
   account, 
@@ -846,5 +888,7 @@ export {
   getCurrentSession,
   refreshOAuthSession,
   ensureValidOAuthToken,
-  Query
+  Query,
+  safeGetDocument,
+  safeListDocuments
 };

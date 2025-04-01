@@ -24,13 +24,8 @@ export const API_ENDPOINTS = {
  * Appwrite configuration
  */
 export const APPWRITE_CONFIG = {
-  // API endpoint for Appwrite
   ENDPOINT: 'https://cloud.appwrite.io/v1',
-  
-  // Project ID for Appwrite
   PROJECT_ID: '67aed8360001b6dd8cb3',
-  
-  // Database IDs - Updated with correct IDs from appwrite-database.md
   DATABASES: {
     USERS: '67b885280000d2cb5411',
     JOBS: '67af3ffe0011106c4575',
@@ -62,8 +57,6 @@ export const APPWRITE_CONFIG = {
     CONNECTIONS: '67b88545001d27584d7e',
     PAYMENT_METHODS: '67e62cd3001975b82202'
   },
-
-  // Storage bucket IDs
   STORAGE: {
     PROFILE_PICTURES: '67b889200019e3d3519d',
     JOB_ATTACHMENTS: '67b889440032a2ff90d3',

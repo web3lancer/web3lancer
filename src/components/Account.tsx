@@ -7,7 +7,7 @@ import { useAccount, useDisconnect } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
 import { AccountSwitcher } from './account/AccountSwitcher';
-import { databases, createEmailVerification } from '@/utils/api';
+import { databases, createEmailVerification, account, safeGetDocument } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
 
@@ -32,24 +32,21 @@ export function Account() {
     const fetchProfilePicture = async () => {
       try {
         if (user?.$id && !user.walletId) {
-          // Wrap in try/catch to handle unauthorized access gracefully
-          try {
-            const response = await databases.getDocument(
-              APPWRITE_CONFIG.DATABASES.USERS,
-              APPWRITE_CONFIG.COLLECTIONS.PROFILES,
-              user.$id
-            );
+          // Use safeGetDocument to handle 404 errors gracefully
+          const response = await safeGetDocument(
+            APPWRITE_CONFIG.DATABASES.USERS,
+            APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+            user.$id,
+            null // default value if document not found
+          );
             
-            if (response && response.profilePicture) {
-              setProfilePicture(response.profilePicture);
+          if (response && response.profilePicture) {
+            setProfilePicture(response.profilePicture);
               
-              // Update active account with profile picture if needed
-              if (activeAccount && !activeAccount.profilePicture) {
-                activeAccount.profilePicture = response.profilePicture;
-              }
+            // Update active account with profile picture if needed
+            if (activeAccount && !activeAccount.profilePicture) {
+              activeAccount.profilePicture = response.profilePicture;
             }
-          } catch (error) {
-            console.log('Error fetching profile, may need authentication:', error);
           }
         }
       } catch (error) {
