@@ -123,6 +123,58 @@ export default function SignUpPage() {
           Sign up to get started with Web3Lancer
         </Typography>
         
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {/* Social logins section - Moved to top */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+          <Button
+            variant="outlined"
+            startIcon={<GitHub />}
+            onClick={handleGitHubSignUp}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            GitHub
+          </Button>
+          
+          <Button
+            variant="outlined"
+            onClick={() => setShowWalletConnect(true)}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Box>
+        
+        <Divider sx={{ my: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            Or sign up with email
+          </Typography>
+        </Divider>
+        
         {/* Sign up method selector */}
         <Box sx={{ mb: 3 }}>
           <Tabs 
@@ -135,12 +187,6 @@ export default function SignUpPage() {
             <Tab label="Email OTP" value="otp" />
           </Tabs>
         </Box>
-        
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
         
         {/* Email/Password form */}
         {signupMethod === 'email' && (
@@ -196,51 +242,6 @@ export default function SignUpPage() {
           <Typography variant="body2">
             Already have an account? <Link href="/signin">Sign in</Link>
           </Typography>
-        </Box>
-        
-        <Divider sx={{ my: 4 }}>
-          <Typography variant="body2" color="text.secondary">
-            Or connect with
-          </Typography>
-        </Divider>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
-          <Button
-            variant="outlined"
-            startIcon={<GitHub />}
-            onClick={handleGitHubSignUp}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: 'rgba(0, 0, 0, 0.2)',
-              color: '#333',
-              '&:hover': {
-                borderColor: '#333',
-                background: 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            GitHub
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => setShowWalletConnect(true)}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: 'rgba(0, 0, 0, 0.2)',
-              color: '#333',
-              '&:hover': {
-                borderColor: '#333',
-                background: 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            Connect Wallet
-          </Button>
         </Box>
         
         {/* Add wallet connection modal */}

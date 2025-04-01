@@ -255,6 +255,58 @@ export default function SignInPage() {
           Sign in to your account to continue
         </Typography>
         
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {/* Social logins section - Moved to top */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+          <Button
+            variant="outlined"
+            startIcon={<GitHub />}
+            onClick={handleGitHubSignIn}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            GitHub
+          </Button>
+          
+          <Button
+            variant="outlined"
+            onClick={() => setShowWalletConnect(true)}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Box>
+        
+        <Divider sx={{ my: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            Or continue with email
+          </Typography>
+        </Divider>
+
         {/* Auth method selector */}
         <Box sx={{ mb: 3 }}>
           <Tabs 
@@ -268,12 +320,6 @@ export default function SignInPage() {
             <Tab label="Magic Link" value="magic" />
           </Tabs>
         </Box>
-        
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
         
         {/* Email/Password form */}
         {authMethod === 'email' && (
@@ -369,52 +415,6 @@ export default function SignInPage() {
             </Button>
           </form>
         )}
-        
-        {/* Social logins section */}
-        <Divider sx={{ my: 4 }}>
-          <Typography variant="body2" color="text.secondary">
-            Or continue with
-          </Typography>
-        </Divider>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
-          <Button
-            variant="outlined"
-            startIcon={<GitHub />}
-            onClick={handleGitHubSignIn}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: 'rgba(0, 0, 0, 0.2)',
-              color: '#333',
-              '&:hover': {
-                borderColor: '#333',
-                background: 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            GitHub
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => setShowWalletConnect(true)}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: 'rgba(0, 0, 0, 0.2)',
-              color: '#333',
-              '&:hover': {
-                borderColor: '#333',
-                background: 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            Connect Wallet
-          </Button>
-        </Box>
         
         {/* Add wallet connection modal */}
         {showWalletConnect && (
