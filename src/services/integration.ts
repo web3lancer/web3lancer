@@ -2,6 +2,7 @@ import { ID } from 'appwrite';
 import { databases } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { processPayment, PaymentRequest } from '@/services/payment';
+import { recordCryptoTransaction } from '@/services/cryptoService';
 
 /**
  * Integration service between Appwrite and PhotonLancerr
@@ -34,11 +35,13 @@ export async function processAndRecordPayment(
     if (!paymentResult.success || !paymentResult.data) {
       throw new Error(paymentResult.error || 'Payment processing failed');
     }
-    
+
     // Step 2: Record the transaction in Appwrite
-    const transaction = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+    // Use the TRANSACTIONS database and collection from appwrite-database.md
+    const transactionId = ID.unique();
+    await databases.createDocument(
+      '67b8866c00265d466063', // TRANSACTIONS database ID
+      '67b8867b001643b2585a', // TRANSACTIONS collection ID
       ID.unique(),
       {
         userId,
@@ -50,10 +53,28 @@ export async function processAndRecordPayment(
       }
     );
     
-    // Step 3: Create a notification about the transaction
+    // Step 3: If this is a crypto payment, record additional details
+    if (method.includes('crypto')) {
+      // For crypto transactions, we need to add more details
+      // This would use the crypto specific data from the payment result
+      if (paymentResult.data.crypto_details) {
+        const { txHash, fromAddress, toAddress, value, network } = paymentResult.data.crypto_details;
+        
+        await recordCryptoTransaction(
+          userId,
+          txHash,
+          fromAddress,
+          toAddress,
+          value.toString(),
+          network
+        );
+      }
+    }
+    
+    // Step 4: Create a notification about the transaction using the NOTIFICATIONS database
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
-      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
+      '67b8862f00055127cd62', // NOTIFICATIONS database ID
+      '67b88639000157c7909d', // NOTIFICATIONS collection ID
       ID.unique(),
       {
         userId,

@@ -109,25 +109,94 @@ export async function recordTransaction(
   value: string,
   chainId: string
 ): Promise<void> {
-  // Implementation would depend on how transactions are recorded in the database
-  // This could call an API endpoint or use the recordCryptoTransaction function
-  console.log('Recording transaction in database', {
-    userId,
-    txHash,
-    fromAddress,
-    toAddress,
-    value,
-    chainId
-  });
-  
-  // Example implementation (you would implement this based on your backend)
-  // await recordCryptoTransaction(
-  //   generateTransactionId(),
-  //   userId, 
-  //   txHash,
-  //   fromAddress,
-  //   toAddress,
-  //   chainId,
-  //   'pending'
-  // );
+  try {
+    // Import necessary utilities
+    const { databases, ID } = await import('@/utils/api');
+    const { APPWRITE_CONFIG } = await import('@/lib/env');
+    
+    // First, create a general transaction record
+    const transactionId = ID.unique();
+    await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
+      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+      ID.unique(),
+      {
+        userId,
+        amount: formatEther(value), // Convert wei to ether for storage
+        type: 'crypto',
+        createdAt: new Date().toISOString(),
+        status: 'pending',
+        transactionId: transactionId,
+      }
+    );
+    
+    // Then create a detailed crypto transaction record
+    await databases.createDocument(
+      '67e629540014107023a2', // wallet database ID from appwrite-database.md
+      '67e62b6f0003ed0e4ecc', // cryptotransactions collection ID
+      ID.unique(),
+      {
+        cryptoTxId: ID.unique(),
+        transactionId: transactionId,
+        walletId: await getWalletIdForUser(userId), // Helper function to get wallet ID
+        txHash: txHash,
+        fromAddress: fromAddress,
+        toAddress: toAddress,
+        status: 'pending',
+        network: chainId,
+      }
+    );
+    
+    console.log('Transaction recorded successfully', {
+      userId,
+      txHash,
+      transactionId
+    });
+  } catch (error) {
+    console.error('Error recording transaction:', error);
+    throw new Error(`Failed to record transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Helper function to get wallet ID for a user
+ * If user doesn't have a wallet, creates one
+ */
+async function getWalletIdForUser(userId: string): Promise<string> {
+  try {
+    const { databases, Query, ID } = await import('@/utils/api');
+    
+    // Check if user already has a wallet
+    const wallets = await databases.listDocuments(
+      '67e629540014107023a2', // wallet database ID
+      '67e629b1003bcc87679e', // wallets collection ID
+      [Query.equal('userId', userId)]
+    );
+    
+    // If wallet exists, return its ID
+    if (wallets.documents.length > 0) {
+      return wallets.documents[0].walletId;
+    }
+    
+    // If no wallet exists, create one
+    const walletId = ID.unique();
+    await databases.createDocument(
+      '67e629540014107023a2', // wallet database ID
+      '67e629b1003bcc87679e', // wallets collection ID
+      ID.unique(),
+      {
+        walletId: walletId,
+        userId: userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        walletType: 'custodial', // Default to custodial wallet
+        walletAddress: '' // Will be populated later when wallet is created
+      }
+    );
+    
+    return walletId;
+  } catch (error) {
+    console.error('Error getting wallet ID:', error);
+    throw new Error(`Failed to get wallet ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
