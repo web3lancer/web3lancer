@@ -76,7 +76,7 @@ We welcome contributions from the community! Please review our [contributing gui
 
 ## 📜 License
 
-Web3Lancer is licensed under [MIT](LICENSE).
+Web3Lancer is licensed under [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE). This license ensures the software remains open source even when used to provide network services.
 
 ---
 
