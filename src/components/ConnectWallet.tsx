@@ -5,6 +5,8 @@ import { Account } from './Account';
 import { WalletOptions } from './WalletOptions';
 import { useEffect } from 'react';
 import { useMetaMask } from '@/hooks/useMetaMask';
+import { NetworkStatus } from './wallet/NetworkStatus';
+import { NetworkWatcher } from './wallet/NetworkWatcher';
 
 export function ConnectWallet() {
   const { isConnected, isConnecting, isReconnecting } = useAccount();
@@ -75,45 +77,35 @@ export function ConnectWallet() {
     };
   }, []);
   
-  if (isLoading) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 4
-      }}>
-        <CircularProgress size={40} sx={{ mb: 2 }} />
-        <Typography variant="body1">Connecting to wallet...</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 3 }}>
-        Error connecting to wallet: {error instanceof Error ? error.message : String(error)}
-      </Alert>
-    );
-  }
-
+  // Add the NetworkWatcher for monitoring chain changes
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={isConnected || isMetaMaskConnected ? 'connected' : 'disconnected'}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          width: '100%'
-        }}
-      >
-        {isConnected || isMetaMaskConnected ? <Account /> : <WalletOptions />}
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <NetworkWatcher />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={isConnected || isMetaMaskConnected ? 'connected' : 'disconnected'}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            width: '100%'
+          }}
+        >
+          {isConnected || isMetaMaskConnected ? (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Account />
+                <NetworkStatus />
+              </Box>
+            </>
+          ) : (
+            <WalletOptions />
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </>
   );
 }

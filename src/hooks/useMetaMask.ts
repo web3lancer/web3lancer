@@ -11,6 +11,7 @@ interface UseMetaMaskReturn {
   disconnectMetaMask: () => void;
   error: string | null;
   isPending: boolean;
+  switchNetwork: (chainId: string) => Promise<void>;
 }
 
 export function useMetaMask(): UseMetaMaskReturn {
@@ -78,9 +79,8 @@ export function useMetaMask(): UseMetaMaskReturn {
     };
 
     const handleChainChanged = (chainId: string) => {
+      console.log("Chain changed to:", chainId);
       setChainId(chainId);
-      // Refresh the page on chain change as recommended by MetaMask
-      window.location.reload();
     };
 
     provider.on('accountsChanged', handleAccountsChanged);
@@ -122,6 +122,34 @@ export function useMetaMask(): UseMetaMaskReturn {
     }
   }, [provider]);
 
+  // Switch to a different network
+  const switchNetwork = useCallback(async (targetChainId: string) => {
+    if (!provider) {
+      setError('MetaMask SDK not initialized');
+      return;
+    }
+
+    setIsPending(true);
+    setError(null);
+
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: targetChainId }],
+      });
+    } catch (err: any) {
+      // This error code indicates that the chain has not been added to MetaMask.
+      if (err.code === 4902) {
+        setError('This network needs to be added to MetaMask');
+      } else {
+        setError(err.message || 'Failed to switch network');
+      }
+      console.error('Error switching network:', err);
+    } finally {
+      setIsPending(false);
+    }
+  }, [provider]);
+
   // Disconnect from MetaMask
   const disconnectMetaMask = useCallback(() => {
     // MetaMask doesn't have a disconnect method, but we can reset our state
@@ -137,6 +165,7 @@ export function useMetaMask(): UseMetaMaskReturn {
     chainId,
     connectMetaMask,
     disconnectMetaMask,
+    switchNetwork,
     error,
     isPending
   };

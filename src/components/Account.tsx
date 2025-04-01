@@ -9,6 +9,7 @@ import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
 import { AccountSwitcher } from './account/AccountSwitcher';
 import { databases, createEmailVerification } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
+import { NetworkSwitcher } from './wallet/NetworkSwitcher';
 
 export function Account() {
   const router = useRouter();
@@ -131,7 +132,7 @@ export function Account() {
   // If user is anonymous, let's show a different display
   if (isAnonymous) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <Button
           onClick={handleMenuClick}
           sx={{
@@ -184,13 +185,16 @@ export function Account() {
             <ListItemText>Create Account</ListItemText>
           </MenuItem>
         </Menu>
+        <Box sx={{ ml: 2 }}>
+          <NetworkSwitcher />
+        </Box>
       </Box>
     );
   }
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <Tooltip title="Account settings">
           <Box
             sx={{
@@ -313,6 +317,9 @@ export function Account() {
             <Typography variant="body2" color="error">Sign out</Typography>
           </MenuItem>
         </Menu>
+        <Box sx={{ ml: 2 }}>
+          <NetworkSwitcher />
+        </Box>
       </Box>
 
       {/* Account Switcher Dialog */}

@@ -52,20 +52,24 @@ export const config = createConfig({
   },
 });
 
-// Add human-readable chain names
-export const chainNames = {
-  [mainnet.id]: 'Ethereum',
-  [base.id]: 'Base',
-  [polygon.id]: 'Polygon',
-  [optimism.id]: 'Optimism',
-  [arbitrum.id]: 'Arbitrum',
+// Chain-related configurations
+
+// Map of chain IDs to readable names
+export const chainNames: Record<number, string> = {
+  1: 'Ethereum',
+  10: 'Optimism',
+  137: 'Polygon',
+  8453: 'Base',
+  42161: 'Arbitrum',
+  // Add more chains as needed
 };
 
-// Add explorer URLs
-export const blockExplorers = {
-  [mainnet.id]: 'https://etherscan.io',
-  [base.id]: 'https://basescan.org',
-  [polygon.id]: 'https://polygonscan.com',
-  [optimism.id]: 'https://optimistic.etherscan.io',
-  [arbitrum.id]: 'https://arbiscan.io',
+// Map of chain IDs to block explorer URLs
+export const blockExplorers: Record<number, string> = {
+  1: 'https://etherscan.io',
+  10: 'https://optimistic.etherscan.io',
+  137: 'https://polygonscan.com',
+  8453: 'https://basescan.org',
+  42161: 'https://arbiscan.io',
+  // Add more explorers as needed
 };
