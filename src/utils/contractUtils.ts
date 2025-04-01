@@ -1,176 +1,170 @@
-import { useMetaMask } from '@/hooks/useMetaMask';
+/**
+ * Contract utility functions and constants
+ */
 
-// Standard ERC-20 ABI for common token functions
+// Common ERC-20 ABI
 export const ERC20_ABI = [
   {
-    name: "balanceOf",
-    type: "function",
+    constant: true,
+    inputs: [],
+    name: "name",
+    outputs: [{ name: "", type: "string" }],
+    payable: false,
     stateMutability: "view",
-    inputs: [{ name: "owner", type: "address" }],
-    outputs: [{ name: "balance", type: "uint256" }],
+    type: "function"
   },
   {
-    name: "transfer",
-    type: "function",
-    stateMutability: "nonpayable",
+    constant: true,
+    inputs: [],
+    name: "symbol",
+    outputs: [{ name: "", type: "string" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [{ name: "owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: false,
     inputs: [
       { name: "to", type: "address" },
-      { name: "amount", type: "uint256" },
+      { name: "value", type: "uint256" }
     ],
-    outputs: [{ name: "success", type: "bool" }],
+    name: "transfer",
+    outputs: [{ name: "", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
   },
   {
-    name: "symbol",
-    type: "function",
+    constant: true,
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" }
+    ],
+    name: "allowance",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
     stateMutability: "view",
-    inputs: [],
-    outputs: [{ name: "symbol", type: "string" }],
+    type: "function"
   },
   {
-    name: "decimals",
-    type: "function",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ name: "decimals", type: "uint8" }],
-  },
+    constant: false,
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" }
+    ],
+    name: "approve",
+    outputs: [{ name: "", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  }
 ];
 
-// Standard ERC-721 (NFT) ABI for common functions
+// Common ERC-721 ABI
 export const ERC721_ABI = [
   {
-    name: "balanceOf",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "owner", type: "address" }],
-    outputs: [{ name: "balance", type: "uint256" }],
-  },
-  {
+    constant: true,
+    inputs: [{ name: "tokenId", type: "uint256" }],
     name: "ownerOf",
-    type: "function",
+    outputs: [{ name: "", type: "address" }],
+    payable: false,
     stateMutability: "view",
-    inputs: [{ name: "tokenId", type: "uint256" }],
-    outputs: [{ name: "owner", type: "address" }],
+    type: "function"
   },
   {
-    name: "mint",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "tokenId", type: "uint256" }],
-    outputs: [],
-  },
-  {
-    name: "transferFrom",
-    type: "function",
-    stateMutability: "nonpayable",
+    constant: false,
     inputs: [
       { name: "from", type: "address" },
       { name: "to", type: "address" },
-      { name: "tokenId", type: "uint256" },
+      { name: "tokenId", type: "uint256" }
     ],
+    name: "transferFrom",
     outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
   },
+  {
+    constant: false,
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" }
+    ],
+    name: "mint",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  }
 ];
 
-// Web3Lancer Contract Details
-export const WEB3LANCER_CONTRACTS = {
-  // From README.md
-  STELLAR: {
-    CONTRACT_ID: "CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN",
-    NETWORK: "testnet",
-    EXPLORER_URL: "https://stellar.expert/explorer/testnet/contract/CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN"
-  },
-  // Example EVM contract address - replace with actual when deployed
-  ETHEREUM: {
-    ADDRESS: "0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2",
-    NETWORK_ID: 1, // Mainnet
-  }
-};
-
 /**
- * Read data from a contract using MetaMask provider
- * @param contractAddress The contract address
- * @param abi ABI array or specific function ABI
- * @param functionName Name of the function to call
- * @param args Arguments to pass to the function
- * @returns Promise with the result
+ * Read data from a contract
  */
-export async function readContract({
-  contractAddress,
-  abi,
-  functionName,
-  args = [],
-}: {
-  contractAddress: string;
-  abi: any[];
-  functionName: string;
-  args?: any[];
+export async function readContract({ 
+  contractAddress, 
+  abi, 
+  functionName, 
+  args = [] 
+}: { 
+  contractAddress: string; 
+  abi: any[]; 
+  functionName: string; 
+  args?: any[]; 
 }) {
-  try {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      throw new Error('MetaMask not available');
-    }
+  if (typeof window === 'undefined' || !window.ethereum) {
+    throw new Error('Ethereum provider not available');
+  }
 
-    // Create the call data
-    const abiItem = Array.isArray(abi) ? 
-      abi.find(item => item.name === functionName) : 
-      abi;
-      
+  try {
+    // Find the function in the ABI
+    const abiItem = abi.find(item => item.name === functionName);
     if (!abiItem) {
       throw new Error(`Function ${functionName} not found in ABI`);
     }
 
-    // Encode the function call
-    const provider = window.ethereum;
-    
-    // Format the data for the eth_call
-    const data = {
-      to: contractAddress,
-      data: encodeFunction(abiItem, args),
-    };
-    
-    // Make the call
-    const result = await provider.request({
+    // This is a simplified implementation - in production, use ethers.js or web3.js
+    const result = await window.ethereum.request({
       method: 'eth_call',
-      params: [data, 'latest'],
+      params: [
+        {
+          to: contractAddress,
+          data: encodeFunction(abiItem, args)
+        },
+        'latest'
+      ]
     });
-    
-    // Decode the result
-    return decodeResult(result, abiItem.outputs);
+
+    // Decode the result (simplified - in production use proper ABI decoding)
+    return result;
   } catch (error) {
-    console.error('Error reading contract:', error);
+    console.error('Error reading from contract:', error);
     throw error;
   }
 }
 
-/**
- * Simple function to encode contract calls
- * Note: This is a simplified version - in production use ethers.js or viem
- */
+// Simplified function encoding (in production use ethers.js or web3.js)
 function encodeFunction(abiItem: any, args: any[]) {
-  // This is a simplified placeholder - in a real app, use a proper ABI encoder
-  // return ethers.utils.encodeFunctionData(abiItem, args);
-  
-  // Simple implementation for demo purposes
+  // This is a placeholder - in a real implementation you'd use proper ABI encoding
   const functionSignature = `${abiItem.name}(${abiItem.inputs.map((i: any) => i.type).join(',')})`;
   const functionHash = `0x${functionSignature.slice(0, 10).padEnd(10, '0')}`;
-  
-  // In a real implementation, we would encode the args properly
   return functionHash;
-}
-
-/**
- * Simple function to decode contract results
- * Note: This is a simplified version - in production use ethers.js or viem
- */
-function decodeResult(hexData: string, outputs: any[]) {
-  // This is a simplified placeholder - in a real app, use a proper ABI decoder
-  // return ethers.utils.defaultAbiCoder.decode(outputs.map(o => o.type), hexData);
-  
-  // Simple implementation for demo purposes
-  if (!hexData || hexData === '0x') {
-    return null;
-  }
-  
-  // For the sake of this example, just return the hex data
-  return hexData;
 }

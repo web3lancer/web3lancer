@@ -13,7 +13,7 @@ import {
   Paper
 } from '@mui/material';
 import { Email, VpnKey } from '@mui/icons-material';
-import { createEmailOTP, verifyEmailOTP } from '@/utils/api';
+import { createEmailOTP, verifyEmailOTP, signOut } from '@/utils/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { useRouter } from 'next/navigation';
@@ -48,6 +48,9 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
     }
 
     try {
+      // Ensure we have no active sessions before requesting OTP
+      await signOut();
+      
       const response = await createEmailOTP(email, enableSecurityPhrase);
       setUserId(response.userId);
       setSecurityPhrase(response.securityPhrase);
@@ -78,6 +81,9 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
     }
 
     try {
+      // Ensure no active sessions before verifying
+      await signOut();
+      
       const user = await verifyEmailOTP(userId, otpCode);
       
       if (user) {
@@ -95,17 +101,19 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
           }
           
           try {
-            addAccount({
+            await addAccount({
               $id: accountId,
               name: user.name || '',
               email: user.email || '',
               isActive: true
+            }, {
+              email: user.email
             });
           } catch (error) {
             console.error('Error adding account:', error);
           }
         } else {
-          switchAccount(accountId);
+          await switchAccount(accountId);
         }
         
         router.push(redirectPath);

@@ -5,9 +5,10 @@
  * transactions, and balances.
  */
 
-import { databases, ID, Query } from '@/utils/api';
+import { databases, ID } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { parseEther, formatEther } from '@/utils/transactionUtils';
+import { generateWalletAddress } from '@/utils/walletUtils';
 
 /**
  * Create a new wallet for a user
@@ -22,7 +23,7 @@ export async function createWallet(
     const existingWallets = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.WALLET,
       APPWRITE_CONFIG.COLLECTIONS.WALLETS,
-      [Query.equal('userId', userId), Query.equal('walletType', walletType)]
+      [databases.Query.equal('userId', userId), databases.Query.equal('walletType', walletType)]
     );
     
     if (existingWallets.documents.length > 0) {
@@ -35,8 +36,7 @@ export async function createWallet(
     // Generate wallet address for custodial wallets if not provided
     let address = walletAddress || '';
     if (walletType === 'custodial' && !address) {
-      // In a real implementation, you would use a secure method to generate or derive a wallet address
-      address = `0x${Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      address = generateWalletAddress();
     }
     
     const walletId = ID.unique();
@@ -84,7 +84,7 @@ export async function getUserWallets(userId: string) {
     const wallets = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.WALLET,
       APPWRITE_CONFIG.COLLECTIONS.WALLETS,
-      [Query.equal('userId', userId)]
+      [databases.Query.equal('userId', userId)]
     );
     
     return wallets.documents;
@@ -102,7 +102,7 @@ export async function getWalletBalances(walletId: string) {
     const balances = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.WALLET,
       APPWRITE_CONFIG.COLLECTIONS.BALANCES,
-      [Query.equal('walletId', walletId)]
+      [databases.Query.equal('walletId', walletId)]
     );
     
     return balances.documents;
@@ -130,7 +130,7 @@ export async function getUserCryptoTransactions(userId: string) {
         const txs = await databases.listDocuments(
           APPWRITE_CONFIG.DATABASES.WALLET,
           APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
-          [Query.equal('walletId', walletId)]
+          [databases.Query.equal('walletId', walletId)]
         );
         return txs.documents;
       })
@@ -225,7 +225,7 @@ export async function updateTransactionStatus(
     const txResponse = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.WALLET,
       APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
-      [Query.equal('txHash', txHash)]
+      [databases.Query.equal('txHash', txHash)]
     );
     
     if (txResponse.documents.length === 0) {
@@ -250,7 +250,7 @@ export async function updateTransactionStatus(
     const mainTxResponse = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
       APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
-      [Query.equal('transactionId', transactionId)]
+      [databases.Query.equal('transactionId', transactionId)]
     );
     
     if (mainTxResponse.documents.length > 0) {
@@ -290,7 +290,7 @@ export async function updateTransactionStatus(
 /**
  * Update wallet balance
  */
-export async function updateWalletBalance(
+export async function updateBalance(
   walletId: string,
   currency: string,
   newAmount: number
@@ -300,7 +300,10 @@ export async function updateWalletBalance(
     const balances = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.WALLET,
       APPWRITE_CONFIG.COLLECTIONS.BALANCES,
-      [Query.equal('walletId', walletId), Query.equal('currency', currency)]
+      [
+        databases.Query.equal('walletId', walletId), 
+        databases.Query.equal('currency', currency)
+      ]
     );
     
     const now = new Date().toISOString();
@@ -379,12 +382,15 @@ export async function getUserCryptoPaymentMethods(userId: string) {
     const response = await databases.listDocuments(
       APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
       APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
-      [Query.equal('userId', userId), Query.equal('type', 'crypto')]
+      [
+        databases.Query.equal('userId', userId), 
+        databases.Query.equal('type', 'crypto')
+      ]
     );
     
     return response.documents.map(doc => ({
       ...doc,
-      details: JSON.parse(doc.details)
+      details: JSON.parse(doc.details || '{}')
     }));
   } catch (error) {
     console.error('Error getting crypto payment methods:', error);

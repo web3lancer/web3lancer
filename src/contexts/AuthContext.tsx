@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { account, signOut as apiSignOut } from '@/utils/api';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { account, signOut as apiSignOut, getCurrentSession } from '@/utils/api';
 import { useMultiAccount } from './MultiAccountContext';
 
 interface AuthContextType {
@@ -14,7 +14,8 @@ interface AuthContextType {
   setIsMfaRequired: (required: boolean) => void;
   signOut: () => Promise<void>;
   handleGitHubOAuth: (code?: string) => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<any>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,7 +28,8 @@ const AuthContext = createContext<AuthContextType>({
   setIsMfaRequired: () => {},
   signOut: async () => {},
   handleGitHubOAuth: async () => {},
-  refreshUser: async () => {},
+  refreshUser: async () => null,
+  updatePassword: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -38,11 +40,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isMfaRequired, setIsMfaRequired] = useState(false);
   
-  const { removeAllAccounts, clearActiveAccount } = useMultiAccount();
+  const { removeAllAccounts, clearActiveAccount, activeAccount } = useMultiAccount();
 
   // Refresh user data from server
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
+      // Check if session exists first
+      const session = await getCurrentSession();
+      
+      if (!session) {
+        setUser(null);
+        return null;
+      }
+      
       const currentUser = await account.get();
       setUser(currentUser);
       setIsAnonymous(false);
@@ -52,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       return null;
     }
-  };
+  }, []);
 
   // Check authentication state on load
   useEffect(() => {
@@ -67,7 +77,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuth();
-  }, []);
+  }, [refreshUser]);
+
+  // When active account changes, refresh user data
+  useEffect(() => {
+    if (activeAccount) {
+      refreshUser();
+    }
+  }, [activeAccount, refreshUser]);
 
   // Sign out function
   const signOut = async () => {
@@ -79,7 +96,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Always clear local state even if server logout fails
       setUser(null);
       setIsAnonymous(false);
-      clearActiveAccount();
+      await clearActiveAccount();
+    }
+  };
+
+  // Update password
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      await account.updatePassword(newPassword, currentPassword);
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw error;
     }
   };
 
@@ -104,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         handleGitHubOAuth,
         refreshUser,
+        updatePassword,
       }}
     >
       {children}

@@ -22,8 +22,6 @@ export const config = createConfig({
     
     // Also add specific wallet connectors for better UX with popular wallets
     metaMask({ shimDisconnect: true }),
-    
-    // WalletConnect as fallback for mobile users or those without browser extensions
     walletConnect({ 
       projectId,
       showQrModal: true,
@@ -34,15 +32,11 @@ export const config = createConfig({
         icons: ['https://web3lancer.com/logo.png']
       }
     }),
-    
-    // Coinbase Wallet for Coinbase users
     coinbaseWallet({
       appName: 'Web3Lancer',
       appLogoUrl: 'https://web3lancer.com/logo.png'
     }),
   ],
-  
-  // Configure transports for all chains
   transports: {
     [mainnet.id]: http(),
     [base.id]: http(),
@@ -52,24 +46,11 @@ export const config = createConfig({
   },
 });
 
-// Chain-related configurations
-
-// Map of chain IDs to readable names
+// Export chain names for UI display
 export const chainNames: Record<number, string> = {
-  1: 'Ethereum',
+  1: 'Ethereum Mainnet',
   10: 'Optimism',
   137: 'Polygon',
   8453: 'Base',
   42161: 'Arbitrum',
-  // Add more chains as needed
-};
-
-// Map of chain IDs to block explorer URLs
-export const blockExplorers: Record<number, string> = {
-  1: 'https://etherscan.io',
-  10: 'https://optimistic.etherscan.io',
-  137: 'https://polygonscan.com',
-  8453: 'https://basescan.org',
-  42161: 'https://arbiscan.io',
-  // Add more explorers as needed
 };

@@ -169,8 +169,8 @@ async function getWalletIdForUser(userId: string): Promise<string> {
     
     // Check if user already has a wallet
     const wallets = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET, // '67e629540014107023a2'
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS, // '67e629b1003bcc87679e'
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       [Query.equal('userId', userId)]
     );
     
@@ -179,21 +179,9 @@ async function getWalletIdForUser(userId: string): Promise<string> {
       return wallets.documents[0].walletId;
     }
     
-    // If no wallet exists, create one
-    const walletId = ID.unique();
-    await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
-      ID.unique(),
-      {
-        walletId: walletId,
-        userId: userId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        walletType: 'custodial', // Default to custodial wallet
-        walletAddress: '' // Will be populated later when wallet is created
-      }
-    );
+    // If no wallet exists, use createWallet from walletUtils
+    const { createUserWallet } = await import('@/utils/walletUtils');
+    const walletId = await createUserWallet(userId);
     
     return walletId;
   } catch (error) {
@@ -201,3 +189,8 @@ async function getWalletIdForUser(userId: string): Promise<string> {
     throw new Error(`Failed to get wallet ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
+
+// Export functions
+export {
+  getWalletIdForUser
+};

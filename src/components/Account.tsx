@@ -10,6 +10,7 @@ import { AccountSwitcher } from './account/AccountSwitcher';
 import { databases, createEmailVerification, account, safeGetDocument } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
+import { useSessionManager } from '@/utils/sessionManager';
 
 export function Account() {
   const router = useRouter();
@@ -23,6 +24,19 @@ export function Account() {
   const [isVerified, setIsVerified] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const open = Boolean(anchorEl);
+  const { validateSession } = useSessionManager();
+
+  // Validate session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const isValid = await validateSession();
+      if (!isValid && activeAccount) {
+        console.log('Invalid session detected in Account component');
+      }
+    };
+    
+    checkSession();
+  }, [activeAccount, validateSession]);
 
   // Display GitHub info if available
   const isGitHubUser = user?.provider === 'github';
@@ -62,8 +76,14 @@ export function Account() {
     const checkVerification = async () => {
       try {
         if (user && !user.walletId) {
-          const prefs = await account.getPrefs();
-          setIsVerified(prefs.emailVerification === true);
+          try {
+            const prefs = await account.getPrefs();
+            setIsVerified(prefs.emailVerification === true);
+          } catch (error) {
+            // Failed to get prefs, possibly not authenticated
+            console.log('Failed to get user preferences:', error);
+            setIsVerified(false);
+          }
         }
       } catch (error) {
         console.error('Error checking verification status:', error);

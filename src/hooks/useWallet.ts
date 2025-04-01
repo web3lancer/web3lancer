@@ -9,8 +9,10 @@ import {
   getUserCryptoPaymentMethods
 } from '@/services/cryptoService';
 
-export function useWallet() {
+export function useWallet(userId?: string) {
   const { user } = useAuth();
+  const actualUserId = userId || user?.userId;
+  
   const [wallets, setWallets] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -20,7 +22,7 @@ export function useWallet() {
 
   // Load user wallet data
   useEffect(() => {
-    if (user) {
+    if (actualUserId) {
       loadWalletData();
     } else {
       // Reset state if no user
@@ -30,17 +32,17 @@ export function useWallet() {
       setPaymentMethods([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [actualUserId]);
 
   const loadWalletData = async () => {
-    if (!user?.userId) return;
+    if (!actualUserId) return;
     
     setLoading(true);
     setError(null);
     
     try {
       // Get user wallets
-      const userWallets = await getUserWallets(user.userId);
+      const userWallets = await getUserWallets(actualUserId);
       setWallets(userWallets);
       
       // If there are wallets, get balances and transactions
@@ -52,11 +54,11 @@ export function useWallet() {
         setBalances(walletBalances);
         
         // Get transactions
-        const userTransactions = await getUserCryptoTransactions(user.userId);
+        const userTransactions = await getUserCryptoTransactions(actualUserId);
         setTransactions(userTransactions);
         
         // Get payment methods
-        const cryptoPaymentMethods = await getUserCryptoPaymentMethods(user.userId);
+        const cryptoPaymentMethods = await getUserCryptoPaymentMethods(actualUserId);
         setPaymentMethods(cryptoPaymentMethods);
       }
     } catch (err) {
@@ -68,13 +70,13 @@ export function useWallet() {
   };
 
   const createUserWallet = async (type: 'custodial' | 'non-custodial' = 'custodial') => {
-    if (!user?.userId) return null;
+    if (!actualUserId) return null;
     
     setLoading(true);
     setError(null);
     
     try {
-      const result = await createWallet(user.userId, type);
+      const result = await createWallet(actualUserId, type);
       await loadWalletData(); // Refresh data
       return result;
     } catch (err) {
@@ -87,13 +89,13 @@ export function useWallet() {
   };
 
   const addPaymentMethod = async (walletAddress: string, isDefault: boolean = false) => {
-    if (!user?.userId) return null;
+    if (!actualUserId) return null;
     
     setLoading(true);
     setError(null);
     
     try {
-      const result = await addCryptoPaymentMethod(user.userId, walletAddress, isDefault);
+      const result = await addCryptoPaymentMethod(actualUserId, walletAddress, isDefault);
       await loadWalletData(); // Refresh data
       return result;
     } catch (err) {
@@ -125,8 +127,12 @@ export function useWallet() {
     
     return total.toFixed(4);
   };
+  
+  // Get the first wallet for convenience
+  const wallet = wallets.length > 0 ? wallets[0] : null;
 
   return {
+    wallet,
     wallets,
     balances,
     transactions,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Avatar, Typography, Button, Divider, Paper, List, ListItem, ListItemAvatar, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, CircularProgress } from '@mui/material';
-import { Add, Delete, ExitToApp, Check } from '@mui/icons-material';
+import { Box, Avatar, Typography, Button, Divider, Paper, List, ListItem, ListItemAvatar, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, CircularProgress, TextField, DialogActions } from '@mui/material';
+import { Add, Delete, ExitToApp, Check, Lock } from '@mui/icons-material';
 import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -56,6 +56,9 @@ export function AccountSwitcher() {
   const { accounts, activeAccount, removeAccount, switchAccount, hasMaxAccounts } = useMultiAccount();
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { address } = useAccount();
@@ -117,6 +120,18 @@ export function AccountSwitcher() {
     }
   };
 
+  const handlePasswordLogin = async () => {
+    try {
+      setIsSwitching(true);
+      // Add logic for password-based login
+      setPasswordDialogOpen(false);
+    } catch (error) {
+      setError('Invalid password');
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
   // Get display name for an account
   const getDisplayName = (account: UserAccount) => {
     return account.name || (account.walletId ? formatAddress(account.walletId) : 'Unknown User');
@@ -134,36 +149,41 @@ export function AccountSwitcher() {
     >
       {/* Active Account Section */}
       {activeAccount && (
-        <Box sx={{ p: 3, background: 'rgba(30, 64, 175, 0.05)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <AccountAvatar account={activeAccount} />
-            </motion.div>
-            <Box sx={{ ml: 2 }}>
-              <Typography variant="h6">{getDisplayName(activeAccount)}</Typography>
+        <Box sx={{
+          p: 2,
+          backgroundColor: 'action.hover',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <AccountAvatar account={activeAccount} />
+            <Box sx={{ ml: 1.5 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                {getDisplayName(activeAccount)}
+              </Typography>
               <Typography variant="body2" color="text.secondary">
-                {activeAccount.email || (activeAccount.walletId ? 'Wallet Connected' : '')}
+                {activeAccount.email || (activeAccount.walletId ? 'Wallet Account' : 'Unknown')}
               </Typography>
             </Box>
           </Box>
           
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button 
-              variant="outlined" 
-              startIcon={<ExitToApp />}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+            <Button
+              variant="outlined"
               size="small"
               onClick={handleOpenProfile}
-              sx={{ flex: 1 }}
+              sx={{ borderRadius: '8px' }}
             >
-              Profile
+              View Profile
             </Button>
-            <Button 
-              variant="outlined" 
+            
+            <Button
+              variant="outlined"
               color="error"
-              startIcon={<Delete />}
               size="small"
+              startIcon={<ExitToApp />}
               onClick={handleSignOut}
-              sx={{ flex: 1 }}
+              sx={{ borderRadius: '8px' }}
             >
               Sign Out
             </Button>
@@ -171,77 +191,152 @@ export function AccountSwitcher() {
         </Box>
       )}
 
-      <Divider />
-      
-      {/* List of Other Accounts */}
-      <List sx={{ maxHeight: 300, overflow: 'auto' }}>
-        {accounts.length <= 1 ? (
-          // Show a message when there's only one account or none
-          <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="body2">
-              No other accounts available
-            </Typography>
-          </Box>
-        ) : (
-          // Show other accounts if there are more than one
-          accounts
-            .filter(account => !account.isActive)
-            .map(account => (
-              <ListItem
-                key={account.$id}
-                onClick={() => handleSwitchAccount(account.$id)}
-                sx={{ 
-                  cursor: isSwitching ? 'wait' : 'pointer',
-                  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
-                }}
-                secondaryAction={
-                  <IconButton 
-                    edge="end" 
-                    aria-label="remove account"
-                    onClick={(e) => handleRemoveAccount(account.$id, e)}
-                    disabled={isSwitching}
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
+      {/* Account List */}
+      <List sx={{ py: 0 }}>
+        <Divider />
+        {accounts.map((account) => (
+          <React.Fragment key={account.$id}>
+            <ListItem 
+              button
+              onClick={() => handleSwitchAccount(account.$id)}
+              selected={account.isActive}
+              sx={{ 
+                py: 1.5, 
+                bgcolor: account.isActive ? 'action.selected' : 'transparent',
+                position: 'relative',
+                '&:hover': {
+                  bgcolor: account.isActive ? 'action.selected' : 'action.hover',
                 }
-                disabled={isSwitching}
-              >
-                <ListItemAvatar>
-                  <AccountAvatar account={account} />
-                </ListItemAvatar>
-                <ListItemText 
-                  primary={getDisplayName(account)} 
-                  secondary={account.email || (account.walletId ? 'Wallet Connected' : '')}
+              }}
+              disabled={isSwitching && account.isActive}
+            >
+              <ListItemAvatar>
+                <AccountAvatar account={account} />
+              </ListItemAvatar>
+              
+              <ListItemText
+                primary={
+                  <Typography variant="body1" fontWeight={account.isActive ? 600 : 400}>
+                    {getDisplayName(account)}
+                  </Typography>
+                }
+                secondary={
+                  <Typography variant="body2" color="text.secondary">
+                    {account.email || (account.walletId ? 'Wallet Account' : '')}
+                  </Typography>
+                }
+              />
+              
+              {account.isActive && (
+                <Check sx={{ color: 'primary.main', position: 'absolute', right: 40 }} />
+              )}
+              
+              {!account.isActive && (
+                <IconButton 
+                  size="small" 
+                  onClick={(e) => handleRemoveAccount(account.$id, e)}
+                  sx={{ 
+                    color: 'error.light',
+                    '&:hover': { 
+                      color: 'error.main',
+                      bgcolor: 'error.lightest' 
+                    }
+                  }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              )}
+              
+              {account.credentials?.hasPassword && (
+                <Lock 
+                  fontSize="small" 
+                  color="action" 
+                  sx={{ position: 'absolute', right: 72, opacity: 0.6 }}
                 />
-                {isSwitching && account.$id === activeAccount?.$id && (
-                  <CircularProgress size={16} sx={{ ml: 1 }} />
-                )}
-              </ListItem>
-            ))
-        )}
+              )}
+            </ListItem>
+            <Divider />
+          </React.Fragment>
+        ))}
       </List>
-      
-      <Divider />
-      
+
       {/* Add Account Button */}
       <Box sx={{ p: 2 }}>
-        <Button
-          fullWidth
-          variant="outlined"
-          startIcon={<Add />}
-          onClick={handleAddAccount}
-          disabled={hasMaxAccounts || isAddingAccount || isSwitching}
-        >
-          {isAddingAccount ? (
-            <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-              Adding Account...
-            </>
-          ) : (
-            hasMaxAccounts ? 'Max Accounts Reached' : 'Add Another Account'
-          )}
-        </Button>
+        {!hasMaxAccounts ? (
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<Add />}
+            onClick={handleAddAccount}
+            disabled={isAddingAccount}
+            sx={{
+              borderStyle: 'dashed',
+              borderRadius: '8px',
+              py: 1
+            }}
+          >
+            {isAddingAccount ? (
+              <CircularProgress size={24} />
+            ) : (
+              'Add Account'
+            )}
+          </Button>
+        ) : (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
+            Maximum of 3 accounts reached
+          </Typography>
+        )}
+        
+        {error && (
+          <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+            {error}
+          </Typography>
+        )}
       </Box>
+      
+      {/* Password Dialog for Email Accounts */}
+      <Dialog 
+        open={passwordDialogOpen} 
+        onClose={() => {
+          setPasswordDialogOpen(false);
+          setError(null);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Enter Password</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Password"
+            type="password"
+            fullWidth
+            variant="outlined"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={!!error}
+            helperText={error}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => {
+              setPasswordDialogOpen(false);
+              setError(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handlePasswordLogin}
+            disabled={isSwitching}
+            variant="contained"
+          >
+            {isSwitching ? <CircularProgress size={24} /> : 'Sign In'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

@@ -45,18 +45,12 @@ async function signUp(email: string, password: string, name: string) {
 
 async function signIn(email: string, password: string) {
   try {
-    // Check if there's an active session first
+    // Delete any existing session before creating a new one
     try {
-      const currentSession = await account.get();
-      
-      if (currentSession) {
-        // If there's an active session, delete it before creating a new one
-        await account.deleteSession('current');
-        console.log('Deleted existing session before sign in');
-      }
+      await signOut();
     } catch (error) {
-      // No active session, proceed with login
-      console.log('No active session found, proceeding with login');
+      // Ignore errors from signOut, we just want to make sure we clean up before signing in
+      console.log('No active session to clear before signing in');
     }
     
     // Create session according to Appwrite docs pattern
@@ -74,7 +68,15 @@ async function signIn(email: string, password: string) {
 
 async function signOut() {
   try {
-    await account.deleteSession('current');
+    try {
+      const session = await account.getSession('current');
+      if (session) {
+        await account.deleteSession('current');
+        return true;
+      }
+    } catch (e) {
+      // No active session
+    }
     return true;
   } catch (error) {
     console.error('Error signing out:', error);
@@ -191,6 +193,14 @@ async function createMagicURLToken(email: string) {
  */
 async function createMagicURLSession(userId: string, secret: string) {
   try {
+    // Delete any existing session before creating a new one
+    try {
+      await signOut();
+    } catch (error) {
+      // Ignore errors from signOut, we just want to make sure we clean up
+      console.log('No active session to clear before magic link signin');
+    }
+    
     const session = await account.createSession(userId, secret);
     console.log('Session created successfully with magic URL');
     
@@ -280,6 +290,14 @@ async function createEmailOTP(email: string, enableSecurityPhrase: boolean = fal
  */
 async function verifyEmailOTP(userId: string, secret: string) {
   try {
+    // Delete any existing session before creating a new one
+    try {
+      await signOut();
+    } catch (error) {
+      // Ignore errors from signOut, we just want to make sure we clean up
+      console.log('No active session to clear before OTP verification');
+    }
+    
     // Create a session using the OTP code
     const session = await account.createSession(userId, secret);
     console.log('Email OTP verified successfully');
@@ -731,12 +749,18 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
  */
 async function getCurrentSession() {
   try {
-    const session = await account.getSession('current');
-    return session;
+    return await account.getSession('current');
   } catch (error) {
-    console.error('Error getting current session:', error);
     return null;
   }
+}
+
+/**
+ * Check if user is currently logged in
+ * @returns Whether the user is logged in
+ */
+async function isLoggedIn() {
+  return (await getCurrentSession()) !== null;
 }
 
 /**
@@ -888,6 +912,7 @@ export {
   getCurrentSession,
   refreshOAuthSession,
   ensureValidOAuthToken,
+  isLoggedIn,
   Query,
   safeGetDocument,
   safeListDocuments
