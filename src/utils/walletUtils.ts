@@ -77,89 +77,18 @@ export async function linkWalletToUser(
  * @param walletId ID of the wallet to update
  * @returns Updated wallet object or null if failed
  */
-export async function updateWalletUsage(walletId: string) {
+export async function updateWalletLastUsed(walletId: string) {
   try {
-    if (!await verifyWalletAccess(walletId)) {
-      throw new Error('Unauthorized wallet access');
+    // Verify access first
+    if (!(await verifyWalletAccess(walletId))) {
+      throw new Error('Access to wallet denied');
     }
     
     return await wallets.update(walletId, {
       lastUsed: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error updating wallet usage:', error);
-    return null;
-  }
-}
-
-/**
- * Create and retrieve a wallet account for the current user
- * Will create a new wallet if one doesn't exist
- * 
- * @param userId ID of the user to get/create wallet for
- * @returns Wallet object or null if failed
- */
-export async function getOrCreateWallet(userId: string) {
-  try {
-    // Check for existing wallets
-    const existingWallets = await wallets.listByUser(userId);
-    
-    // If wallet exists, return the primary one
-    if (existingWallets.documents.length > 0) {
-      const primaryWallet = existingWallets.documents.find(w => w.isPrimary) || 
-                           existingWallets.documents[0];
-      return primaryWallet;
-    }
-    
-    // Create a new wallet
-    const walletData = {
-      userId: userId,
-      type: 'custodial',
-      isPrimary: true,
-      createdAt: new Date().toISOString(),
-      lastUsed: new Date().toISOString()
-    };
-    
-    return await wallets.create(walletData);
-  } catch (error) {
-    console.error('Error getting or creating wallet:', error);
-    return null;
-  }
-}
-
-/**
- * Set a wallet as primary for a user
- * 
- * @param userId User ID
- * @param walletId Wallet ID to set as primary
- * @returns Updated wallet object or null if failed
- */
-export async function setPrimaryWallet(userId: string, walletId: string) {
-  try {
-    // Verify access to the wallet
-    const hasAccess = await verifyWalletAccess(walletId);
-    if (!hasAccess) {
-      throw new Error('Unauthorized wallet access');
-    }
-    
-    // Get all wallets for the user
-    const userWallets = await wallets.listByUser(userId);
-    
-    // Update primary status for all wallets
-    for (const wallet of userWallets.documents) {
-      if (wallet.$id === walletId) {
-        // Set this wallet as primary
-        await wallets.update(wallet.$id, { isPrimary: true });
-      } else if (wallet.isPrimary) {
-        // Remove primary status from other wallets
-        await wallets.update(wallet.$id, { isPrimary: false });
-      }
-    }
-    
-    // Return the updated primary wallet
-    return await wallets.get(walletId);
-  } catch (error) {
-    console.error('Error setting primary wallet:', error);
+    console.error('Error updating wallet last used:', error);
     return null;
   }
 }

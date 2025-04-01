@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { getCurrentSession } from '@/utils/api';
 import { Box, CircularProgress, Typography, Button } from '@mui/material';
 import { SyncProblem } from '@mui/icons-material';
@@ -11,18 +10,16 @@ import { SyncProblem } from '@mui/icons-material';
 /**
  * SessionSync component
  * 
- * This component synchronizes the authentication session with the active account.
- * It ensures that the user is always logged in with the correct account and
- * prevents session/account mismatches.
+ * This component synchronizes the authentication session.
+ * It ensures that the user is always logged in correctly.
  */
 export default function SessionSync({ children }: { children: React.ReactNode }) {
-  const { user, refreshUser } = useAuth();
-  const { activeAccount, clearActiveAccount } = useMultiAccount();
+  const { user, refreshUser, signOut } = useAuth();
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<boolean>(false);
   const router = useRouter();
 
-  // Check session on initial load and when active account changes
+  // Check session on initial load
   useEffect(() => {
     const syncSession = async () => {
       try {
@@ -32,27 +29,11 @@ export default function SessionSync({ children }: { children: React.ReactNode })
         // Check if we have an active session
         const session = await getCurrentSession();
         
-        // If no session but we have an active account, clear it
-        if (!session && activeAccount) {
-          console.log('No session found but active account exists - clearing active account');
-          await clearActiveAccount();
-          return;
-        }
-        
         // If session exists but no user in context, refresh user
         if (session && !user) {
           console.log('Session exists but no user in context - refreshing user');
           await refreshUser();
           return;
-        }
-        
-        // If session and user but they don't match the active account
-        if (session && user && activeAccount) {
-          if (user.$id !== activeAccount.$id) {
-            console.log('Session user and active account mismatch - clearing active account');
-            await clearActiveAccount();
-            return;
-          }
         }
       } catch (error) {
         console.error('Error syncing session:', error);
@@ -63,11 +44,11 @@ export default function SessionSync({ children }: { children: React.ReactNode })
     };
 
     syncSession();
-  }, [activeAccount, user, refreshUser, clearActiveAccount]);
+  }, [user, refreshUser]);
 
   const handleReset = async () => {
     try {
-      await clearActiveAccount();
+      await signOut();
       router.push('/signin');
     } catch (error) {
       console.error('Error resetting session:', error);

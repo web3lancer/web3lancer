@@ -1,47 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, ListItemIcon, ListItemText, Alert } from '@mui/material';
-import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, SwitchAccount, ArrowDropDown, Login, PersonAdd, VerifiedUser, MarkEmailRead, GitHub } from '@mui/icons-material';
+import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, Login, PersonAdd, VerifiedUser, MarkEmailRead, GitHub } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
-import { AccountSwitcher } from './account/AccountSwitcher';
-import { databases, createEmailVerification, account, safeGetDocument } from '@/utils/api';
+import { createEmailVerification, account, safeGetDocument } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
-import { useSessionManager } from '@/utils/sessionManager';
 
 export function Account() {
   const router = useRouter();
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { user, setUser, signOut, isAnonymous } = useAuth();
-  const { activeAccount, accounts } = useMultiAccount();
+  const { user, signOut, isAnonymous, profilePicture, setProfilePicture } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const open = Boolean(anchorEl);
-  const { validateSession } = useSessionManager();
-
-  // Validate session on component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      const isValid = await validateSession();
-      if (!isValid && activeAccount) {
-        console.log('Invalid session detected in Account component');
-      }
-    };
-    
-    checkSession();
-  }, [activeAccount, validateSession]);
 
   // Display GitHub info if available
   const isGitHubUser = user?.provider === 'github';
 
-  // Fetch profile picture when user or active account changes
+  // Fetch profile picture when user changes
   useEffect(() => {
     const fetchProfilePicture = async () => {
       try {
@@ -56,11 +37,6 @@ export function Account() {
             
           if (response && response.profilePicture) {
             setProfilePicture(response.profilePicture);
-              
-            // Update active account with profile picture if needed
-            if (activeAccount && !activeAccount.profilePicture) {
-              activeAccount.profilePicture = response.profilePicture;
-            }
           }
         }
       } catch (error) {
@@ -69,7 +45,7 @@ export function Account() {
     };
     
     fetchProfilePicture();
-  }, [user, activeAccount]);
+  }, [user, setProfilePicture]);
 
   // Check if user is verified
   useEffect(() => {
@@ -112,9 +88,8 @@ export function Account() {
   };
 
   // Get display name (username or wallet address)
-  const displayName = activeAccount?.name || 
-                      user?.name || 
-                      (activeAccount?.walletId ? formatAddress(activeAccount.walletId) : 
+  const displayName = user?.name || 
+                      (user?.walletId ? formatAddress(user.walletId) : 
                       address ? formatAddress(address) : '');
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -127,11 +102,6 @@ export function Account() {
 
   const handleProfileClick = () => {
     router.push('/profile');
-    handleClose();
-  };
-
-  const handleAccountsClick = () => {
-    setAccountMenuOpen(true);
     handleClose();
   };
 
@@ -161,7 +131,7 @@ export function Account() {
               background: 'rgba(59, 130, 246, 0.2)',
             }
           }}
-          endIcon={<ArrowDropDown />}
+          endIcon={<KeyboardArrowDown />}
         >
           Guest User
         </Button>
@@ -210,157 +180,127 @@ export function Account() {
   }
 
   return (
-    <>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        <Tooltip title="Account settings">
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-              '&:hover': { opacity: 0.8 }
-            }}
-            onClick={handleMenuClick}
-          >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Avatar
-                src={activeAccount?.profilePicture || profilePicture || undefined}
-                sx={{
-                  background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
-                }}
-              >
-                {displayName ? displayName.charAt(0).toUpperCase() : <AccountCircle />}
-              </Avatar>
-            </motion.div>
-            <Typography
-              variant="body2"
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      <Tooltip title="Account settings">
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+            '&:hover': { opacity: 0.8 }
+          }}
+          onClick={handleMenuClick}
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Avatar
+              src={profilePicture || undefined}
               sx={{
-                mx: 1.5,
-                fontWeight: 600,
-                display: { xs: 'none', sm: 'block' }
+                background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
               }}
             >
-              {displayName || 'Account'}
-            </Typography>
-            <KeyboardArrowDown
-              fontSize="small"
-              sx={{
-                color: 'text.secondary',
-                display: { xs: 'none', sm: 'block' }
-              }}
-            />
-          </Box>
-        </Tooltip>
-
-        <Menu
-          anchorEl={anchorEl}
-          id="account-menu"
-          open={open}
-          onClose={handleClose}
-          onClick={handleClose}
-          PaperProps={{
-            elevation: 0,
-            sx: {
-              overflow: 'visible',
-              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-              mt: 1.5,
-              borderRadius: 2,
-              minWidth: 180,
-              '& .MuiMenuItem-root': {
-                px: 2,
-                py: 1.5,
-              },
-              '&:before': {
-                content: '""',
-                display: 'block',
-                position: 'absolute',
-                top: 0,
-                right: 14,
-                width: 10,
-                height: 10,
-                bgcolor: 'background.paper',
-                transform: 'translateY(-50%) rotate(45deg)',
-                zIndex: 0,
-              },
-            },
-          }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        >
-          <MenuItem onClick={handleProfileClick}>
-            <Person fontSize="small" sx={{ mr: 1.5 }} />
-            <Typography variant="body2">Profile</Typography>
-          </MenuItem>
-          
-          {/* Always show the Switch Accounts option, regardless of account count */}
-          <MenuItem onClick={handleAccountsClick}>
-            <SwitchAccount fontSize="small" sx={{ mr: 1.5 }} />
-            <Typography variant="body2">Switch Accounts</Typography>
-          </MenuItem>
-          
-          {!isVerified && !user?.walletId && (
-            <MenuItem onClick={handleResendVerification}>
-              <ListItemIcon>
-                <MarkEmailRead fontSize="small" sx={{ color: '#1E40AF' }} />
-              </ListItemIcon>
-              <ListItemText primary="Verify Email" />
-            </MenuItem>
-          )}
-          {isVerified && !user?.walletId && (
-            <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
-              <ListItemIcon>
-                <VerifiedUser fontSize="small" sx={{ color: 'success.main' }} />
-              </ListItemIcon>
-              <ListItemText primary="Email Verified" />
-            </MenuItem>
-          )}
-          {isGitHubUser && (
-            <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
-              <ListItemIcon>
-                <GitHub fontSize="small" sx={{ color: '#1E40AF' }} />
-              </ListItemIcon>
-              <ListItemText primary="Connected with GitHub" />
-            </MenuItem>
-          )}
-          {verificationSent && (
-            <Alert severity="success" sx={{ mx: 2, my: 1 }}>
-              Verification email sent!
-            </Alert>
-          )}
-          <Divider />
-          <MenuItem onClick={handleSignOut}>
-            <ExitToApp fontSize="small" sx={{ mr: 1.5, color: 'error.main' }} />
-            <Typography variant="body2" color="error">Sign out</Typography>
-          </MenuItem>
-        </Menu>
-        <Box sx={{ ml: 2 }}>
-          <NetworkSwitcher />
+              {displayName ? displayName.charAt(0).toUpperCase() : <AccountCircle />}
+            </Avatar>
+          </motion.div>
+          <Typography
+            variant="body2"
+            sx={{
+              mx: 1.5,
+              fontWeight: 600,
+              display: { xs: 'none', sm: 'block' }
+            }}
+          >
+            {displayName || 'Account'}
+          </Typography>
+          <KeyboardArrowDown
+            fontSize="small"
+            sx={{
+              color: 'text.secondary',
+              display: { xs: 'none', sm: 'block' }
+            }}
+          />
         </Box>
-      </Box>
+      </Tooltip>
 
-      {/* Account Switcher Dialog */}
       <Menu
-        open={accountMenuOpen}
-        onClose={() => setAccountMenuOpen(false)}
         anchorEl={anchorEl}
+        id="account-menu"
+        open={open}
+        onClose={handleClose}
+        onClick={handleClose}
         PaperProps={{
+          elevation: 0,
           sx: {
-            width: 350,
-            maxWidth: '90vw',
-            borderRadius: 2,
+            overflow: 'visible',
+            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
             mt: 1.5,
-            maxHeight: '80vh',
-          }
+            borderRadius: 2,
+            minWidth: 180,
+            '& .MuiMenuItem-root': {
+              px: 2,
+              py: 1.5,
+            },
+            '&:before': {
+              content: '""',
+              display: 'block',
+              position: 'absolute',
+              top: 0,
+              right: 14,
+              width: 10,
+              height: 10,
+              bgcolor: 'background.paper',
+              transform: 'translateY(-50%) rotate(45deg)',
+              zIndex: 0,
+            },
+          },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <Box sx={{ p: 0 }}>
-          <AccountSwitcher />
-        </Box>
+        <MenuItem onClick={handleProfileClick}>
+          <Person fontSize="small" sx={{ mr: 1.5 }} />
+          <Typography variant="body2">Profile</Typography>
+        </MenuItem>
+        
+        {!isVerified && !user?.walletId && (
+          <MenuItem onClick={handleResendVerification}>
+            <ListItemIcon>
+              <MarkEmailRead fontSize="small" sx={{ color: '#1E40AF' }} />
+            </ListItemIcon>
+            <ListItemText primary="Verify Email" />
+          </MenuItem>
+        )}
+        {isVerified && !user?.walletId && (
+          <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
+            <ListItemIcon>
+              <VerifiedUser fontSize="small" sx={{ color: 'success.main' }} />
+            </ListItemIcon>
+            <ListItemText primary="Email Verified" />
+          </MenuItem>
+        )}
+        {isGitHubUser && (
+          <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
+            <ListItemIcon>
+              <GitHub fontSize="small" sx={{ color: '#1E40AF' }} />
+            </ListItemIcon>
+            <ListItemText primary="Connected with GitHub" />
+          </MenuItem>
+        )}
+        {verificationSent && (
+          <Alert severity="success" sx={{ mx: 2, my: 1 }}>
+            Verification email sent!
+          </Alert>
+        )}
+        <Divider />
+        <MenuItem onClick={handleSignOut}>
+          <ExitToApp fontSize="small" sx={{ mr: 1.5, color: 'error.main' }} />
+          <Typography variant="body2" color="error">Sign out</Typography>
+        </MenuItem>
       </Menu>
-    </>
+      <Box sx={{ ml: 2 }}>
+        <NetworkSwitcher />
+      </Box>
+    </Box>
   );
 }

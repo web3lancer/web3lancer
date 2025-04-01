@@ -2,7 +2,6 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { account, signOut as apiSignOut, getCurrentSession } from '@/utils/api';
-import { useMultiAccount } from './MultiAccountContext';
 
 interface AuthContextType {
   user: any;
@@ -16,6 +15,8 @@ interface AuthContextType {
   handleGitHubOAuth: (code?: string) => Promise<void>;
   refreshUser: () => Promise<any>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  profilePicture: string | null;
+  setProfilePicture: (url: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,6 +31,8 @@ const AuthContext = createContext<AuthContextType>({
   handleGitHubOAuth: async () => {},
   refreshUser: async () => null,
   updatePassword: async () => {},
+  profilePicture: null,
+  setProfilePicture: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -39,9 +42,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isMfaRequired, setIsMfaRequired] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   
-  const { removeAllAccounts, clearActiveAccount, activeAccount } = useMultiAccount();
-
   // Refresh user data from server
   const refreshUser = useCallback(async () => {
     try {
@@ -79,13 +81,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, [refreshUser]);
 
-  // When active account changes, refresh user data
-  useEffect(() => {
-    if (activeAccount) {
-      refreshUser();
-    }
-  }, [activeAccount, refreshUser]);
-
   // Sign out function
   const signOut = async () => {
     try {
@@ -96,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Always clear local state even if server logout fails
       setUser(null);
       setIsAnonymous(false);
-      await clearActiveAccount();
+      setProfilePicture(null);
     }
   };
 
@@ -132,6 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         handleGitHubOAuth,
         refreshUser,
         updatePassword,
+        profilePicture,
+        setProfilePicture,
       }}
     >
       {children}

@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton, InputAdornment, CircularProgress, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Paper, Alert, Button, Divider, TextField, InputAdornment, CircularProgress, Tabs, Tab } from '@mui/material';
 import { GitHub, Email } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useAccount } from 'wagmi';
@@ -18,80 +17,29 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
-  const { accounts, activeAccount, addAccount, switchAccount, hasMaxAccounts } = useMultiAccount();
   const { user, setUser, isMfaRequired, setIsMfaRequired } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const redirectPath = searchParams?.get('redirect') || '/dashboard';
-  const addAccountParam = searchParams?.get('addAccount');
   const [authMethod, setAuthMethod] = useState<'email' | 'otp' | 'magic'>('email');
+  
   // Email sign-in state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
   // Magic link sign-in state
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
-  useEffect(() => {
-    if (addAccountParam === 'true') {
-      setIsAddingAccount(true);
-    }
-  }, [addAccountParam]);
-
   // Handle successful wallet connection
   useEffect(() => {
     if (address) {
-      const accountId = `wallet-${address}`;
-      const existingAccount = accounts.find(acc => acc.$id === accountId || acc.walletId === address);
-      
-      if (existingAccount) {
-        // Account already exists, switch to it
-        switchAccount(existingAccount.$id);
-        router.push(redirectPath);
-      } else if (isAddingAccount) {
-        // Adding a new account
-        try {
-          if (hasMaxAccounts) {
-            setError(`Maximum number of accounts (3) reached. Please remove an account before adding a new one.`);
-            return;
-          }
-          
-          addAccount({
-            $id: accountId,
-            walletId: address,
-            isActive: true
-          });
-          router.push(redirectPath);
-        } catch (error) {
-          setError(error instanceof Error ? error.message : 'Failed to add account');
-        }
-      } else {
-        // New connection - add account
-        try {
-          if (accounts.length === 0 || !hasMaxAccounts) {
-            addAccount({
-              $id: accountId,
-              walletId: address,
-              isActive: true
-            });
-          }
-          router.push(redirectPath);
-        } catch (error) {
-          setError(error instanceof Error ? error.message : 'Failed to add account');
-        }
-      }
+      router.push(redirectPath);
     }
-  }, [address, accounts, router, redirectPath, isAddingAccount, hasMaxAccounts, addAccount, switchAccount]);
+  }, [address, router, redirectPath]);
 
-  // Handle signing in with an existing account from the accounts list
-  const handleSignInWithAccount = (account: any) => {
-    switchAccount(account.$id);
-    router.push(redirectPath);
-  };
-
-  // Handle email sign in - ensure it matches Appwrite docs pattern
+  // Handle email sign in
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -102,37 +50,7 @@ export default function SignInPage() {
       const response = await signIn(email, password);
       
       if (response) {
-        // Add this account to multi-accounts if not already there
-        const accountId = response.$id;
-        const existingAccount = accounts.find(acc => acc.$id === accountId);
-        
-        if (!existingAccount) {
-          if (hasMaxAccounts && !isAddingAccount) {
-            setError(`Maximum number of accounts (3) reached. Please remove an account before adding a new one.`);
-            setIsLoading(false);
-            return;
-          }
-          
-          try {
-            addAccount({
-              $id: accountId,
-              // Handle the case where name or email might be undefined
-              name: response.name || '',
-              email: response.email || '',
-              isActive: true
-            });
-          } catch (error) {
-            console.error('Error adding account:', error);
-            if (error instanceof Error) {
-              setError(error.message);
-              setIsLoading(false);
-              return;
-            }
-          }
-        } else {
-          switchAccount(accountId);
-        }
-        
+        setUser(response);
         router.push(redirectPath);
       }
     } catch (error) {
@@ -149,7 +67,7 @@ export default function SignInPage() {
     setError(null);
     
     try {
-      // Redirect to GitHub OAuth flow, using the same approach as in SignUpPage
+      // Redirect to GitHub OAuth flow
       window.location.href = '/api/auth/github';
     } catch (error) {
       console.error('Error signing in with GitHub:', error);
@@ -413,6 +331,12 @@ export default function SignInPage() {
             >
               {isLoading ? <CircularProgress size={24} /> : 'Send Magic Link'}
             </Button>
+            
+            {magicLinkSent && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                Magic link sent! Check your email to continue.
+              </Alert>
+            )}
           </form>
         )}
         

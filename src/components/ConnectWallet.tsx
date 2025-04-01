@@ -7,11 +7,13 @@ import { useEffect } from 'react';
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { NetworkStatus } from './wallet/NetworkStatus';
 import { NetworkWatcher } from './wallet/NetworkWatcher';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function ConnectWallet() {
   const { isConnected, isConnecting, isReconnecting } = useAccount();
   const { isLoading: isConnectLoading, error: connectError, reset: resetConnect } = useConnect();
   const { disconnect } = useDisconnect();
+  const { user } = useAuth();
   
   // Add MetaMask SDK integration
   const { 
@@ -94,7 +96,7 @@ export function ConnectWallet() {
             width: '100%'
           }}
         >
-          {isConnected || isMetaMaskConnected ? (
+          {isConnected || isMetaMaskConnected || user?.walletId ? (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Account />
