@@ -4,13 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Account } from './Account';
 import { WalletOptions } from './WalletOptions';
 import { useEffect } from 'react';
+import { useMetaMask } from '@/hooks/useMetaMask';
 
 export function ConnectWallet() {
   const { isConnected, isConnecting, isReconnecting } = useAccount();
   const { isLoading: isConnectLoading, error: connectError, reset: resetConnect } = useConnect();
   const { disconnect } = useDisconnect();
   
-  const isLoading = isConnecting || isReconnecting || isConnectLoading;
+  // Add MetaMask SDK integration
+  const { 
+    isConnected: isMetaMaskConnected, 
+    error: metaMaskError, 
+    isPending: isMetaMaskPending 
+  } = useMetaMask();
+  
+  const isLoading = isConnecting || isReconnecting || isConnectLoading || isMetaMaskPending;
+  const error = connectError || metaMaskError;
   
   // Reset state when component mounts - important for modal reopening
   useEffect(() => {
@@ -33,6 +42,38 @@ export function ConnectWallet() {
       resetConnect?.();
     };
   }, [resetConnect]);
+
+  // Track account changes
+  useEffect(() => {
+    function onConnect(data: any) {
+      console.log("Connected!", {
+        address: data.address,
+        chainId: data.chainId,
+        isReconnected: data.isReconnected
+      });
+    }
+
+    function onDisconnect() {
+      console.log("Disconnected!");
+    }
+
+    if (typeof window !== 'undefined' && window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        console.log('Account changed:', accounts[0] || 'disconnected');
+      });
+
+      window.ethereum.on('chainChanged', (chainId: string) => {
+        console.log('Chain changed:', chainId);
+      });
+    }
+
+    return () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', () => {});
+        window.ethereum.removeListener('chainChanged', () => {});
+      }
+    };
+  }, []);
   
   if (isLoading) {
     return (
@@ -49,10 +90,10 @@ export function ConnectWallet() {
     );
   }
 
-  if (connectError) {
+  if (error) {
     return (
       <Alert severity="error" sx={{ mb: 3 }}>
-        Error connecting to wallet: {connectError.message}
+        Error connecting to wallet: {error instanceof Error ? error.message : String(error)}
       </Alert>
     );
   }
@@ -60,7 +101,7 @@ export function ConnectWallet() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={isConnected ? 'connected' : 'disconnected'}
+        key={isConnected || isMetaMaskConnected ? 'connected' : 'disconnected'}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
@@ -71,7 +112,7 @@ export function ConnectWallet() {
           width: '100%'
         }}
       >
-        {isConnected ? <Account /> : <WalletOptions />}
+        {isConnected || isMetaMaskConnected ? <Account /> : <WalletOptions />}
       </motion.div>
     </AnimatePresence>
   );
