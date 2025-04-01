@@ -36,12 +36,13 @@ export async function processAndRecordPayment(
       throw new Error(paymentResult.error || 'Payment processing failed');
     }
 
-    // Step 2: Record the transaction in Appwrite
-    // Use the TRANSACTIONS database and collection from appwrite-database.md
+    // Generate a unique transaction ID
     const transactionId = ID.unique();
+
+    // Step 2: Record the transaction in Appwrite
     await databases.createDocument(
-      '67b8866c00265d466063', // TRANSACTIONS database ID
-      '67b8867b001643b2585a', // TRANSACTIONS collection ID
+      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
+      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
       ID.unique(),
       {
         userId,
@@ -49,7 +50,7 @@ export async function processAndRecordPayment(
         type: method,
         createdAt: new Date().toISOString(),
         status: paymentResult.data.status,
-        transactionId: paymentResult.data.transaction_id,
+        transactionId: paymentResult.data.transaction_id || transactionId,
       }
     );
     
@@ -71,10 +72,10 @@ export async function processAndRecordPayment(
       }
     }
     
-    // Step 4: Create a notification about the transaction using the NOTIFICATIONS database
+    // Step 4: Create a notification about the transaction
     await databases.createDocument(
-      '67b8862f00055127cd62', // NOTIFICATIONS database ID
-      '67b88639000157c7909d', // NOTIFICATIONS collection ID
+      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
+      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
       ID.unique(),
       {
         userId,
@@ -88,7 +89,7 @@ export async function processAndRecordPayment(
     
     return {
       success: true,
-      transactionId: paymentResult.data.transaction_id
+      transactionId: paymentResult.data.transaction_id || transactionId
     };
   } catch (error) {
     console.error('Error in processAndRecordPayment:', error);

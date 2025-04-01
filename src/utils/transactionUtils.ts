@@ -117,8 +117,8 @@ export async function recordTransaction(
     // First, create a general transaction record
     const transactionId = ID.unique();
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+      APPWRITE_CONFIG.DATABASES.TRANSACTIONS, // '67b8866c00265d466063'
+      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS, // '67b8867b001643b2585a'
       ID.unique(),
       {
         userId,
@@ -132,8 +132,8 @@ export async function recordTransaction(
     
     // Then create a detailed crypto transaction record
     await databases.createDocument(
-      '67e629540014107023a2', // wallet database ID from appwrite-database.md
-      '67e62b6f0003ed0e4ecc', // cryptotransactions collection ID
+      APPWRITE_CONFIG.DATABASES.WALLET, // '67e629540014107023a2'
+      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS, // '67e62b6f0003ed0e4ecc'
       ID.unique(),
       {
         cryptoTxId: ID.unique(),
@@ -165,11 +165,12 @@ export async function recordTransaction(
 async function getWalletIdForUser(userId: string): Promise<string> {
   try {
     const { databases, Query, ID } = await import('@/utils/api');
+    const { APPWRITE_CONFIG } = await import('@/lib/env');
     
     // Check if user already has a wallet
     const wallets = await databases.listDocuments(
-      '67e629540014107023a2', // wallet database ID
-      '67e629b1003bcc87679e', // wallets collection ID
+      APPWRITE_CONFIG.DATABASES.WALLET, // '67e629540014107023a2'
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS, // '67e629b1003bcc87679e'
       [Query.equal('userId', userId)]
     );
     
@@ -181,8 +182,8 @@ async function getWalletIdForUser(userId: string): Promise<string> {
     // If no wallet exists, create one
     const walletId = ID.unique();
     await databases.createDocument(
-      '67e629540014107023a2', // wallet database ID
-      '67e629b1003bcc87679e', // wallets collection ID
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       ID.unique(),
       {
         walletId: walletId,

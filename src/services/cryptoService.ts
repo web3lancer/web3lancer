@@ -6,15 +6,8 @@
  */
 
 import { databases, ID, Query } from '@/utils/api';
+import { APPWRITE_CONFIG } from '@/lib/env';
 import { parseEther, formatEther } from '@/utils/transactionUtils';
-
-// Database and collection IDs from appwrite-database.md
-const WALLET_DATABASE_ID = '67e629540014107023a2';
-const WALLETS_COLLECTION_ID = '67e629b1003bcc87679e';
-const BALANCES_COLLECTION_ID = '67e62a5c00093534cc42';
-const CRYPTO_TRANSACTIONS_COLLECTION_ID = '67e62b6f0003ed0e4ecc';
-const TRANSACTIONS_DATABASE_ID = '67b8866c00265d466063';
-const TRANSACTIONS_COLLECTION_ID = '67b8867b001643b2585a';
 
 /**
  * Create a new wallet for a user
@@ -27,8 +20,8 @@ export async function createWallet(
   try {
     // Check if user already has a wallet of this type
     const existingWallets = await databases.listDocuments(
-      WALLET_DATABASE_ID,
-      WALLETS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       [Query.equal('userId', userId), Query.equal('walletType', walletType)]
     );
     
@@ -49,8 +42,8 @@ export async function createWallet(
     const walletId = ID.unique();
     
     await databases.createDocument(
-      WALLET_DATABASE_ID,
-      WALLETS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       ID.unique(),
       {
         walletId,
@@ -64,8 +57,8 @@ export async function createWallet(
     
     // Initialize with zero balance for ETH
     await databases.createDocument(
-      WALLET_DATABASE_ID,
-      BALANCES_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       ID.unique(),
       {
         balanceId: ID.unique(),
@@ -89,8 +82,8 @@ export async function createWallet(
 export async function getUserWallets(userId: string) {
   try {
     const wallets = await databases.listDocuments(
-      WALLET_DATABASE_ID,
-      WALLETS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       [Query.equal('userId', userId)]
     );
     
@@ -107,8 +100,8 @@ export async function getUserWallets(userId: string) {
 export async function getWalletBalances(walletId: string) {
   try {
     const balances = await databases.listDocuments(
-      WALLET_DATABASE_ID,
-      BALANCES_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       [Query.equal('walletId', walletId)]
     );
     
@@ -116,6 +109,38 @@ export async function getWalletBalances(walletId: string) {
   } catch (error) {
     console.error('Error getting wallet balances:', error);
     throw new Error(`Failed to get wallet balances: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get user's crypto transactions
+ */
+export async function getUserCryptoTransactions(userId: string) {
+  try {
+    // First get user wallets
+    const wallets = await getUserWallets(userId);
+    if (wallets.length === 0) return [];
+    
+    // Create a query to get transactions for all wallets
+    const walletIds = wallets.map(wallet => wallet.walletId);
+    
+    // Get transactions for each wallet
+    const transactions = await Promise.all(
+      walletIds.map(async (walletId) => {
+        const txs = await databases.listDocuments(
+          APPWRITE_CONFIG.DATABASES.WALLET,
+          APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
+          [Query.equal('walletId', walletId)]
+        );
+        return txs.documents;
+      })
+    );
+    
+    // Flatten the array of arrays
+    return transactions.flat();
+  } catch (error) {
+    console.error('Error getting user crypto transactions:', error);
+    throw new Error(`Failed to get user crypto transactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -133,19 +158,23 @@ export async function recordCryptoTransaction(
   gasUsed?: string
 ) {
   try {
-    // First get the user's wallet
+    // First get the user's wallet or create one if none exists
     const wallets = await getUserWallets(userId);
-    if (wallets.length === 0) {
-      throw new Error('User has no wallet');
-    }
+    let walletId;
     
-    const walletId = wallets[0].walletId;
+    if (wallets.length === 0) {
+      // Create a new wallet for the user
+      const newWallet = await createWallet(userId, 'custodial');
+      walletId = newWallet.walletId;
+    } else {
+      walletId = wallets[0].walletId;
+    }
     
     // Create general transaction record
     const transactionId = ID.unique();
     await databases.createDocument(
-      TRANSACTIONS_DATABASE_ID,
-      TRANSACTIONS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
+      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
       ID.unique(),
       {
         userId,
@@ -159,8 +188,8 @@ export async function recordCryptoTransaction(
     
     // Create detailed crypto transaction record
     await databases.createDocument(
-      WALLET_DATABASE_ID,
-      CRYPTO_TRANSACTIONS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
       ID.unique(),
       {
         cryptoTxId: ID.unique(),
@@ -192,10 +221,10 @@ export async function updateTransactionStatus(
   blockNumber?: number
 ) {
   try {
-    // First find the crypto transaction
+    // Find the crypto transaction
     const txResponse = await databases.listDocuments(
-      WALLET_DATABASE_ID,
-      CRYPTO_TRANSACTIONS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
       [Query.equal('txHash', txHash)]
     );
     
@@ -207,8 +236,8 @@ export async function updateTransactionStatus(
     
     // Update crypto transaction status
     await databases.updateDocument(
-      WALLET_DATABASE_ID,
-      CRYPTO_TRANSACTIONS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
       cryptoTx.$id,
       {
         status,
@@ -219,43 +248,42 @@ export async function updateTransactionStatus(
     // Also update the main transaction status
     const transactionId = cryptoTx.transactionId;
     const mainTxResponse = await databases.listDocuments(
-      TRANSACTIONS_DATABASE_ID,
-      TRANSACTIONS_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
+      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
       [Query.equal('transactionId', transactionId)]
     );
     
     if (mainTxResponse.documents.length > 0) {
       const mainTx = mainTxResponse.documents[0];
       await databases.updateDocument(
-        TRANSACTIONS_DATABASE_ID,
-        TRANSACTIONS_COLLECTION_ID,
+        APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
+        APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
         mainTx.$id,
         { status }
       );
     }
     
+    // Create a notification about the transaction status
+    const notification = `Your transaction ${txHash.substring(0, 6)}...${txHash.substring(txHash.length - 4)} is now ${status}`;
+    
+    await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
+      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
+      ID.unique(),
+      {
+        userId: cryptoTx.userId || '', // This might need to be fetched from another query if not stored
+        message: notification,
+        createdAt: new Date().toISOString(),
+        type: 'transaction',
+        notificationId: ID.unique(),
+        read: false,
+      }
+    );
+    
     return { success: true };
   } catch (error) {
     console.error('Error updating transaction status:', error);
     throw new Error(`Failed to update transaction status: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Get transaction history for a wallet
- */
-export async function getWalletTransactions(walletId: string) {
-  try {
-    const transactions = await databases.listDocuments(
-      WALLET_DATABASE_ID,
-      CRYPTO_TRANSACTIONS_COLLECTION_ID,
-      [Query.equal('walletId', walletId)]
-    );
-    
-    return transactions.documents;
-  } catch (error) {
-    console.error('Error getting wallet transactions:', error);
-    throw new Error(`Failed to get wallet transactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -270,8 +298,8 @@ export async function updateWalletBalance(
   try {
     // Check if balance record exists
     const balances = await databases.listDocuments(
-      WALLET_DATABASE_ID,
-      BALANCES_COLLECTION_ID,
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
       [Query.equal('walletId', walletId), Query.equal('currency', currency)]
     );
     
@@ -281,8 +309,8 @@ export async function updateWalletBalance(
       // Update existing balance
       const balance = balances.documents[0];
       await databases.updateDocument(
-        WALLET_DATABASE_ID,
-        BALANCES_COLLECTION_ID,
+        APPWRITE_CONFIG.DATABASES.WALLET,
+        APPWRITE_CONFIG.COLLECTIONS.BALANCES,
         balance.$id,
         {
           amount: newAmount,
@@ -292,8 +320,8 @@ export async function updateWalletBalance(
     } else {
       // Create new balance record
       await databases.createDocument(
-        WALLET_DATABASE_ID,
-        BALANCES_COLLECTION_ID,
+        APPWRITE_CONFIG.DATABASES.WALLET,
+        APPWRITE_CONFIG.COLLECTIONS.BALANCES,
         ID.unique(),
         {
           balanceId: ID.unique(),
@@ -313,54 +341,53 @@ export async function updateWalletBalance(
 }
 
 /**
- * Get all user transactions (both general and crypto)
+ * Add a payment method for a user
  */
-export async function getUserTransactions(userId: string) {
+export async function addCryptoPaymentMethod(
+  userId: string,
+  walletAddress: string,
+  isDefault: boolean = false
+) {
   try {
-    // Get general transactions
-    const transactions = await databases.listDocuments(
-      TRANSACTIONS_DATABASE_ID,
-      TRANSACTIONS_COLLECTION_ID,
-      [Query.equal('userId', userId)]
+    const response = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
+      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      ID.unique(),
+      {
+        paymentMethodId: ID.unique(),
+        userId,
+        type: 'crypto',
+        details: JSON.stringify({ walletAddress }),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isDefault,
+      }
     );
     
-    // Get wallet IDs for this user
-    const wallets = await getUserWallets(userId);
-    const walletIds = wallets.map(wallet => wallet.walletId);
-    
-    // If user has no wallets, just return the general transactions
-    if (walletIds.length === 0) {
-      return transactions.documents;
-    }
-    
-    // For each transaction, get detailed crypto info if applicable
-    const enrichedTransactions = await Promise.all(
-      transactions.documents.map(async (tx) => {
-        if (tx.type === 'crypto') {
-          try {
-            const cryptoTxResponse = await databases.listDocuments(
-              WALLET_DATABASE_ID,
-              CRYPTO_TRANSACTIONS_COLLECTION_ID,
-              [Query.equal('transactionId', tx.transactionId)]
-            );
-            
-            if (cryptoTxResponse.documents.length > 0) {
-              return {
-                ...tx,
-                cryptoDetails: cryptoTxResponse.documents[0]
-              };
-            }
-          } catch (err) {
-            console.error('Error fetching crypto details:', err);
-          }
-        }
-        return tx;
-      })
-    );
-    
-    return enrichedTransactions;
+    return response;
   } catch (error) {
-    console.error('Error getting user transactions:', error);
-    throw new Error(`Failed to get user transactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Error adding crypto payment method:', error);
+    throw new Error(`Failed to add payment method: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get user's crypto payment methods
+ */
+export async function getUserCryptoPaymentMethods(userId: string) {
+  try {
+    const response = await databases.listDocuments(
+      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
+      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      [Query.equal('userId', userId), Query.equal('type', 'crypto')]
+    );
+    
+    return response.documents.map(doc => ({
+      ...doc,
+      details: JSON.parse(doc.details)
+    }));
+  } catch (error) {
+    console.error('Error getting crypto payment methods:', error);
+    throw new Error(`Failed to get payment methods: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

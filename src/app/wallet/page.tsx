@@ -1,11 +1,28 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Grid, Paper, Tab, Tabs } from '@mui/material';
-import { motion } from 'framer-motion';
-import StellarWallet from '@/components/StellarWallet';
+
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Grid, 
+  Paper, 
+  Tab, 
+  Tabs, 
+  Alert,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControlLabel,
+  Switch
+} from '@mui/material';
+import { Add, Send, Refresh } from '@mui/icons-material';
+import { useWallet } from '@/hooks/useWallet';
+import WalletCard from '@/components/wallet/WalletCard';
+import TransactionList from '@/components/wallet/TransactionList';
 import { useAuth } from '@/contexts/AuthContext';
-import { ensureSession } from '@/utils/api';
-import { ContactsManager } from '@/components/stellar/ContactsManager';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -35,129 +52,233 @@ function TabPanel(props: TabPanelProps) {
 
 export default function WalletPage() {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    wallets,
+    balances,
+    transactions,
+    paymentMethods,
+    loading,
+    error,
+    refreshWalletData,
+    createWallet,
+    addPaymentMethod,
+    formatBalance,
+    getTotalBalance
+  } = useWallet();
+
   const [activeTab, setActiveTab] = useState(0);
-
-  useEffect(() => {
-    async function init() {
-      // Ensure a session exists (anonymous or authenticated)
-      await ensureSession().catch(console.error);
-      setIsLoading(false);
-    }
-    
-    init();
-  }, []);
-
+  const [openAddPaymentDialog, setOpenAddPaymentDialog] = useState(false);
+  const [newWalletAddress, setNewWalletAddress] = useState('');
+  const [isDefaultPayment, setIsDefaultPayment] = useState(false);
+  
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
+  
+  const handleCreateWallet = async () => {
+    await createWallet('custodial');
+  };
+
+  const handleAddPaymentMethod = () => {
+    setOpenAddPaymentDialog(true);
+  };
+
+  const handlePaymentDialogClose = () => {
+    setOpenAddPaymentDialog(false);
+    setNewWalletAddress('');
+    setIsDefaultPayment(false);
+  };
+
+  const handlePaymentDialogSubmit = async () => {
+    if (newWalletAddress) {
+      await addPaymentMethod(newWalletAddress, isDefaultPayment);
+      handlePaymentDialogClose();
+    }
+  };
+
+  const primaryWallet = wallets && wallets.length > 0 ? wallets[0] : undefined;
+  const primaryBalance = balances && balances.length > 0 ? formatBalance(balances[0]) : '0.00';
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Typography 
-            variant="h3" 
-            component="h1" 
-            gutterBottom
-            sx={{ 
-              fontWeight: 700,
-              background: 'linear-gradient(90deg, #1E40AF 0%, #3B82F6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}
-          >
-            Web3Lancer Wallet
-          </Typography>
-          
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Manage your crypto assets and transactions securely
-          </Typography>
-        </motion.div>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
+        My Wallet
+      </Typography>
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            mt: 4, 
-            borderRadius: 2,
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(10px)'
-          }}
-        >
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{ 
-              borderBottom: 1, 
-              borderColor: 'divider',
-              px: 2,
-              '& .MuiTab-root': {
-                fontWeight: 600,
-                textTransform: 'none',
-                minWidth: 120
-              }
-            }}
+      {!loading && wallets.length === 0 && (
+        <Paper sx={{ p: 4, mb: 3, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            You don't have a wallet yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Create a wallet to start receiving and sending cryptocurrency
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            size="large"
+            onClick={handleCreateWallet}
           >
-            <Tab label="Stellar Wallet" />
-            <Tab label="Connected Wallets" />
-            <Tab label="Transactions" />
-            <Tab label="Stellar Contacts" />
-            <Tab label="Settings" />
-          </Tabs>
+            Create Wallet
+          </Button>
+        </Paper>
+      )}
 
-          <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      {(wallets.length > 0 || loading) && (
+        <>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <WalletCard 
+                wallet={primaryWallet}
+                balance={primaryBalance}
+                loading={loading}
+                onRefresh={refreshWalletData}
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Quick Actions
+                </Typography>
+                
+                <Button 
+                  variant="outlined" 
+                  startIcon={<Send />}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  disabled={loading}
+                >
+                  Send
+                </Button>
+                
+                <Button 
+                  variant="outlined" 
+                  startIcon={<Add />}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  disabled={loading}
+                >
+                  Receive
+                </Button>
+                
+                <Button 
+                  variant="outlined"
+                  startIcon={<Add />}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  onClick={handleAddPaymentMethod}
+                  disabled={loading}
+                >
+                  Add Payment Method
+                </Button>
+                
+                <Button 
+                  variant="outlined" 
+                  startIcon={<Refresh />}
+                  fullWidth
+                  onClick={refreshWalletData}
+                  disabled={loading}
+                >
+                  Refresh
+                </Button>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          <Box sx={{ mt: 4 }}>
+            <Tabs value={activeTab} onChange={handleTabChange}>
+              <Tab label="Transactions" />
+              <Tab label="Payment Methods" />
+            </Tabs>
+            
             <TabPanel value={activeTab} index={0}>
-              <StellarWallet />
+              <TransactionList 
+                transactions={transactions} 
+                loading={loading}
+                emptyMessage="No transactions found. Start by sending or receiving crypto."
+              />
             </TabPanel>
             
             <TabPanel value={activeTab} index={1}>
-              <Typography variant="body1">
-                Connected wallets and integration options will appear here.
-              </Typography>
-            </TabPanel>
-            
-            <TabPanel value={activeTab} index={2}>
-              <Typography variant="body1">
-                Your transaction history will appear here.
-              </Typography>
-            </TabPanel>
-
-            <TabPanel value={activeTab} index={3}>
-              <ContactsManager />
-            </TabPanel>
-            
-            <TabPanel value={activeTab} index={4}>
-              <Typography variant="body1">
-                Wallet settings and preferences will appear here.
-              </Typography>
+              {loading ? (
+                <Alert severity="info">Loading payment methods...</Alert>
+              ) : paymentMethods.length === 0 ? (
+                <Alert severity="info">
+                  No payment methods found. Add a payment method to get started.
+                </Alert>
+              ) : (
+                <Paper>
+                  <Box sx={{ bgcolor: 'grey.100', p: 2 }}>
+                    <Typography variant="h6">Payment Methods</Typography>
+                  </Box>
+                  {paymentMethods.map((method) => (
+                    <Box key={method.paymentMethodId} sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                        {method.type === 'crypto' ? 'Cryptocurrency Wallet' : method.type}
+                        {method.isDefault && (
+                          <Typography component="span" sx={{ ml: 1, color: 'primary.main', fontSize: '0.8rem' }}>
+                            (Default)
+                          </Typography>
+                        )}
+                      </Typography>
+                      {method.type === 'crypto' && (
+                        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                          {method.details?.walletAddress || 'No address available'}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Paper>
+              )}
             </TabPanel>
           </Box>
-        </Paper>
+        </>
+      )}
 
-        <Paper sx={{ 
-          mt: 4, 
-          p: 3, 
-          borderRadius: 2,
-          background: 'rgba(59, 130, 246, 0.05)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(59, 130, 246, 0.1)'
-        }}>
-          <Typography variant="h6" gutterBottom>
-            💡 Using Stellar Testnet
-          </Typography>
-          <Typography variant="body1">
-            The wallet above is connected to Stellar Testnet, allowing you to experiment with creating wallets, 
-            funding them, and sending transactions without using real funds. Testnet XLM has no real value and is 
-            intended for development and testing purposes only.
-          </Typography>
-        </Paper>
-      </Box>
-    </Container>
+      {/* Add Payment Method Dialog */}
+      <Dialog open={openAddPaymentDialog} onClose={handlePaymentDialogClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Add Crypto Payment Method</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="walletAddress"
+            label="Wallet Address"
+            type="text"
+            fullWidth
+            value={newWalletAddress}
+            onChange={(e) => setNewWalletAddress(e.target.value)}
+            sx={{ mt: 1 }}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isDefaultPayment}
+                onChange={(e) => setIsDefaultPayment(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Set as default payment method"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handlePaymentDialogClose}>Cancel</Button>
+          <Button 
+            onClick={handlePaymentDialogSubmit} 
+            variant="contained" 
+            disabled={!newWalletAddress}
+          >
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

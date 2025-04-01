@@ -1,106 +1,142 @@
 import { useState, useEffect } from 'react';
-import { databases } from '@/utils/api';
-import { APPWRITE_CONFIG } from '@/lib/env';
-import { Query } from 'appwrite';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  getUserWallets, 
+  getWalletBalances, 
+  createWallet, 
+  getUserCryptoTransactions,
+  addCryptoPaymentMethod,
+  getUserCryptoPaymentMethods
+} from '@/services/cryptoService';
 
-export function useWallet(userId: string) {
-  const [wallet, setWallet] = useState<any>(null);
+export function useWallet() {
+  const { user } = useAuth();
+  const [wallets, setWallets] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load user wallet data
   useEffect(() => {
-    if (userId) {
-      fetchWalletData();
+    if (user) {
+      loadWalletData();
+    } else {
+      // Reset state if no user
+      setWallets([]);
+      setBalances([]);
+      setTransactions([]);
+      setPaymentMethods([]);
+      setLoading(false);
     }
-  }, [userId]);
+  }, [user]);
 
-  const fetchWalletData = async () => {
+  const loadWalletData = async () => {
+    if (!user?.userId) return;
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
+      // Get user wallets
+      const userWallets = await getUserWallets(user.userId);
+      setWallets(userWallets);
       
-      // Fetch wallet data
-      const walletResponse = await databases.listDocuments(
-        APPWRITE_CONFIG.DATABASES.WALLET,
-        APPWRITE_CONFIG.COLLECTIONS.WALLETS,
-        [Query.equal('userId', userId)]
-      );
-      
-      if (walletResponse.documents.length > 0) {
-        const userWallet = walletResponse.documents[0];
-        setWallet(userWallet);
+      // If there are wallets, get balances and transactions
+      if (userWallets.length > 0) {
+        const walletId = userWallets[0].walletId;
         
-        // Fetch balances for this wallet
-        const balancesResponse = await databases.listDocuments(
-          APPWRITE_CONFIG.DATABASES.WALLET,
-          APPWRITE_CONFIG.COLLECTIONS.BALANCES,
-          [Query.equal('walletId', userWallet.$id)]
-        );
+        // Get balances for primary wallet
+        const walletBalances = await getWalletBalances(walletId);
+        setBalances(walletBalances);
         
-        setBalances(balancesResponse.documents);
-      } else {
-        // Create a default wallet if none exists
-        const walletId = crypto.randomUUID();
-        const walletAddress = `0x${Array.from({length: 40}, () => 
-          Math.floor(Math.random() * 16).toString(16)).join('')}`;
-          
-        const newWallet = await databases.createDocument(
-          APPWRITE_CONFIG.DATABASES.WALLET,
-          APPWRITE_CONFIG.COLLECTIONS.WALLETS,
-          walletId,
-          {
-            userId,
-            walletAddress,
-            walletType: 'custodial',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }
-        );
+        // Get transactions
+        const userTransactions = await getUserCryptoTransactions(user.userId);
+        setTransactions(userTransactions);
         
-        setWallet(newWallet);
-        
-        // Create default balances
-        const defaultBalances = [
-          { currency: 'USD', amount: 0 },
-          { currency: 'ETH', amount: 0 },
-          { currency: 'BTC', amount: 0 },
-        ];
-        
-        const balancePromises = defaultBalances.map(balance => 
-          databases.createDocument(
-            APPWRITE_CONFIG.DATABASES.WALLET,
-            APPWRITE_CONFIG.COLLECTIONS.BALANCES,
-            crypto.randomUUID(),
-            {
-              walletId: newWallet.$id,
-              currency: balance.currency,
-              amount: balance.amount,
-              lastUpdated: new Date().toISOString(),
-            }
-          )
-        );
-        
-        const createdBalances = await Promise.all(balancePromises);
-        setBalances(createdBalances);
+        // Get payment methods
+        const cryptoPaymentMethods = await getUserCryptoPaymentMethods(user.userId);
+        setPaymentMethods(cryptoPaymentMethods);
       }
     } catch (err) {
-      console.error("Error fetching wallet data:", err);
-      setError("Failed to load wallet data. Please try again.");
+      console.error('Error loading wallet data:', err);
+      setError('Failed to load wallet data. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
-  const sendCrypto = async (to: string, amount: number, currency: string) => {
-    // Implementation for sending crypto would go here
-    console.log(`Sending ${amount} ${currency} to ${to}`);
+  const createUserWallet = async (type: 'custodial' | 'non-custodial' = 'custodial') => {
+    if (!user?.userId) return null;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await createWallet(user.userId, type);
+      await loadWalletData(); // Refresh data
+      return result;
+    } catch (err) {
+      console.error('Error creating wallet:', err);
+      setError('Failed to create wallet. Please try again later.');
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addFunds = async (amount: number, currency: string) => {
-    // Implementation for adding funds would go here
-    console.log(`Adding ${amount} ${currency} to wallet`);
+  const addPaymentMethod = async (walletAddress: string, isDefault: boolean = false) => {
+    if (!user?.userId) return null;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await addCryptoPaymentMethod(user.userId, walletAddress, isDefault);
+      await loadWalletData(); // Refresh data
+      return result;
+    } catch (err) {
+      console.error('Error adding payment method:', err);
+      setError('Failed to add payment method. Please try again later.');
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return { wallet, balances, loading, error, sendCrypto, addFunds };
+  const refreshWalletData = () => {
+    loadWalletData();
+  };
+
+  // Format balance to user-friendly string
+  const formatBalance = (balance: any) => {
+    if (!balance) return '0.00';
+    return parseFloat(balance.amount).toFixed(4);
+  };
+
+  // Get total balance across all currencies
+  const getTotalBalance = () => {
+    if (balances.length === 0) return '0.00';
+    
+    const total = balances.reduce((sum, balance) => {
+      return sum + parseFloat(balance.amount || '0');
+    }, 0);
+    
+    return total.toFixed(4);
+  };
+
+  return {
+    wallets,
+    balances,
+    transactions,
+    paymentMethods,
+    loading,
+    error,
+    refreshWalletData,
+    createWallet: createUserWallet,
+    addPaymentMethod,
+    formatBalance,
+    getTotalBalance
+  };
 }
