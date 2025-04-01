@@ -45,12 +45,13 @@ export function useMetaMask(): UseMetaMaskReturn {
         // Check if already connected
         if (provider) {
           provider.request({ method: 'eth_accounts' })
-            .then((accounts: string[]) => {
-              if (accounts.length > 0) {
+            .then((accounts: unknown) => {
+              const ethAccounts = accounts as string[];
+              if (ethAccounts && ethAccounts.length > 0) {
                 setIsConnected(true);
-                setAccount(accounts[0]);
+                setAccount(ethAccounts[0]);
                 provider.request({ method: 'eth_chainId' })
-                  .then((chainId: string) => setChainId(chainId))
+                  .then((chainId) => chainId && setChainId(chainId as string))
                   .catch(console.error);
               }
             })
