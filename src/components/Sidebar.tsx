@@ -1,7 +1,7 @@
 "use client";
 
 import { Drawer, List, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction, Divider, ListItemButton } from "@mui/material";
-import { Dashboard, Work, Bookmarks, Storefront, Person } from "@mui/icons-material";
+import { Dashboard, Work, Bookmarks, Storefront, Person, People } from "@mui/icons-material";
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
@@ -9,7 +9,7 @@ import React, { useState } from "react";
 const menuItems = [
   { text: 'home', icon: Dashboard, path: '/dashboard' },
   { text: 'Projects', icon: Work, path: '/projects' },
-  { text: 'Marketplace', icon: Storefront, path: '/marketplace' },
+  { text: 'Connect', icon: People, path: '/connect' }, // Updated from "Marketplace" to "Connect"
   { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
   { text: 'Profile', icon: Person, path: '/profile' },
 ];
