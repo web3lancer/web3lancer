@@ -238,6 +238,27 @@ main {
     margin-left: 240px;
     width: calc(100% - 240px);
   }
+  
+  .content-area-full {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* Special handling for homepage */
+.home-page-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Add proper sidebar handling */
+@media (min-width: 900px) {
+  .content-area {
+    margin-left: 240px;
+    width: calc(100% - 240px);
+  }
 }
 
 /* Ensure proper stacking without overflow */

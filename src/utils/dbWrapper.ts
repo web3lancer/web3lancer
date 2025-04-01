@@ -1,4 +1,4 @@
-import { databases, safeGetDocument, safeListDocuments, ID } from './api';
+import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from './api';
 import { APPWRITE_CONFIG } from '@/lib/env';
 
 /**
@@ -25,6 +25,9 @@ export const profiles = {
   },
   
   create: async (data: any) => {
+    // Ensure we have a valid session before creating
+    await ensureSession();
+    
     return await databases.createDocument(
       APPWRITE_CONFIG.DATABASES.USERS,
       APPWRITE_CONFIG.COLLECTIONS.PROFILES,
@@ -34,6 +37,9 @@ export const profiles = {
   },
   
   update: async (userId: string, data: any) => {
+    // Ensure we have a valid session before updating
+    await ensureSession();
+    
     return await databases.updateDocument(
       APPWRITE_CONFIG.DATABASES.USERS,
       APPWRITE_CONFIG.COLLECTIONS.PROFILES,
@@ -43,6 +49,9 @@ export const profiles = {
   },
   
   delete: async (userId: string) => {
+    // Ensure we have a valid session before deleting
+    await ensureSession();
+    
     return await databases.deleteDocument(
       APPWRITE_CONFIG.DATABASES.USERS,
       APPWRITE_CONFIG.COLLECTIONS.PROFILES,
@@ -70,6 +79,9 @@ export const jobs = {
   },
   
   create: async (data: any) => {
+    // Ensure we have a valid session before creating
+    await ensureSession();
+    
     return await databases.createDocument(
       APPWRITE_CONFIG.DATABASES.JOBS,
       APPWRITE_CONFIG.COLLECTIONS.JOBS,
@@ -79,6 +91,9 @@ export const jobs = {
   },
   
   update: async (jobId: string, data: any) => {
+    // Ensure we have a valid session before updating
+    await ensureSession();
+    
     return await databases.updateDocument(
       APPWRITE_CONFIG.DATABASES.JOBS,
       APPWRITE_CONFIG.COLLECTIONS.JOBS,
@@ -88,6 +103,9 @@ export const jobs = {
   },
   
   delete: async (jobId: string) => {
+    // Ensure we have a valid session before deleting
+    await ensureSession();
+    
     return await databases.deleteDocument(
       APPWRITE_CONFIG.DATABASES.JOBS,
       APPWRITE_CONFIG.COLLECTIONS.JOBS,
@@ -115,11 +133,37 @@ export const wallets = {
   },
   
   create: async (data: any) => {
+    // Ensure we have a valid session before creating
+    await ensureSession();
+    
     return await databases.createDocument(
       APPWRITE_CONFIG.DATABASES.WALLET,
       APPWRITE_CONFIG.COLLECTIONS.WALLETS,
       ID.unique(),
       data
+    );
+  },
+  
+  update: async (walletId: string, data: any) => {
+    // Ensure we have a valid session before updating
+    await ensureSession();
+    
+    return await databases.updateDocument(
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      walletId,
+      data
+    );
+  },
+  
+  delete: async (walletId: string) => {
+    // Ensure we have a valid session before deleting
+    await ensureSession();
+    
+    return await databases.deleteDocument(
+      APPWRITE_CONFIG.DATABASES.WALLET,
+      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      walletId
     );
   }
 };

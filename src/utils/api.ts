@@ -238,8 +238,128 @@ async function ensureSession() {
     const session = await account.get();
     return session;
   } catch (error) {
-    console.log('No active session, creating anonymous session');
+    console.log('No active session detected, need to authenticate');
+    
+    // Check if refreshing the session might help
+    try {
+      const sessions = await account.listSessions();
+      if (sessions && sessions.total > 0 && sessions.sessions[0]) {
+        // Try to use the most recent session
+        const latestSession = sessions.sessions[0];
+        console.log('Found existing session, attempting to activate it');
+        
+        try {
+          await account.updateSession(latestSession.$id);
+          return await account.get();
+        } catch (refreshError) {
+          console.log('Failed to refresh existing session:', refreshError);
+        }
+      }
+    } catch (sessionsError) {
+      console.log('Error listing sessions:', sessionsError);
+    }
+    
+    // If we still don't have a session, create an anonymous one
+    console.log('Creating anonymous session as fallback');
     return createAnonymousSession();
+  }
+}
+
+/**
+ * Verify current session and handle multi-account switching
+ * This solves the "not authorized" errors when switching accounts
+ */
+async function verifySession(accountId?: string) {
+  try {
+    // Get current user information
+    const currentUser = await account.get();
+    
+    // If we have a specific accountId to verify against
+    if (accountId && currentUser.$id !== accountId) {
+      console.log('Session mismatch detected, attempting to switch');
+      
+      // First try to use an active session for the specified account
+      try {
+        const sessions = await account.listSessions();
+        const targetSession = sessions.sessions.find(
+          session => session.userId === accountId
+        );
+        
+        if (targetSession) {
+          // Switch to the target session
+          await signOut(); // Clear current session first
+          await account.updateSession(targetSession.$id);
+          return await account.get();
+        } else {
+          console.log('No session found for target account');
+          return null;
+        }
+      } catch (error) {
+        console.error('Error switching sessions:', error);
+        return null;
+      }
+    }
+    
+    return currentUser;
+  } catch (error) {
+    console.log('No active session');
+    return null;
+  }
+}
+
+/**
+ * Validate and refresh the current session if needed
+ */
+async function validateSession() {
+  try {
+    // Attempt to get current user
+    await account.get();
+    return true;
+  } catch (error: any) {
+    // If the error is an authentication error (401)
+    if (error.code === 401) {
+      // Try to refresh the session
+      try {
+        const sessions = await account.listSessions();
+        if (sessions && sessions.total > 0 && sessions.sessions[0]) {
+          await account.updateSession(sessions.sessions[0].$id);
+          return true;
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh session:', refreshError);
+      }
+    }
+    return false;
+  }
+}
+
+/**
+ * Handle account switching in multi-account context
+ * @param targetAccountId The account ID to switch to
+ * @returns Whether the switch was successful
+ */
+async function switchToAccount(targetAccountId: string): Promise<boolean> {
+  try {
+    // First sign out of current session
+    await signOut();
+    
+    // List all sessions to find the one for the target account
+    const sessions = await account.listSessions();
+    const targetSession = sessions.sessions.find(
+      session => session.userId === targetAccountId
+    );
+    
+    if (targetSession) {
+      // Update to use the target session
+      await account.updateSession(targetSession.$id);
+      return true;
+    } else {
+      console.error('No session found for target account');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error switching accounts:', error);
+    return false;
   }
 }
 
@@ -835,6 +955,8 @@ async function addUser(email: string, password: string, name: string) {
  */
 async function safeGetDocument(databaseId: string, collectionId: string, documentId: string, defaultValue: any = null) {
   try {
+    // Validate the session before attempting to access data
+    await validateSession();
     return await databases.getDocument(databaseId, collectionId, documentId);
   } catch (error: any) {
     // Check if this is a "Document not found" error
@@ -842,6 +964,19 @@ async function safeGetDocument(databaseId: string, collectionId: string, documen
       console.log(`Document not found: ${documentId} in collection ${collectionId}`);
       return defaultValue;
     }
+    
+    // For authentication errors, try to refresh the session and retry
+    if (error.code === 401) {
+      try {
+        const valid = await validateSession();
+        if (valid) {
+          return await databases.getDocument(databaseId, collectionId, documentId);
+        }
+      } catch (retryError) {
+        console.error('Error after session validation retry:', retryError);
+      }
+    }
+    
     // Rethrow other errors
     throw error;
   }
@@ -856,8 +991,22 @@ async function safeGetDocument(databaseId: string, collectionId: string, documen
  */
 async function safeListDocuments(databaseId: string, collectionId: string, queries: any[] = []) {
   try {
+    // Validate the session before attempting to access data
+    await validateSession();
     return await databases.listDocuments(databaseId, collectionId, queries);
   } catch (error: any) {
+    // For authentication errors, try to refresh the session and retry
+    if (error.code === 401) {
+      try {
+        const valid = await validateSession();
+        if (valid) {
+          return await databases.listDocuments(databaseId, collectionId, queries);
+        }
+      } catch (retryError) {
+        console.error('Error after session validation retry:', retryError);
+      }
+    }
+    
     console.error(`Error listing documents in collection ${collectionId}:`, error);
     return { documents: [], total: 0 };
   }
@@ -882,6 +1031,9 @@ export {
   createMagicURLSession,
   createAnonymousSession,
   ensureSession,
+  verifySession,
+  validateSession,
+  switchToAccount,
   convertAnonymousSession,
   createEmailOTP,
   verifyEmailOTP,

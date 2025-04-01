@@ -76,8 +76,14 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
         background: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(231, 231, 231, 0.8)',
-        width: { xs: '100%', md: `calc(100% - 240px)` },
-        ml: { xs: 0, md: '240px' },
+        width: { 
+          xs: '100%', 
+          md: isHomePage ? '100%' : `calc(100% - 240px)` 
+        },
+        ml: { 
+          xs: 0, 
+          md: isHomePage ? 0 : '240px' 
+        },
         zIndex: (theme) => theme.zIndex.drawer + 1,
         position: 'fixed',
         top: 0,

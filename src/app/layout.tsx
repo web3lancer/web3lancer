@@ -29,6 +29,12 @@ const PRE_AUTH_ROUTES = [
   '/forgot-password'
 ];
 
+// Also define routes where sidebar should not appear (e.g., homepage)
+const NO_SIDEBAR_ROUTES = [
+  '/',
+  '/home',
+];
+
 // Ensure MUI components are loaded properly
 function SafeHydrate({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
@@ -50,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // For sidebar visibility
   const pathname = usePathname();
   const isPreAuthPage = PRE_AUTH_ROUTES.includes(pathname || '');
+  const shouldShowSidebar = !isPreAuthPage && !NO_SIDEBAR_ROUTES.includes(pathname || '');
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   return (
@@ -69,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <SessionSync>
                       <WalletProvider>
                         <OAuthRefresher />
-                        <Header />
+                        <Header isHomePage={NO_SIDEBAR_ROUTES.includes(pathname || '')} isPreAuthPage={isPreAuthPage} />
                         <Box
                           sx={{
                             display: 'flex',
@@ -77,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             position: 'relative'
                           }}
                         >
-                          {!isPreAuthPage && !isMobile && (
+                          {shouldShowSidebar && !isMobile && (
                             <Sidebar />
                           )}
                           
@@ -87,8 +94,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             animate={{ opacity: 1 }}
                             sx={{
                               flexGrow: 1,
-                              width: { sm: `calc(100% - ${isPreAuthPage ? 0 : (isMobile ? 0 : 250)}px)` },
-                              ml: { sm: isPreAuthPage ? 0 : (isMobile ? 0 : `250px`) },
+                              width: { 
+                                sm: `calc(100% - ${shouldShowSidebar && !isMobile ? 240 : 0}px)` 
+                              },
+                              ml: { 
+                                sm: shouldShowSidebar && !isMobile ? `240px` : 0 
+                              },
                               pt: '64px', // Header height
                               minHeight: '100vh',
                             }}
