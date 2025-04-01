@@ -138,7 +138,7 @@ export default function HeroSection() {
                   maxWidth: 500
                 }}
               >
-                Connect with top Web3 talent and projects in a decentralized workspace
+                Connect with top Web3 talent and projects in a decentralized workspace with Web3lancer
               </Typography>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link href="/dashboard" passHref>
