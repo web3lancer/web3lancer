@@ -5,11 +5,12 @@ import { Dashboard, Work, Bookmarks, Storefront, Person, People } from "@mui/ico
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
+import { shouldShowSidebar } from '@/utils/navigation'; // Import the utility function
 
 const menuItems = [
-  { text: 'home', icon: Dashboard, path: '/dashboard' },
+  { text: 'Home', icon: Dashboard, path: '/dashboard' },
   { text: 'Projects', icon: Work, path: '/projects' },
-  { text: 'Connect', icon: People, path: '/connect' }, // Updated from "Marketplace" to "Connect"
+  { text: 'Connect', icon: People, path: '/connect' },
   { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
   { text: 'Profile', icon: Person, path: '/profile' },
 ];
@@ -27,6 +28,11 @@ export default function Sidebar() {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  // Check if sidebar should be shown on this page
+  if (!shouldShowSidebar(pathname)) {
+    return null;
+  }
 
   // Animation variants
   const listVariants = {

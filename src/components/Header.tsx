@@ -1,22 +1,27 @@
 "use client";
 
 import { AppBar, Toolbar, Typography, Button, IconButton, Box } from "@mui/material";
-import { Notifications } from "@mui/icons-material";
+import { Notifications, Menu as MenuIcon } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
 import { useAuth } from '@/contexts/AuthContext';
 import { Account } from './Account';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { shouldShowSidebar } from '@/utils/navigation';
 
 interface HeaderProps {
   isHomePage?: boolean;
   isPreAuthPage?: boolean;
+  onToggleDrawer?: () => void;
 }
 
-export default function Header({ isHomePage = false, isPreAuthPage = false }: HeaderProps) {
+export default function Header({ isHomePage = false, isPreAuthPage = false, onToggleDrawer }: HeaderProps) {
   const { user } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+  const pathname = usePathname();
+  const showSidebar = shouldShowSidebar(pathname);
 
   useEffect(() => {
     let isMounted = true;
@@ -124,19 +129,8 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
         background: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(231, 231, 231, 0.8)',
-        width: { 
-          xs: '100%', 
-          md: isHomePage ? '100%' : `calc(100% - 240px)` 
-        },
-        ml: { 
-          xs: 0, 
-          md: isHomePage ? 0 : '240px' 
-        },
+        width: '100%',
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>
@@ -146,6 +140,18 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
           transition={{ duration: 0.5 }}
           style={{ display: 'flex', alignItems: 'center' }}
         >
+          {showSidebar && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={onToggleDrawer}
+              sx={{ mr: 2, display: { md: 'none' } }}
+            >
+              <MenuIcon sx={{ color: '#1E40AF' }} />
+            </IconButton>
+          )}
+
           <Box sx={{ position: 'relative', width: 40, height: 40, mr: 2 }}>
             <Image
               src="/logo/web3lancer.jpg"
