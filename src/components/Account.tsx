@@ -149,7 +149,7 @@ export function Account() {
               {displayName || 'User'}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {user.email ? user.email : 'Web3 Account'}
+              {user.email ? user.email : 'guest'}
             </Typography>
           </Box>
           <KeyboardArrowDown
@@ -180,7 +180,7 @@ export function Account() {
             {displayName || 'User'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {user.email || 'Web3 Account'}
+            {user.email || 'guest'}
           </Typography>
         </Box>
         <Divider />
