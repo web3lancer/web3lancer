@@ -1,11 +1,12 @@
-import { account, databases, getCurrentSession } from './api';
+import { account } from './api';
 import { useAuth } from '@/contexts/AuthContext';
-import { APPWRITE_CONFIG } from '@/lib/env';
+import { useCallback } from 'react';
 
 /**
  * Session Manager
  * 
  * Utilities to manage authentication sessions and ensure proper synchronization.
+ * Simplified version without multi-account functionality.
  */
 
 /**
@@ -13,17 +14,10 @@ import { APPWRITE_CONFIG } from '@/lib/env';
  */
 export async function validateSessionStatus(): Promise<boolean> {
   try {
-    // Get current session
-    const session = await getCurrentSession();
-    if (!session) {
-      return false;
-    }
-    
-    // Get current user
+    // Get current user - if this succeeds, the session is valid
     const user = await account.get();
     return !!user.$id;
   } catch (error) {
-    console.error('Error validating session:', error);
     return false;
   }
 }
@@ -37,26 +31,24 @@ export function useSessionManager() {
   /**
    * Validate the current session state
    */
-  const validateSession = async (): Promise<boolean> => {
+  const validateSession = useCallback(async (): Promise<boolean> => {
+    if (user) return true;
     return await validateSessionStatus();
-  };
+  }, [user]);
   
   /**
    * Reset the entire session state and sign out
    */
-  const resetSession = async () => {
+  const resetSession = useCallback(async () => {
     try {
       await signOut();
-      
-      // Clear localStorage data for good measure
       localStorage.removeItem('web3lancer_session');
-      
       return true;
     } catch (error) {
       console.error('Error resetting session:', error);
       return false;
     }
-  };
+  }, [signOut]);
 
   return {
     validateSession,

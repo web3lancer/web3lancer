@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { getCurrentSession, signOut } from '@/utils/api';
+import { signOut } from '@/utils/api';
+import { useCallback } from 'react';
 
 /**
  * Custom hook for session management - simplified version without multi-account
@@ -10,7 +11,7 @@ export function useSessionAccount() {
   /**
    * Reset the entire session state and sign out
    */
-  const resetSession = async () => {
+  const resetSession = useCallback(async () => {
     try {
       await signOut();
       localStorage.removeItem('web3lancer_session');
@@ -19,19 +20,14 @@ export function useSessionAccount() {
       console.error('Error resetting session:', error);
       return false;
     }
-  };
+  }, []);
 
   /**
-   * Check if current session is valid
+   * Check if current session is valid - now simplified
    */
-  const validateSession = async () => {
-    try {
-      const session = await getCurrentSession();
-      return !!session;
-    } catch (error) {
-      return false;
-    }
-  };
+  const validateSession = useCallback(async () => {
+    return !!user;
+  }, [user]);
 
   return {
     user,

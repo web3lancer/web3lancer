@@ -1,40 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getCurrentSession } from '@/utils/api';
 import { Box, CircularProgress, Typography, Button } from '@mui/material';
 import { SyncProblem } from '@mui/icons-material';
 
 /**
  * SessionSync component
  * 
- * This component synchronizes the authentication session.
- * It ensures that the user is always logged in correctly.
+ * This component ensures initial authentication state is loaded.
+ * Simplified version without multi-account functionality.
  */
 export default function SessionSync({ children }: { children: React.ReactNode }) {
   const { user, refreshUser, signOut } = useAuth();
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<boolean>(false);
   const router = useRouter();
+  const syncAttempted = useRef(false);
 
-  // Check session on initial load
+  // Check session only once on initial load
   useEffect(() => {
+    // Skip if we've already attempted to sync or if user is already loaded
+    if (syncAttempted.current || user) {
+      syncAttempted.current = true;
+      return;
+    }
+
     const syncSession = async () => {
       try {
         setSyncing(true);
-        setError(false);
-        
-        // Check if we have an active session
-        const session = await getCurrentSession();
-        
-        // If session exists but no user in context, refresh user
-        if (session && !user) {
-          console.log('Session exists but no user in context - refreshing user');
+        // Only refresh user if we don't already have a user in context
+        if (!user) {
           await refreshUser();
-          return;
         }
+        syncAttempted.current = true;
       } catch (error) {
         console.error('Error syncing session:', error);
         setError(true);
@@ -72,7 +72,7 @@ export default function SessionSync({ children }: { children: React.ReactNode })
         }}
       >
         <CircularProgress size={16} sx={{ mr: 1 }} />
-        <Typography variant="caption">Syncing session...</Typography>
+        <Typography variant="caption">Loading session...</Typography>
       </Box>
     );
   }
@@ -93,10 +93,10 @@ export default function SessionSync({ children }: { children: React.ReactNode })
         <SyncProblem sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
         <Typography variant="h5" gutterBottom>Session Error</Typography>
         <Typography variant="body1" paragraph>
-          There was a problem synchronizing your session. This may happen if you're logged in from multiple browsers or if your session has expired.
+          There was a problem loading your session. Please try signing in again.
         </Typography>
         <Button variant="contained" color="primary" onClick={handleReset}>
-          Reset and Sign In Again
+          Sign In
         </Button>
       </Box>
     );
