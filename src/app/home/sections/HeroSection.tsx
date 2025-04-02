@@ -80,7 +80,7 @@ export default function HeroSection() {
                 }
               }}
             >
-              Connect
+              Sign In
             </Button>
           </Box>
         </Toolbar>

@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import { shouldShowSidebar } from '@/utils/navigation'; // Import the utility function
 
 const menuItems = [
-  { text: 'Home', icon: Dashboard, path: '/dashboard' },
+  { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
   { text: 'Projects', icon: Work, path: '/projects' },
   { text: 'Connect', icon: People, path: '/connect' },
   { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },

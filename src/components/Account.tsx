@@ -1,107 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, ListItemIcon, ListItemText, Alert } from '@mui/material';
-import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, Login, PersonAdd, VerifiedUser, MarkEmailRead, GitHub } from '@mui/icons-material';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { Avatar, Box, Button, Menu, MenuItem, ListItemIcon, ListItemText, Divider, Tooltip, Typography } from '@mui/material';
+import { Person, Logout, Login, Settings, AccountBalanceWallet, KeyboardArrowDown, PersonAdd } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { createEmailVerification, account, safeGetDocument } from '@/utils/api';
-import { APPWRITE_CONFIG } from '@/lib/env';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
 
 export function Account() {
+  const { user, logout, profilePicture, isAnonymous } = useAuth();
   const router = useRouter();
-  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
-  const [disconnectWallet, setDisconnectWallet] = useState<(() => void) | undefined>(undefined);
-  const { user, signOut, isAnonymous, profilePicture, setProfilePicture } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [isVerified, setIsVerified] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
-  const open = Boolean(anchorEl);
+  
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  
+  const handleLogout = async () => {
+    handleClose();
+    await logout();
+    router.push('/');
+  };
+  
+  const handleProfileClick = () => {
+    handleClose();
+    router.push('/profile');
+  };
+  
+  const handleSettingsClick = () => {
+    handleClose();
+    router.push('/settings');
+  };
 
-  // Fix for the hook call issue
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        // Let's first try to access wallet via window.ethereum directly
-        if (window.ethereum) {
-          window.ethereum.request({ method: 'eth_accounts' })
-            .then((accounts: string[]) => {
-              if (accounts && accounts.length > 0) {
-                setWalletAddress(accounts[0]);
-              }
-            })
-            .catch(console.error);
-            
-          // Setup listener for account changes
-          const handleAccountsChanged = (accounts: string[]) => {
-            setWalletAddress(accounts.length > 0 ? accounts[0] : undefined);
-          };
-          
-          window.ethereum.on('accountsChanged', handleAccountsChanged);
-          
-          return () => {
-            if (window.ethereum.removeListener) {
-              window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-            }
-          };
-        }
-        
-        // As a fallback, try the wagmi approach but without direct hook calls
-        import('wagmi').then(wagmiModule => {
-          if (wagmiModule.getClient) {
-            const client = wagmiModule.getClient();
-            const account = client?.getAccount();
-            
-            if (account) {
-              setWalletAddress(account.address);
-              
-              // For disconnect function
-              setDisconnectWallet(() => () => {
-                if (client?.disconnect) {
-                  client.disconnect();
-                }
-              });
-            }
-          }
-        }).catch(err => {
-          console.error('Error loading wagmi:', err);
-        });
-      } catch (error) {
-        console.error('Error in wallet integration:', error);
-      }
-    }
-  }, []);
-
-  // Display GitHub info if available
-  const isGitHubUser = user?.provider === 'github';
-
-  // Fetch profile picture when user changes
-  useEffect(() => {
-    const fetchProfilePicture = async () => {
-      try {
-        if (user?.$id && !user.walletId) {
-          const response = await safeGetDocument(
-            APPWRITE_CONFIG.DATABASES.USERS,
-            APPWRITE_CONFIG.COLLECTIONS.PROFILES,
-            user.$id,
-            null
-          );
-          if (response && response.profilePicture) {
-            setProfilePicture(response.profilePicture);
-          }
-        }
-      } catch (error) {
-        console.error('Error in profile picture fetch flow:', error);
-      }
-    };
-
-    fetchProfilePicture();
-  }, [user, setProfilePicture]);
-
-  // Check if user is verified
-  useEffect(() => {}, [user]);
-
-  const handleResendVerification = async () => {};
+  const handleWalletClick = () => {
+    handleClose();
+    router.push('/wallet');
+  };
 
   // Format wallet address for display
   const formatAddress = (addr?: string) => {
@@ -111,50 +48,16 @@ export function Account() {
 
   // Get display name (username or wallet address)
   const displayName = user?.name || 
-                      (user?.walletId ? formatAddress(user.walletId) : 
-                      walletAddress ? formatAddress(walletAddress) : '');
+                    (user?.walletId ? formatAddress(user.walletId) : '');
+  
+  // Debug information
+  console.log('Account component render:', { 
+    hasUser: !!user, 
+    isAnonymous, 
+    displayName,
+    userName: user?.name
+  });
 
-  // Debug information to help troubleshoot
-  useEffect(() => {
-    if (user) {
-      console.log('Account component user state:', { 
-        id: user.$id,
-        name: user.name,
-        email: user.email,
-        isAnonymous,
-        provider: user.provider
-      });
-    }
-  }, [user, isAnonymous]);
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleProfileClick = () => {
-    router.push('/profile');
-    handleClose();
-  };
-
-  const handleSignOut = async () => {
-    try {
-      // Disconnect wallet if available
-      if (disconnectWallet) {
-        disconnectWallet();
-      }
-      await signOut();
-      router.push('/signin');
-      handleClose();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
-
-  // If user is anonymous or not logged in, let's show a different display
   if (isAnonymous || !user) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -238,104 +141,76 @@ export function Account() {
                 boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
               }}
             >
-              {displayName ? displayName.charAt(0).toUpperCase() : <AccountCircle />}
+              {user?.name ? user.name[0]?.toUpperCase() : '?'}
             </Avatar>
           </motion.div>
-          <Typography
-            variant="body2"
-            sx={{
-              mx: 1.5,
-              fontWeight: 600,
-              display: { xs: 'none', sm: 'block' }
-            }}
-          >
-            {displayName || 'Account'}
-          </Typography>
+          <Box sx={{ ml: 1.5, display: { xs: 'none', sm: 'block' } }}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
+              {displayName || 'User'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user.email ? user.email : 'Web3 Account'}
+            </Typography>
+          </Box>
           <KeyboardArrowDown
             fontSize="small"
             sx={{
               color: 'text.secondary',
-              display: { xs: 'none', sm: 'block' }
+              display: { xs: 'none', sm: 'block' },
+              ml: 0.5
             }}
           />
         </Box>
       </Tooltip>
-
+      
       <Menu
         anchorEl={anchorEl}
-        id="account-menu"
-        open={open}
+        open={Boolean(anchorEl)}
         onClose={handleClose}
-        onClick={handleClose}
         PaperProps={{
-          elevation: 0,
           sx: {
-            overflow: 'visible',
-            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-            mt: 1.5,
-            borderRadius: 2,
-            minWidth: 180,
-            '& .MuiMenuItem-root': {
-              px: 2,
-              py: 1.5,
-            },
-            '&:before': {
-              content: '""',
-              display: 'block',
-              position: 'absolute',
-              top: 0,
-              right: 14,
-              width: 10,
-              height: 10,
-              bgcolor: 'background.paper',
-              transform: 'translateY(-50%) rotate(45deg)',
-              zIndex: 0,
-            },
-          },
+            borderRadius: '12px',
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+            mt: 1
+          }
         }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleProfileClick}>
-          <Person fontSize="small" sx={{ mr: 1.5 }} />
-          <Typography variant="body2">Profile</Typography>
-        </MenuItem>
-        
-        {!isVerified && !user?.walletId && (
-          <MenuItem onClick={handleResendVerification}>
-            <ListItemIcon>
-              <MarkEmailRead fontSize="small" sx={{ color: '#1E40AF' }} />
-            </ListItemIcon>
-            <ListItemText primary="Verify Email" />
-          </MenuItem>
-        )}
-        {isVerified && !user?.walletId && (
-          <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
-            <ListItemIcon>
-              <VerifiedUser fontSize="small" sx={{ color: 'success.main' }} />
-            </ListItemIcon>
-            <ListItemText primary="Email Verified" />
-          </MenuItem>
-        )}
-        {isGitHubUser && (
-          <MenuItem sx={{ pointerEvents: 'none', opacity: 0.7 }}>
-            <ListItemIcon>
-              <GitHub fontSize="small" sx={{ color: '#1E40AF' }} />
-            </ListItemIcon>
-            <ListItemText primary="Connected with GitHub" />
-          </MenuItem>
-        )}
-        {verificationSent && (
-          <Alert severity="success" sx={{ mx: 2, my: 1 }}>
-            Verification email sent!
-          </Alert>
-        )}
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="subtitle2" fontWeight="bold">
+            {displayName || 'User'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {user.email || 'Web3 Account'}
+          </Typography>
+        </Box>
         <Divider />
-        <MenuItem onClick={handleSignOut}>
-          <ExitToApp fontSize="small" sx={{ mr: 1.5, color: 'error.main' }} />
-          <Typography variant="body2" color="error">Sign out</Typography>
+        <MenuItem onClick={handleProfileClick} sx={{ py: 1.5, px: 2 }}>
+          <ListItemIcon>
+            <Person fontSize="small" sx={{ color: '#1E40AF' }} />
+          </ListItemIcon>
+          <ListItemText>Profile</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleSettingsClick} sx={{ py: 1.5, px: 2 }}>
+          <ListItemIcon>
+            <Settings fontSize="small" sx={{ color: '#1E40AF' }} />
+          </ListItemIcon>
+          <ListItemText>Settings</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleWalletClick} sx={{ py: 1.5, px: 2 }}>
+          <ListItemIcon>
+            <AccountBalanceWallet fontSize="small" sx={{ color: '#1E40AF' }} />
+          </ListItemIcon>
+          <ListItemText>Wallet</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleLogout} sx={{ py: 1.5, px: 2 }}>
+          <ListItemIcon>
+            <Logout fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText sx={{ color: 'error.main' }}>Logout</ListItemText>
         </MenuItem>
       </Menu>
+      
       <Box sx={{ ml: 2 }}>
         <NetworkSwitcher />
       </Box>

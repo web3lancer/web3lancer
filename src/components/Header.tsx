@@ -188,7 +188,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false, onTo
           </IconButton>
 
           {walletAddress || user ? (
-            <Account />
+            <Account walletAddress={walletAddress} user={user} />
           ) : (
             <Button
               href="/signin"
