@@ -14,7 +14,9 @@ export function WalletProvider({ children }: WalletProviderProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
+        // Disable refetching on window focus for better user experience
         refetchOnWindowFocus: false,
+        // Set reasonable retry settings
         retry: 1,
         retryDelay: 500,
       },
@@ -28,5 +30,4 @@ export function WalletProvider({ children }: WalletProviderProps) {
       </QueryClientProvider>
     </WagmiProvider>
   );
-}
 }
