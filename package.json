@@ -22,7 +22,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "appwrite": "^17.0.0",
     "crypto-js": "^4.2.0",
-    "date-fns": "^4.1.0",
+    "date-fns": "^2.30.0",
     "framer-motion": "^12.4.2",
     "next": "15.1.7",
     "pino-pretty": "^13.0.0",

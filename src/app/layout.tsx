@@ -7,15 +7,13 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { theme } from '@/utils/theme';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import SessionSync from '@/components/SessionSync';
 import { AnimatePresence } from 'framer-motion';
 import { Box } from '@mui/material';
 import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar'; // Import the Sidebar component
+import Sidebar from '@/components/Sidebar';
 import { WalletProvider } from '@/components/WalletProvider';
-import { shouldShowSidebar } from '@/utils/navigation'; // Import our new utility function
+import { shouldShowSidebar } from '@/utils/navigation';
 import { usePathname } from 'next/navigation';
 
 // Importing motion properly to avoid SSR serialization issues
@@ -53,38 +51,36 @@ export default function RootLayout({
           <WalletProvider>
             <AppRouterCacheProvider>
               <AuthProvider>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <SessionSync>
-                    <MotionDiv
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
-                    >
-                      <Header isHomePage={isHomePage} isPreAuthPage={isPreAuthPage} />
+                <SessionSync>
+                  <MotionDiv
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+                  >
+                    <Header isHomePage={isHomePage} isPreAuthPage={isPreAuthPage} />
+                    
+                    <Box sx={{ display: 'flex', flexGrow: 1 }}>
+                      {showSidebar && <Sidebar />}
                       
-                      <Box sx={{ display: 'flex', flexGrow: 1 }}>
-                        {showSidebar && <Sidebar />}
-                        
-                        <Box 
-                          component="main" 
-                          sx={{ 
-                            flexGrow: 1, 
-                            pt: { xs: 7, sm: 8 },
-                            ml: showSidebar ? { xs: 0, md: '240px' } : 0,
-                            width: showSidebar ? { xs: '100%', md: 'calc(100% - 240px)' } : '100%',
-                            transition: 'margin 0.3s ease, width 0.3s ease'
-                          }}
-                        >
-                          <AnimatePresence mode="wait">
-                            {children}
-                          </AnimatePresence>
-                        </Box>
+                      <Box 
+                        component="main" 
+                        sx={{ 
+                          flexGrow: 1, 
+                          pt: { xs: 7, sm: 8 },
+                          ml: showSidebar ? { xs: 0, md: '240px' } : 0,
+                          width: showSidebar ? { xs: '100%', md: 'calc(100% - 240px)' } : '100%',
+                          transition: 'margin 0.3s ease, width 0.3s ease'
+                        }}
+                      >
+                        <AnimatePresence mode="wait">
+                          {children}
+                        </AnimatePresence>
                       </Box>
-                    </MotionDiv>
-                  </SessionSync>
-                </LocalizationProvider>
+                    </Box>
+                  </MotionDiv>
+                </SessionSync>
               </AuthProvider>
             </AppRouterCacheProvider>
           </WalletProvider>

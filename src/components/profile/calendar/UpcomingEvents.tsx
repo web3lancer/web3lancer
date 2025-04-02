@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
 import { CalendarEvent } from '@/hooks/useCalendarEvents';
+// Import our custom date utilities
+import { formatDate } from '@/utils/dateUtils';
 
 interface UpcomingEventsProps {
   events: CalendarEvent[];
@@ -24,7 +26,7 @@ export function UpcomingEvents({ events }: UpcomingEventsProps) {
                 <CardContent>
                   <Typography variant="subtitle1">{event.title}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {event.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {formatDate(event.date, 'medium')}
                   </Typography>
                 </CardContent>
               </Card>
