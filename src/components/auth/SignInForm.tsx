@@ -2,25 +2,28 @@
 
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Alert, Button, Divider, TextField, IconButton, Tabs, Tab } from '@mui/material';
-import { GitHub, Email } from '@mui/icons-material';
+import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { signIn } from '@/utils/api';
+import { signIn, createMagicURLToken, initiateGitHubLogin } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 
 export default function SignInForm() {
   const router = useRouter();
-  const { user, setUser } = useAuth();
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
   });
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [signInMethod, setSignInMethod] = useState<'email' | 'otp'>('email');
+  const [signInMethod, setSignInMethod] = useState<'email' | 'otp' | 'magic'>('email');
   const [showWalletConnect, setShowWalletConnect] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,10 +51,43 @@ export default function SignInForm() {
     }
   };
 
+  // Handle Magic Link sign in
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    if (!magicLinkEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(magicLinkEmail)) {
+      setError('Please enter a valid email address');
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      await createMagicURLToken(magicLinkEmail);
+      setSuccess(`Magic link sent to ${magicLinkEmail}. Please check your email.`);
+      setMagicLinkEmail('');
+    } catch (error) {
+      console.error('Error creating magic link:', error);
+      setError('Failed to send magic link. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle GitHub sign in
-  const handleGitHubSignIn = () => {
-    // Redirect to GitHub OAuth flow
-    window.location.href = '/api/auth/github';
+  const handleGitHubSignIn = async () => {
+    try {
+      setIsLoading(true);
+      // Use the auth context to initiate GitHub login
+      await initiateGitHubLogin();
+      // The page will redirect to GitHub
+    } catch (error) {
+      console.error('Error initiating GitHub login:', error);
+      setError('Failed to connect to GitHub. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   // Function to handle closing the wallet connect modal
@@ -91,8 +127,14 @@ export default function SignInForm() {
         </Typography>
         
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
             {error}
+          </Alert>
+        )}
+        
+        {success && (
+          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+            {success}
           </Alert>
         )}
         
@@ -151,6 +193,7 @@ export default function SignInForm() {
             sx={{ mb: 3 }}
           >
             <Tab label="Email/Password" value="email" />
+            <Tab label="Magic Link" value="magic" />
             <Tab label="Email OTP" value="otp" />
           </Tabs>
         </Box>
@@ -193,6 +236,32 @@ export default function SignInForm() {
               startIcon={<Email />}
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </form>
+        )}
+
+        {/* Magic Link form */}
+        {signInMethod === 'magic' && (
+          <form onSubmit={handleMagicLinkSignIn}>
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={magicLinkEmail}
+              onChange={(e) => setMagicLinkEmail(e.target.value)}
+              required
+              helperText="We'll send a sign-in link to this email"
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={isLoading}
+              startIcon={<LinkIcon />}
+            >
+              {isLoading ? 'Sending...' : 'Send Magic Link'}
             </Button>
           </form>
         )}

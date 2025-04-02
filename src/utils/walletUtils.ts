@@ -56,32 +56,32 @@ export async function linkWalletToUser(
   chainId?: number
 ) {
   try {
-    // Check if the wallet is already linked to this user
+    // Check if we already have a wallet with this address
     const existingWallets = await wallets.listByUser(userId);
-    const alreadyLinked = existingWallets.documents.find(
-      wallet => wallet.address?.toLowerCase() === walletAddress.toLowerCase()
-    );
     
-    if (alreadyLinked) {
-      return alreadyLinked; // Wallet already linked
+    for (const wallet of existingWallets.documents) {
+      if (wallet.walletAddress.toLowerCase() === walletAddress.toLowerCase()) {
+        // Wallet already linked
+        return wallet;
+      }
     }
     
-    // Create a wallet record
-    const walletData = {
-      userId: userId,
-      address: walletAddress,
-      type: walletType,
+    // Create a new wallet record
+    const walletId = ID.unique();
+    const result = await wallets.create({
+      walletId,
+      userId,
+      walletAddress,
+      walletType,
       chainId: chainId || null,
-      isPrimary: existingWallets.documents.length === 0, // First wallet is primary
       createdAt: new Date().toISOString(),
-      lastUsed: new Date().toISOString()
-    };
+      updatedAt: new Date().toISOString()
+    });
     
-    // Save the wallet in the database
-    return await wallets.create(walletData);
+    return result;
   } catch (error) {
     console.error('Error linking wallet to user:', error);
-    throw new Error('Failed to link wallet to user account');
+    return null;
   }
 }
 

@@ -788,10 +788,10 @@ async function getFilePreview(bucketId: string, fileId: string, width?: number, 
 async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
   try {
     const baseURL = APP_CONFIG.APP_URL;
-    const successURL = `${baseURL}/dashboard`;
+    const successURL = `${baseURL}/oauth/callback`;
     const failureURL = `${baseURL}/signin?error=github_auth_failed`;
     
-    // Create GitHub OAuth session
+    // Create GitHub OAuth session with proper scopes and redirect URLs
     await account.createOAuth2Session(
       OAuthProvider.Github,
       successURL,
@@ -803,6 +803,25 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
   } catch (error) {
     console.error('Error creating GitHub OAuth session:', error);
     throw new Error(`Failed to create GitHub OAuth session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Process GitHub OAuth callback
+ * This function helps when handling the callback manually rather than using automatic redirects
+ */
+async function handleGitHubOAuthCallback(code: string) {
+  try {
+    // For manual handling of the OAuth flow, you would verify the code
+    // This is a placeholder for any manual verification needed
+    // Appwrite handles most of this automatically through redirects
+    
+    // After OAuth redirect, we can get the current session which should now be authenticated
+    const user = await account.get();
+    return user;
+  } catch (error) {
+    console.error('Error handling GitHub OAuth callback:', error);
+    throw new Error(`Failed to complete GitHub authentication: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -1002,6 +1021,7 @@ export {
   fetchJobs,
   fetchJob,
   createGitHubOAuthSession,
+  handleGitHubOAuthCallback,
   getCurrentSession,
   refreshOAuthSession,
   ensureValidOAuthToken,

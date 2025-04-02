@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { account, validateSession } from '@/utils/api';
+import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback } from '@/utils/api';
 
 interface User {
   $id: string;
@@ -23,6 +23,8 @@ interface AuthContextType {
   setProfilePicture: (url: string | null) => void;
   refreshUser: () => Promise<User | null>;
   signOut: () => Promise<boolean>;
+  handleGitHubOAuth: (code?: string) => Promise<User | null>;
+  initiateGitHubLogin: () => Promise<void>;
 }
 
 // Create a context with a default value
@@ -36,6 +38,8 @@ const AuthContext = createContext<AuthContextType>({
   setProfilePicture: () => {},
   refreshUser: async () => null,
   signOut: async () => false,
+  handleGitHubOAuth: async () => null,
+  initiateGitHubLogin: async () => {},
 });
 
 // Provider component that wraps the app
@@ -75,6 +79,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return false;
     }
   }, []);
+  
+  // Function to initiate GitHub OAuth login
+  const initiateGitHubLogin = useCallback(async () => {
+    try {
+      await createGitHubOAuthSession(['user:email']);
+      // The page will redirect to GitHub login
+    } catch (error) {
+      console.error('Error starting GitHub login:', error);
+    }
+  }, []);
+  
+  // Function to handle GitHub OAuth callback
+  const handleGitHubOAuth = useCallback(async (code?: string): Promise<User | null> => {
+    try {
+      setIsLoading(true);
+      
+      // If we have a code, we need to process it manually
+      // Otherwise we rely on Appwrite's automatic session handling
+      let currentUser;
+      
+      if (code) {
+        // For manual handling - this is generally not needed with Appwrite
+        currentUser = await handleGitHubOAuthCallback(code);
+      } else {
+        // Get current user after OAuth redirect
+        currentUser = await account.get();
+      }
+      
+      setUser(currentUser);
+      setIsAnonymous(!!currentUser?.$id && currentUser?.status === false);
+      return currentUser;
+    } catch (error) {
+      console.error('Error handling GitHub OAuth:', error);
+      setUser(null);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   // Effect to check for existing session on mount
   useEffect(() => {
@@ -109,7 +152,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsAnonymous,
     setProfilePicture,
     refreshUser,
-    signOut: handleSignOut
+    signOut: handleSignOut,
+    handleGitHubOAuth,
+    initiateGitHubLogin
   };
 
   return (

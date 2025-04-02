@@ -9,14 +9,23 @@ const MotionPaper = motion(Paper);
 
 export default function OAuthCallback() {
   const router = useRouter();
-  const { handleGitHubOAuth } = useAuth();
+  const { handleGitHubOAuth, refreshUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
     async function processOAuth() {
       try {
-        // Get the code from the URL
+        // First try using the automatic session that Appwrite creates
+        const user = await refreshUser();
+        
+        if (user) {
+          router.push('/dashboard');
+          return;
+        }
+        
+        // Fallback to manual handling if needed
+        // Get the code from the URL (though Appwrite typically handles this automatically)
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
 
@@ -24,7 +33,7 @@ export default function OAuthCallback() {
           await handleGitHubOAuth(code);
           router.push('/dashboard');
         } else {
-          setError("No authorization code found");
+          setError("Authentication failed - no session or code found");
           setTimeout(() => router.push('/signin'), 3000);
         }
       } catch (error) {
@@ -37,7 +46,7 @@ export default function OAuthCallback() {
     }
 
     processOAuth();
-  }, [handleGitHubOAuth, router]);
+  }, [handleGitHubOAuth, refreshUser, router]);
 
   return (
     <Box sx={{ 
