@@ -7,6 +7,20 @@ import { APPWRITE_CONFIG } from '@/lib/env';
  */
 
 /**
+ * Generate a random wallet address for demonstration/testing purposes
+ * @returns A wallet address string in the format 0x...
+ */
+export function generateWalletAddress(): string {
+  // Generate a random 40-character hex string for the address
+  const characters = '0123456789abcdef';
+  let address = '0x';
+  for (let i = 0; i < 40; i++) {
+    address += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return address;
+}
+
+/**
  * Check if the current session has access to the wallet
  * @param walletId ID of the wallet to check
  * @returns Whether the current user has access to the wallet
