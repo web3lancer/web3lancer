@@ -17,31 +17,63 @@ interface HeaderProps {
 export default function Header({ isHomePage = false, isPreAuthPage = false }: HeaderProps) {
   const { user } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
-  
-  // Safely try to use wagmi hooks with error handling
+
   useEffect(() => {
-    // Only run in client side
-    if (typeof window !== 'undefined') {
+    let isMounted = true;
+
+    const checkWalletConnection = async () => {
       try {
-        // Dynamically import and use wagmi to avoid SSR/provider issues
-        import('wagmi').then(({ useAccount }) => {
-          const { address } = useAccount();
-          setWalletAddress(address);
-        }).catch(err => {
-          console.error("Failed to load wagmi:", err);
-        });
-      } catch (error) {
-        console.error("Error accessing wallet:", error);
+        const wagmi = await import('wagmi');
+
+        if (wagmi.getClient) {
+          const client = wagmi.getClient();
+          const account = client.getAccount();
+
+          if (isMounted) {
+            setWalletAddress(account?.address);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load wagmi:", err);
       }
+    };
+
+    checkWalletConnection();
+
+    if (typeof window !== 'undefined' && window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (isMounted) {
+          setWalletAddress(accounts[0]);
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      window.ethereum.request({ method: 'eth_accounts' })
+        .then((accounts: string[]) => {
+          if (isMounted && accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+          }
+        })
+        .catch(console.error);
+
+      return () => {
+        isMounted = false;
+        if (window.ethereum.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // If it's home page, return null (no header)
   if (isHomePage) {
     return null;
   }
 
-  // If it's a pre-auth page, return a simplified header
   if (isPreAuthPage) {
     return (
       <AppBar
@@ -84,7 +116,6 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
     );
   }
 
-  // Regular header for authenticated routes
   return (
     <AppBar
       position="fixed"
