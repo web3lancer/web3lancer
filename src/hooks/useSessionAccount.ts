@@ -3,7 +3,6 @@ import { getCurrentSession, signOut } from '@/utils/api';
 
 /**
  * Custom hook for session management - simplified version without multi-account
- * This is a stub replacement for the previous multi-account version
  */
 export function useSessionAccount() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();

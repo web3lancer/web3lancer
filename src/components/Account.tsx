@@ -27,14 +27,12 @@ export function Account() {
     const fetchProfilePicture = async () => {
       try {
         if (user?.$id && !user.walletId) {
-          // Use safeGetDocument to handle 404 errors gracefully
           const response = await safeGetDocument(
             APPWRITE_CONFIG.DATABASES.USERS,
             APPWRITE_CONFIG.COLLECTIONS.PROFILES,
             user.$id,
-            null // default value if document not found
+            null
           );
-            
           if (response && response.profilePicture) {
             setProfilePicture(response.profilePicture);
           }
@@ -43,49 +41,17 @@ export function Account() {
         console.error('Error in profile picture fetch flow:', error);
       }
     };
-    
+
     fetchProfilePicture();
   }, [user, setProfilePicture]);
 
   // Check if user is verified
-  useEffect(() => {
-    const checkVerification = async () => {
-      try {
-        if (user && !user.walletId) {
-          try {
-            const prefs = await account.getPrefs();
-            setIsVerified(prefs.emailVerification === true);
-          } catch (error) {
-            // Failed to get prefs, possibly not authenticated
-            console.log('Failed to get user preferences:', error);
-            setIsVerified(false);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking verification status:', error);
-      }
-    };
-    
-    checkVerification();
-  }, [user]);
+  useEffect(() => {}, [user]);
 
-  const handleResendVerification = async () => {
-    try {
-      await createEmailVerification();
-      setVerificationSent(true);
-      setTimeout(() => {
-        setVerificationSent(false);
-      }, 5000);
-    } catch (error) {
-      console.error('Error sending verification:', error);
-    }
-  };
+  const handleResendVerification = async () => {};
 
   // Format wallet address for display
-  const formatAddress = (addr?: string) => {
-    if (!addr) return '';
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
+  const formatAddress = (addr?: string) => {};
 
   // Get display name (username or wallet address)
   const displayName = user?.name || 

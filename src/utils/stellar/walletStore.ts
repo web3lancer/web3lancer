@@ -68,62 +68,65 @@ class StellarWalletStore {
   }
 
   private notifyListeners() {
-    this.listeners.forEach(listener => listener(this.state));
+    for (const listener of this.listeners) {
+      listener(this.state);
+    }
   }
 
-  async register(params: RegisterParams): Promise<void> {
+  async register({ publicKey, secretKey, pincode }: { 
+    publicKey: string; 
+    secretKey: string; 
+    pincode: string;
+  }) {
     try {
-      // In a real implementation, this would encrypt the secret key
-      // For demo purposes, we're just storing that we have a secret
-      if (typeof window !== 'undefined') {
-        // Store encrypted key (simplified implementation)
-        const encrypted = btoa(params.secretKey + ':' + params.pincode);
-        localStorage.setItem('stellar_wallet_encrypted', encrypted);
-      }
-
-      this.state = {
-        publicKey: params.publicKey,
-        hasSecret: true
-      };
-
+      // In a real app, encrypt secretKey with pincode before storing
+      const encrypted = await this.encryptSecret(secretKey, pincode);
+      
+      // Store in localStorage (in a real app, use more secure methods)
+      localStorage.setItem('stellarWallet_publicKey', publicKey);
+      localStorage.setItem('stellarWallet_secretEncrypted', encrypted);
+      
+      // Update state
+      this.state = { publicKey, hasSecret: true };
       this.saveToStorage();
       this.notifyListeners();
+      
+      return true;
     } catch (error) {
-      console.error('Failed to register wallet:', error);
+      console.error('Error registering wallet:', error);
       throw error;
     }
   }
 
-  async sign(params: SignParams): Promise<string> {
-    try {
-      // In a real implementation, this would decrypt and use the secret key
-      // For demo purposes, we just return the XDR
-      if (!this.state.hasSecret) {
-        throw new Error('No secret key available for signing');
-      }
-
-      // Simulate signing (in a real app, you would decrypt and use the secret key)
-      // Return the same XDR to indicate "signing" happened
-      return params.transactionXDR;
-    } catch (error) {
-      console.error('Failed to sign transaction:', error);
-      throw error;
-    }
+  async sign({ 
+    transactionXDR, 
+    network, 
+    pincode 
+  }: { 
+    transactionXDR: string; 
+    network: string; 
+    pincode: string;
+  }) {
+    // Implementation would decrypt secret and sign transaction
+    // This is just a stub for now
+    throw new Error('Sign method not implemented');
   }
 
-  clear(): void {
-    this.state = {
-      publicKey: null,
-      hasSecret: false
-    };
+  clear() {
+    // Clear stored wallet data
+    localStorage.removeItem('stellarWallet_publicKey');
+    localStorage.removeItem('stellarWallet_secretEncrypted');
     
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('stellar_wallet_public_key');
-      localStorage.removeItem('stellar_wallet_has_secret');
-      localStorage.removeItem('stellar_wallet_encrypted');
-    }
-    
+    // Reset state
+    this.state = { publicKey: null, hasSecret: false };
+    this.saveToStorage();
     this.notifyListeners();
+  }
+
+  private async encryptSecret(secret: string, pincode: string): Promise<string> {
+    // This is a stub - in a real app, implement proper encryption
+    // Never store secrets unencrypted in localStorage
+    return `encrypted_${secret}_${pincode}`;
   }
 
   subscribe(listener: (state: WalletState) => void): () => void {

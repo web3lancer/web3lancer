@@ -8,13 +8,11 @@ import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { signUp, convertAnonymousSession } from '@/utils/api';
 import Link from 'next/link';
-import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { addAccount, hasMaxAccounts } = useMultiAccount();
   const { isAnonymous, setIsAnonymous } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -36,12 +34,6 @@ export default function SignUpPage() {
     setIsLoading(true);
     setError(null);
 
-    if (hasMaxAccounts) {
-      setError('Maximum number of accounts (3) reached. Please remove an account before adding a new one.');
-      setIsLoading(false);
-      return;
-    }
-
     try {
       let response;
 
@@ -55,18 +47,6 @@ export default function SignUpPage() {
       }
 
       if (response) {
-        // Add the new account to multi-accounts
-        try {
-          addAccount({
-            $id: response.$id,
-            name: response.name || '',
-            email: response.email || '',
-            isActive: true
-          });
-        } catch (error) {
-          console.error('Error adding account:', error);
-        }
-
         router.push('/dashboard');
       }
     } catch (error) {
@@ -79,10 +59,6 @@ export default function SignUpPage() {
 
   // Handle GitHub sign up
   const handleGitHubSignUp = () => {
-    if (hasMaxAccounts) {
-      setError('Maximum number of accounts (3) reached. Please remove an account before adding a new one.');
-      return;
-    }
     // Redirect to GitHub OAuth flow
     window.location.href = '/api/auth/github';
   };

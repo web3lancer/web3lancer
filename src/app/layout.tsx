@@ -1,6 +1,6 @@
 import "server-only";
 import { ThemeRegistry } from '@/providers/theme-registry';
-import '@/styles/globals.css';
+import '@/app/globals.css';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Analytics } from '@vercel/analytics/react'

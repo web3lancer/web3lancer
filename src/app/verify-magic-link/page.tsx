@@ -4,7 +4,6 @@ import { Box, Typography, CircularProgress, Alert, Paper, Container } from '@mui
 import { createMagicURLSession } from '@/utils/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMultiAccount, UserAccount } from '@/contexts/MultiAccountContext';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 
@@ -15,7 +14,6 @@ export default function VerifyMagicLink() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useAuth();
-  const { addAccount, hasMaxAccounts } = useMultiAccount();
 
   useEffect(() => {
     async function verifyMagicLink() {
@@ -32,22 +30,6 @@ export default function VerifyMagicLink() {
         // Create session using the magic URL token
         const user = await createMagicURLSession(userId, secret);
         setUser(user);
-        
-        // Add to multi-account context
-        if (!hasMaxAccounts) {
-          try {
-            const newAccount: UserAccount = {
-              $id: user.$id,
-              name: user.name || '',
-              email: user.email || '',
-              isActive: true
-            };
-            addAccount(newAccount);
-          } catch (accountError) {
-            console.error('Error adding account:', accountError);
-          }
-        }
-
         setSuccess(true);
         
         // Redirect to dashboard after successful authentication

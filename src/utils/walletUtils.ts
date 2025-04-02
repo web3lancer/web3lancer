@@ -79,16 +79,13 @@ export async function linkWalletToUser(
  */
 export async function updateWalletLastUsed(walletId: string) {
   try {
-    // Verify access first
-    if (!(await verifyWalletAccess(walletId))) {
-      throw new Error('Access to wallet denied');
-    }
-    
-    return await wallets.update(walletId, {
+    const walletData = {
       lastUsed: new Date().toISOString()
-    });
+    };
+    
+    return await wallets.update(walletId, walletData);
   } catch (error) {
-    console.error('Error updating wallet last used:', error);
+    console.error('Error updating wallet timestamp:', error);
     return null;
   }
 }

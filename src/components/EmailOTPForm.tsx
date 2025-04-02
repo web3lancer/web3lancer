@@ -15,7 +15,6 @@ import {
 import { Email, VpnKey } from '@mui/icons-material';
 import { createEmailOTP, verifyEmailOTP, signOut } from '@/utils/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMultiAccount } from '@/contexts/MultiAccountContext';
 import { useRouter } from 'next/navigation';
 
 interface EmailOTPFormProps {
@@ -33,7 +32,6 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
   const [error, setError] = useState<string | null>(null);
   
   const { setUser } = useAuth();
-  const { addAccount, switchAccount, accounts, hasMaxAccounts } = useMultiAccount();
   const router = useRouter();
 
   const handleSendOTP = async (e: React.FormEvent) => {
@@ -88,34 +86,6 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
       
       if (user) {
         setUser(user);
-        
-        // Add or switch to this account in multi-account context
-        const accountId = user.$id;
-        const existingAccount = accounts.find(acc => acc.$id === accountId);
-        
-        if (!existingAccount) {
-          if (hasMaxAccounts) {
-            setError(`Maximum number of accounts (3) reached. Please remove an account before adding a new one.`);
-            setIsLoading(false);
-            return;
-          }
-          
-          try {
-            await addAccount({
-              $id: accountId,
-              name: user.name || '',
-              email: user.email || '',
-              isActive: true
-            }, {
-              email: user.email
-            });
-          } catch (error) {
-            console.error('Error adding account:', error);
-          }
-        } else {
-          await switchAccount(accountId);
-        }
-        
         router.push(redirectPath);
       }
     } catch (error) {
