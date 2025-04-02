@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Box, CircularProgress, Typography, Paper } from '@mui/material';
+import { Box, CircularProgress, Typography, Paper, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 
 const MotionPaper = motion(Paper);
@@ -12,41 +12,63 @@ export default function OAuthCallback() {
   const { handleGitHubOAuth, refreshUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     async function processOAuth() {
       try {
+        console.log('Processing OAuth callback...');
+        
         // First try using the automatic session that Appwrite creates
         const user = await refreshUser();
         
         if (user) {
+          console.log('User session refreshed successfully:', user);
           router.push('/dashboard');
           return;
         }
         
+        console.log('No user found after refresh, checking for code parameter...');
+        
         // Fallback to manual handling if needed
-        // Get the code from the URL (though Appwrite typically handles this automatically)
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
+        const provider = urlParams.get('provider');
 
         if (code) {
+          console.log('OAuth code found, attempting to handle callback with code');
           await handleGitHubOAuth(code);
           router.push('/dashboard');
+        } else if (provider === 'github') {
+          // If we have a provider but no code, try refreshing one more time
+          console.log('Provider found but no code, attempting to refresh session again');
+          const retryUser = await refreshUser();
+          if (retryUser) {
+            router.push('/dashboard');
+            return;
+          }
+          
+          setError("Authentication incomplete - no session or code found");
+          setTimeout(() => router.push('/signin'), 3000);
         } else {
           setError("Authentication failed - no session or code found");
           setTimeout(() => router.push('/signin'), 3000);
         }
       } catch (error) {
         console.error("Error handling OAuth callback:", error);
-        setError("Authentication failed");
+        setError(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         setTimeout(() => router.push('/signin'), 3000);
       } finally {
         setIsProcessing(false);
       }
     }
 
-    processOAuth();
-  }, [handleGitHubOAuth, refreshUser, router]);
+    if (attempts < 3) {
+      processOAuth();
+      // Increment attempts to avoid infinite loops
+      setAttempts(prev => prev + 1);
+    }
+  }, [handleGitHubOAuth, refreshUser, router, attempts]);
 
   return (
     <Box sx={{ 
@@ -86,12 +108,14 @@ export default function OAuthCallback() {
           </>
         ) : error ? (
           <>
-            <Typography variant="h6" color="error" sx={{ fontWeight: 600 }}>
-              {error}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Redirecting to sign in page...
-            </Typography>
+            <Alert severity="error" sx={{ width: '100%' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {error}
+              </Typography>
+              <Typography variant="body2">
+                Redirecting to sign in page...
+              </Typography>
+            </Alert>
           </>
         ) : null}
       </MotionPaper>

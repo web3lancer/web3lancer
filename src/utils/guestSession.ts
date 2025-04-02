@@ -45,6 +45,21 @@ export async function ensureGuestSession() {
 }
 
 /**
+ * Fallback after OAuth failures to ensure user has a session
+ * @returns A user object or null
+ */
+export async function handleOAuthFailure() {
+  // Try to get a session, if not create an anonymous one
+  try {
+    const user = await ensureGuestSession();
+    return user;
+  } catch (error) {
+    console.error('Failed to create session after OAuth failure:', error);
+    return null;
+  }
+}
+
+/**
  * Checks if the current user is an anonymous user
  * @param user The user object to check
  * @returns True if the user is anonymous, false otherwise

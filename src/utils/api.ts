@@ -803,13 +803,22 @@ async function getFilePreview(bucketId: string, fileId: string, width?: number, 
  */
 async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
   try {
-    const baseURL = APP_CONFIG.APP_URL;
+    // Generate proper callback URLs
+    const baseURL = APP_CONFIG.APP_URL || 
+      (typeof window !== 'undefined' ? window.location.origin : 'https://web3lancer.app');
+    
     const successURL = `${baseURL}/oauth/callback`;
     const failureURL = `${baseURL}/signin?error=github_auth_failed`;
     
+    // Ensure OAuthProvider is correctly referenced
+    if (!OAuthProvider || !OAuthProvider.Github) {
+      console.error('OAuthProvider or OAuthProvider.Github is undefined');
+      throw new Error('OAuth Provider configuration error');
+    }
+    
     // Create GitHub OAuth session with proper scopes and redirect URLs
     await account.createOAuth2Session(
-      OAuthProvider.Github,
+      'github', // Use string value directly instead of OAuthProvider.Github
       successURL,
       failureURL,
       scopes

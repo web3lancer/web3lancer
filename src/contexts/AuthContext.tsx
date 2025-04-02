@@ -83,10 +83,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Function to initiate GitHub OAuth login
   const initiateGitHubLogin = useCallback(async () => {
     try {
+      console.log('Initiating GitHub login from AuthContext...');
       await createGitHubOAuthSession(['user:email']);
       // The page will redirect to GitHub login
     } catch (error) {
       console.error('Error starting GitHub login:', error);
+      throw error; // Re-throw to allow handling by the calling component
     }
   }, []);
   
@@ -95,21 +97,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       
+      console.log('Handling GitHub OAuth callback, code present:', !!code);
+      
       // If we have a code, we need to process it manually
       // Otherwise we rely on Appwrite's automatic session handling
       let currentUser;
       
-      if (code) {
-        // For manual handling - this is generally not needed with Appwrite
-        currentUser = await handleGitHubOAuthCallback(code);
-      } else {
-        // Get current user after OAuth redirect
-        currentUser = await account.get();
+      try {
+        if (code) {
+          // For manual handling - this is generally not needed with Appwrite
+          console.log('Using manual code handling');
+          currentUser = await handleGitHubOAuthCallback(code);
+        } else {
+          // Get current user after OAuth redirect
+          console.log('Using automatic session handling');
+          currentUser = await account.get();
+        }
+        
+        if (currentUser) {
+          console.log('GitHub authentication successful:', currentUser);
+          setUser(currentUser);
+          setIsAnonymous(isAnonymousUser(currentUser));
+          return currentUser;
+        } else {
+          console.error('GitHub authentication failed: No user returned');
+          return null;
+        }
+      } catch (authError) {
+        console.error('Error during GitHub authentication:', authError);
+        return null;
       }
-      
-      setUser(currentUser);
-      setIsAnonymous(isAnonymousUser(currentUser));
-      return currentUser;
     } catch (error) {
       console.error('Error handling GitHub OAuth:', error);
       setUser(null);

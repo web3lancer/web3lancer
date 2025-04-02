@@ -80,9 +80,16 @@ export default function SignInForm() {
   const handleGitHubSignIn = async () => {
     try {
       setIsLoading(true);
-      // Use the correct function name
-      await createGitHubOAuthSession();
-      // The page will redirect to GitHub
+      setError(null);
+      
+      // Log that we're attempting GitHub login
+      console.log('Initiating GitHub login...');
+      
+      // Call the createGitHubOAuthSession function
+      await createGitHubOAuthSession(['user:email']);
+      
+      // The page will redirect to GitHub authorization page
+      // No need to handle redirect here as it will happen automatically
     } catch (error) {
       console.error('Error initiating GitHub login:', error);
       setError('Failed to connect to GitHub. Please try again.');
