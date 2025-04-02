@@ -13,6 +13,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.4",
     "@mui/material": "^6.4.4",
+    "@mui/material-nextjs": "^7.0.0",
     "@mui/x-date-pickers": "^7.28.2",
     "@stellar/stellar-sdk": "^13.1.0",
     "@stellar/wallet-sdk": "^0.11.2",

@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from '@/theme';
+import { theme } from '@/utils/theme'; // Updated path to point to the correct theme location
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
