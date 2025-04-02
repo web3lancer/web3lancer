@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Box, CircularProgress, Typography, Paper, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
+import { getUserProfile, createUserProfile, account } from '@/utils/api';
 
 const MotionPaper = motion(Paper);
 
@@ -13,22 +14,35 @@ export default function OAuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
   const [attempts, setAttempts] = useState(0);
+  const [processingStep, setProcessingStep] = useState<string>('Authenticating...');
 
   useEffect(() => {
     async function processOAuth() {
       try {
         console.log('Processing OAuth callback...');
+        setProcessingStep('Authenticating with GitHub');
         
         // First try using the automatic session that Appwrite creates
         const user = await refreshUser();
         
         if (user) {
           console.log('User session refreshed successfully:', user);
+          setProcessingStep('Creating user profile');
+          
+          try {
+            // Ensure user has a profile
+            await getUserProfile(user.$id);
+          } catch (profileError) {
+            console.error('Error creating profile during callback:', profileError);
+            // Still redirect to dashboard even if profile creation fails
+          }
+          
           router.push('/dashboard');
           return;
         }
         
         console.log('No user found after refresh, checking for code parameter...');
+        setProcessingStep('Processing authentication response');
         
         // Fallback to manual handling if needed
         const urlParams = new URLSearchParams(window.location.search);
@@ -37,13 +51,30 @@ export default function OAuthCallback() {
 
         if (code) {
           console.log('OAuth code found, attempting to handle callback with code');
-          await handleGitHubOAuth(code);
+          const oauthUser = await handleGitHubOAuth(code);
+          
+          if (oauthUser) {
+            setProcessingStep('Setting up your account');
+            try {
+              // Ensure user has a profile
+              await getUserProfile(oauthUser.$id);
+            } catch (profileError) {
+              console.error('Error creating profile during code handling:', profileError);
+            }
+          }
+          
           router.push('/dashboard');
         } else if (provider === 'github') {
           // If we have a provider but no code, try refreshing one more time
           console.log('Provider found but no code, attempting to refresh session again');
+          setProcessingStep('Finalizing authentication');
           const retryUser = await refreshUser();
           if (retryUser) {
+            try {
+              await getUserProfile(retryUser.$id);
+            } catch (profileError) {
+              console.error('Error creating profile during retry:', profileError);
+            }
             router.push('/dashboard');
             return;
           }
@@ -100,10 +131,10 @@ export default function OAuthCallback() {
           <>
             <CircularProgress size={60} thickness={4} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Authenticating...
+              {processingStep}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Please wait while we verify your GitHub credentials
+              Please wait while we set up your account
             </Typography>
           </>
         ) : error ? (

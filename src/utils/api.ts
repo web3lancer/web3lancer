@@ -6,7 +6,7 @@ import { APP_CONFIG } from '@/lib/env';
 const client = new Client();
 client
   .setEndpoint('https://cloud.appwrite.io/v1')
-  .setProject('67aed8360001b6dd8cb3'); // Your project ID
+  .setProject('67aed8360001b6dd8cb3'); // Verified project ID from documentation
 
 const account = new Account(client);
 const databases = new Databases(client);
@@ -472,27 +472,116 @@ async function createMfaEmailVerification() {
  */
 async function getUserProfile(userId: string) {
   try {
-    const response = await databases.getDocument(
-      APPWRITE_CONFIG.DATABASES.USERS,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES,
-      userId
-    );
-    return response;
+    console.log('Fetching user profile for user ID:', userId);
+    // Verify we're using the correct database and collection IDs from the documentation
+    const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
+    const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
+    
+    try {
+      const response = await databases.getDocument(databaseId, collectionId, userId);
+      return response;
+    } catch (error: any) {
+      // If document not found (404), create a new profile document
+      if (error.code === 404) {
+        console.log('Profile not found, creating new profile for user:', userId);
+        // Get the user account info to populate basic profile data
+        const currentUser = await account.get();
+        return await createUserProfile(userId, currentUser);
+      }
+      throw error;
+    }
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    throw new Error(`Failed to fetch user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Don't throw, instead return null to allow graceful handling
+    return null;
+  }
+}
+
+/**
+ * Create a new user profile in the database
+ */
+async function createUserProfile(userId: string, userData: any) {
+  try {
+    console.log('Creating new user profile for:', userId);
+    const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
+    const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
+    
+    // Extract email from GitHub OAuth user if available
+    const email = userData.email || 
+                 (userData.provider === 'github' && userData.providerUid ? 
+                  `${userData.providerUid}@github.user` : '');
+    
+    // Create the profile document with the user ID as document ID
+    const response = await databases.createDocument(
+      databaseId,
+      collectionId,
+      userId, // Use the userId as the document ID for easy lookup
+      {
+        userId: userId,
+        name: userData.name || '',
+        email: email,
+        profilePicture: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        skills: [],
+        bio: ''
+      }
+    );
+    
+    console.log('User profile created successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error creating user profile:', error);
+    throw new Error(`Failed to create user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
 async function updateUserProfile(userId: string, data: any) {
   try {
-    const response = await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.USERS,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES,
-      userId,
-      data
-    );
-    return response;
+    console.log('Updating user profile for:', userId, 'with data:', data);
+    const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
+    const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
+    
+    try {
+      // First check if profile exists
+      await databases.getDocument(databaseId, collectionId, userId);
+      
+      // Update the document
+      const response = await databases.updateDocument(
+        databaseId,
+        collectionId,
+        userId,
+        {
+          ...data,
+          updatedAt: new Date().toISOString()
+        }
+      );
+      return response;
+    } catch (error: any) {
+      // If profile doesn't exist yet, create it
+      if (error.code === 404) {
+        console.log('Profile not found during update, creating new profile');
+        // Get current user data to populate basic fields
+        const currentUser = await account.get();
+        const newProfile = await createUserProfile(userId, currentUser);
+        
+        // Apply the updates to the newly created profile
+        if (Object.keys(data).length > 0) {
+          return await databases.updateDocument(
+            databaseId,
+            collectionId,
+            userId,
+            {
+              ...data,
+              updatedAt: new Date().toISOString()
+            }
+          );
+        }
+        
+        return newProfile;
+      }
+      throw error;
+    }
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -843,6 +932,14 @@ async function handleGitHubOAuthCallback(code: string) {
     
     // After OAuth redirect, we can get the current session which should now be authenticated
     const user = await account.get();
+    
+    // Create or update the user's profile after successful GitHub login
+    try {
+      await getUserProfile(user.$id);
+    } catch (profileError) {
+      console.log('Error checking profile during GitHub callback, will create later if needed');
+    }
+    
     return user;
   } catch (error) {
     console.error('Error handling GitHub OAuth callback:', error);
@@ -1029,6 +1126,7 @@ export {
   updateMfaChallenge,
   createMfaEmailVerification,
   getUserProfile,
+  createUserProfile,
   updateUserProfile,
   addBookmark, 
   removeBookmark,

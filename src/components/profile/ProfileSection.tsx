@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Alert, Snackbar } from "@mui/material";
+import { Box, Grid, Alert, Snackbar, CircularProgress } from "@mui/material";
 import ProfileCard from './ProfileCard';
 import ProfileForm from './ProfileForm';
 import CalendarSection from './CalendarSection';
@@ -9,11 +9,12 @@ import { getUserProfile, updateUserProfile } from '@/utils/api';
 
 export default function ProfileSection() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [skills, setSkills] = useState<string[]>([]);
   const [bio, setBio] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -26,8 +27,14 @@ export default function ProfileSection() {
     
     try {
       setLoading(true);
+      setProfileError(null);
+      console.log('Loading profile for user:', user.$id);
+      
+      // This will create a profile if it doesn't exist
       const profile = await getUserProfile(user.$id);
+      
       if (profile) {
+        console.log('Profile loaded successfully:', profile);
         setBio(profile.bio || '');
         setSkills(profile.skills || []);
         
@@ -36,14 +43,16 @@ export default function ProfileSection() {
           // You would need to implement a function to get the image URL
           // setImagePreview(getProfilePictureUrl(profile.profilePicture));
         }
+      } else {
+        console.log('No profile found, will create on save');
+        // Set defaults for a new user
+        setBio('');
+        setSkills([]);
+        setImagePreview(null);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      setSnackbar({
-        open: true,
-        message: 'Failed to load profile information',
-        severity: 'error'
-      });
+      setProfileError('Failed to load profile information. We will create one when you save your details.');
     } finally {
       setLoading(false);
     }
@@ -54,6 +63,8 @@ export default function ProfileSection() {
     
     try {
       setLoading(true);
+      setProfileError(null);
+      
       await updateUserProfile(user.$id, {
         bio,
         skills,
@@ -87,31 +98,45 @@ export default function ProfileSection() {
 
   return (
     <Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <ProfileCard 
-            user={user}
-            imagePreview={imagePreview}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={8}>
-          <ProfileForm 
-            profileData={{
-              skills,
-              setSkills,
-              bio,
-              setBio
-            }}
-            onSave={handleSaveProfile}
-            loading={loading}
-          />
+      {loading && (
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress />
+        </Box>
+      )}
+      
+      {profileError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          {profileError}
+        </Alert>
+      )}
+      
+      {!loading && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <ProfileCard 
+              user={user}
+              imagePreview={imagePreview}
+            />
+          </Grid>
           
-          <Box sx={{ mt: 3 }}>
-            <CalendarSection />
-          </Box>
+          <Grid item xs={12} md={8}>
+            <ProfileForm 
+              profileData={{
+                skills,
+                setSkills,
+                bio,
+                setBio
+              }}
+              onSave={handleSaveProfile}
+              loading={loading}
+            />
+            
+            <Box sx={{ mt: 3 }}>
+              <CalendarSection />
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
       
       <Snackbar
         open={snackbar.open}

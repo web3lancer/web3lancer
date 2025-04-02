@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback } from '@/utils/api';
+import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback, getUserProfile } from '@/utils/api';
 import { ensureGuestSession, isAnonymousUser } from '@/utils/guestSession';
 
 interface User {
@@ -116,6 +116,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (currentUser) {
           console.log('GitHub authentication successful:', currentUser);
+          // Ensure the user has a profile in the database
+          try {
+            // This will create a profile if it doesn't exist
+            await getUserProfile(currentUser.$id);
+          } catch (profileError) {
+            console.error('Error ensuring user profile exists:', profileError);
+            // Continue even if profile creation fails, we'll retry later
+          }
+          
           setUser(currentUser);
           setIsAnonymous(isAnonymousUser(currentUser));
           return currentUser;

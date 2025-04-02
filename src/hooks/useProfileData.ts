@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUserProfile, updateUserProfile } from "@/utils/api";
+import { getUserProfile, updateUserProfile, createUserProfile, getFilePreview } from "@/utils/api";
 
 export function useProfileData(user: any) {
   const [skills, setSkills] = useState<string[]>([]);
@@ -21,13 +21,9 @@ export function useProfileData(user: any) {
     
     setError(null);
     try {
-      let profileData;
-      try {
-        profileData = await getUserProfile(user.$id);
-      } catch (err) {
-        console.log('Profile not found, creating new profile');
-        profileData = await createNewProfile(user.$id);
-      }
+      setLoading(true);
+      // This updated function will handle profile creation if needed
+      const profileData = await getUserProfile(user.$id);
       
       if (profileData) {
         setSkills(profileData.skills || []);
@@ -41,6 +37,8 @@ export function useProfileData(user: any) {
             console.error('Error fetching profile image:', error);
           }
         }
+      } else {
+        console.log('No profile data returned, will create on save');
       }
     } catch (error) {
       console.error('Error in profile management:', error);
@@ -50,41 +48,23 @@ export function useProfileData(user: any) {
     }
   };
 
-  const createNewProfile = async (userId: string) => {
-    try {
-      const response = await updateUserProfile(userId, {
-        userId: userId,
-        name: user?.name || "",
-        email: user?.email || "",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        skills: [],
-        bio: ""
-      });
-      return response;
-    } catch (error) {
-      console.error('Error creating user profile:', error);
-      throw error;
-    }
-  };
-
   const handleSaveProfile = async () => {
-    if (user) {
-      setLoading(true);
-      setError(null);
-      try {
-        await updateUserProfile(user.$id, {
-          skills,
-          bio,
-          updatedAt: new Date().toISOString()
-        });
-        console.log('Profile updated successfully');
-      } catch (error) {
-        console.error('Error updating profile:', error);
-        setError('Failed to save profile. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      await updateUserProfile(user.$id, {
+        skills,
+        bio,
+        updatedAt: new Date().toISOString()
+      });
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to save profile. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
