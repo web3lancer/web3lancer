@@ -2,11 +2,10 @@
 
 import { AppBar, Toolbar, Typography, Button, IconButton, Box } from "@mui/material";
 import { Notifications } from "@mui/icons-material";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
 import { useAuth } from '@/contexts/AuthContext';
-import { useAccount } from 'wagmi';
 import { Account } from './Account';
 import Link from 'next/link';
 
@@ -17,7 +16,25 @@ interface HeaderProps {
 
 export default function Header({ isHomePage = false, isPreAuthPage = false }: HeaderProps) {
   const { user } = useAuth();
-  const { address } = useAccount();
+  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+  
+  // Safely try to use wagmi hooks with error handling
+  useEffect(() => {
+    // Only run in client side
+    if (typeof window !== 'undefined') {
+      try {
+        // Dynamically import and use wagmi to avoid SSR/provider issues
+        import('wagmi').then(({ useAccount }) => {
+          const { address } = useAccount();
+          setWalletAddress(address);
+        }).catch(err => {
+          console.error("Failed to load wagmi:", err);
+        });
+      } catch (error) {
+        console.error("Error accessing wallet:", error);
+      }
+    }
+  }, []);
 
   // If it's home page, return null (no header)
   if (isHomePage) {
@@ -133,7 +150,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
             <Notifications sx={{ color: '#1E40AF' }} />
           </IconButton>
 
-          {address || user ? (
+          {walletAddress || user ? (
             <Account />
           ) : (
             <Button
