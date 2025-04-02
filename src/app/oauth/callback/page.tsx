@@ -31,7 +31,8 @@ export default function OAuthCallback() {
           
           try {
             // Ensure user has a profile
-            await getUserProfile(user.$id);
+            const profile = await getUserProfile(user.$id);
+            console.log('User profile after refresh:', profile);
           } catch (profileError) {
             console.error('Error creating profile during callback:', profileError);
             // Still redirect to dashboard even if profile creation fails
@@ -57,13 +58,19 @@ export default function OAuthCallback() {
             setProcessingStep('Setting up your account');
             try {
               // Ensure user has a profile
-              await getUserProfile(oauthUser.$id);
+              const profile = await getUserProfile(oauthUser.$id);
+              console.log('User profile after code handling:', profile);
             } catch (profileError) {
               console.error('Error creating profile during code handling:', profileError);
             }
+            
+            // Force a session refresh to ensure all state is updated correctly
+            await refreshUser();
+            router.push('/dashboard');
+          } else {
+            setError("Failed to authenticate with GitHub. Please try again.");
+            setTimeout(() => router.push('/signin'), 3000);
           }
-          
-          router.push('/dashboard');
         } else if (provider === 'github') {
           // If we have a provider but no code, try refreshing one more time
           console.log('Provider found but no code, attempting to refresh session again');
@@ -71,7 +78,8 @@ export default function OAuthCallback() {
           const retryUser = await refreshUser();
           if (retryUser) {
             try {
-              await getUserProfile(retryUser.$id);
+              const profile = await getUserProfile(retryUser.$id);
+              console.log('User profile during retry:', profile);
             } catch (profileError) {
               console.error('Error creating profile during retry:', profileError);
             }

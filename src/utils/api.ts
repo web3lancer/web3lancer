@@ -479,6 +479,7 @@ async function getUserProfile(userId: string) {
     
     try {
       const response = await databases.getDocument(databaseId, collectionId, userId);
+      console.log('Profile found:', response);
       return response;
     } catch (error: any) {
       // If document not found (404), create a new profile document
@@ -492,7 +493,7 @@ async function getUserProfile(userId: string) {
     }
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    // Don't throw, instead return null to allow graceful handling
+    // Return null instead of throwing to allow graceful handling
     return null;
   }
 }
@@ -502,7 +503,7 @@ async function getUserProfile(userId: string) {
  */
 async function createUserProfile(userId: string, userData: any) {
   try {
-    console.log('Creating new user profile for:', userId);
+    console.log('Creating new user profile for:', userId, userData);
     const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
     const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
     

@@ -67,10 +67,15 @@ export async function handleOAuthFailure() {
 export function isAnonymousUser(user: any): boolean {
   if (!user) return false;
   
-  // Anonymous users typically have labels or flags in Appwrite
-  return user.labels?.includes('anonymous') || 
+  // Anonymous users typically have these characteristics in Appwrite
+  const isAnon = user.labels?.includes('anonymous') || 
          user.$id?.startsWith('anon_') || 
-         user.status === false;
+         user.status === false ||
+         // Check if the session was created anonymously
+         user.provider === 'anonymous';
+  
+  console.log('Checking if user is anonymous:', { userId: user.$id, isAnonymous: isAnon });
+  return isAnon;
 }
 
 /**

@@ -116,17 +116,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (currentUser) {
           console.log('GitHub authentication successful:', currentUser);
-          // Ensure the user has a profile in the database
+          
+          // Important: Properly identify if this is an anonymous user
+          const anonymousStatus = isAnonymousUser(currentUser);
+          console.log('User anonymous status:', anonymousStatus);
+          
+          setUser(currentUser);
+          setIsAnonymous(anonymousStatus);
+          
+          // Ensure user has a profile in the database
           try {
             // This will create a profile if it doesn't exist
-            await getUserProfile(currentUser.$id);
+            const userProfile = await getUserProfile(currentUser.$id);
+            console.log('User profile after GitHub login:', userProfile);
+            
+            // Update profile picture if available
+            if (userProfile?.profilePicture) {
+              setProfilePicture(userProfile.profilePicture);
+            }
           } catch (profileError) {
             console.error('Error ensuring user profile exists:', profileError);
             // Continue even if profile creation fails, we'll retry later
           }
           
-          setUser(currentUser);
-          setIsAnonymous(isAnonymousUser(currentUser));
           return currentUser;
         } else {
           console.error('GitHub authentication failed: No user returned');
@@ -150,8 +162,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Try to get the current user
       const currentUser = await account.get();
+      console.log('Found existing user session:', currentUser);
+      
+      const anonymousStatus = isAnonymousUser(currentUser);
+      console.log('User anonymous status:', anonymousStatus);
+      
       setUser(currentUser);
-      setIsAnonymous(isAnonymousUser(currentUser));
+      setIsAnonymous(anonymousStatus);
+      
+      // If authenticated user, ensure profile exists and load profile picture
+      if (!anonymousStatus && currentUser) {
+        try {
+          const userProfile = await getUserProfile(currentUser.$id);
+          if (userProfile?.profilePicture) {
+            setProfilePicture(userProfile.profilePicture);
+          }
+        } catch (profileError) {
+          console.error('Error fetching profile during session ensure:', profileError);
+        }
+      }
+      
       return currentUser;
     } catch (error) {
       console.log('No authenticated session found, creating anonymous session...');
@@ -183,7 +213,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const isValid = await validateSession();
         
         if (isValid) {
-          await refreshUser();
+          const currentUser = await refreshUser();
+          
+          // If we have a valid user that's not anonymous, ensure their profile exists
+          if (currentUser && !isAnonymousUser(currentUser)) {
+            try {
+              const userProfile = await getUserProfile(currentUser.$id);
+              if (userProfile?.profilePicture) {
+                setProfilePicture(userProfile.profilePicture);
+              }
+            } catch (profileError) {
+              console.error('Error fetching profile during init:', profileError);
+            }
+          }
         } else {
           // If no valid session, create anonymous session
           await ensureSession();

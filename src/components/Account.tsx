@@ -114,6 +114,19 @@ export function Account() {
                       (user?.walletId ? formatAddress(user.walletId) : 
                       walletAddress ? formatAddress(walletAddress) : '');
 
+  // Debug information to help troubleshoot
+  useEffect(() => {
+    if (user) {
+      console.log('Account component user state:', { 
+        id: user.$id,
+        name: user.name,
+        email: user.email,
+        isAnonymous,
+        provider: user.provider
+      });
+    }
+  }, [user, isAnonymous]);
+
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -141,8 +154,8 @@ export function Account() {
     }
   };
 
-  // If user is anonymous, let's show a different display
-  if (isAnonymous) {
+  // If user is anonymous or not logged in, let's show a different display
+  if (isAnonymous || !user) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <Button
