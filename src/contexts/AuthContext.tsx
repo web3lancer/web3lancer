@@ -1,137 +1,123 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { account, signOut as apiSignOut, getCurrentSession } from '@/utils/api';
+import { account, validateSession } from '@/utils/api';
 
-interface AuthContextType {
-  user: any;
-  setUser: (user: any) => void;
-  isLoading: boolean;
-  isAnonymous: boolean;
-  setIsAnonymous: (isAnonymous: boolean) => void;
-  isMfaRequired: boolean;
-  setIsMfaRequired: (required: boolean) => void;
-  signOut: () => Promise<void>;
-  handleGitHubOAuth: (code?: string) => Promise<void>;
-  refreshUser: () => Promise<any>;
-  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  profilePicture: string | null;
-  setProfilePicture: (url: string | null) => void;
+interface User {
+  $id: string;
+  name?: string;
+  email?: string;
+  emailVerification?: boolean;
+  provider?: string;
+  providerUid?: string;
+  [key: string]: any;
 }
 
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  isAnonymous: boolean;
+  profilePicture: string | null;
+  setUser: (user: User | null) => void;
+  setIsAnonymous: (isAnonymous: boolean) => void;
+  setProfilePicture: (url: string | null) => void;
+  refreshUser: () => Promise<User | null>;
+  signOut: () => Promise<boolean>;
+}
+
+// Create a context with a default value
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  setUser: () => {},
   isLoading: true,
   isAnonymous: false,
-  setIsAnonymous: () => {},
-  isMfaRequired: false,
-  setIsMfaRequired: () => {},
-  signOut: async () => {},
-  handleGitHubOAuth: async () => {},
-  refreshUser: async () => null,
-  updatePassword: async () => {},
   profilePicture: null,
+  setUser: () => {},
+  setIsAnonymous: () => {},
   setProfilePicture: () => {},
+  refreshUser: async () => null,
+  signOut: async () => false,
 });
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
+// Provider component that wraps the app
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [isMfaRequired, setIsMfaRequired] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  
-  // Refresh user data from server
-  const refreshUser = useCallback(async () => {
+
+  // Function to refresh the user data from Appwrite
+  const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
-      // Check if session exists first
-      const session = await getCurrentSession();
-      
-      if (!session) {
-        setUser(null);
-        return null;
-      }
-      
+      setIsLoading(true);
       const currentUser = await account.get();
       setUser(currentUser);
-      setIsAnonymous(false);
+      setIsAnonymous(!!currentUser?.$id && currentUser?.status === false);
       return currentUser;
     } catch (error) {
-      console.log('No authenticated user:', error);
+      console.log('No active session found');
       setUser(null);
       return null;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  // Check authentication state on load
+  // Function to handle sign out
+  const handleSignOut = useCallback(async (): Promise<boolean> => {
+    try {
+      await account.deleteSession('current');
+      setUser(null);
+      setProfilePicture(null);
+      setIsAnonymous(false);
+      return true;
+    } catch (error) {
+      console.error('Error signing out:', error);
+      return false;
+    }
+  }, []);
+
+  // Effect to check for existing session on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const initAuth = async () => {
       try {
-        await refreshUser();
+        setIsLoading(true);
+        const isValid = await validateSession();
+        
+        if (isValid) {
+          await refreshUser();
+        } else {
+          setUser(null);
+        }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('Error initializing auth:', error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
+    initAuth();
   }, [refreshUser]);
 
-  // Sign out function
-  const signOut = async () => {
-    try {
-      await apiSignOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    } finally {
-      // Always clear local state even if server logout fails
-      setUser(null);
-      setIsAnonymous(false);
-      setProfilePicture(null);
-    }
-  };
-
-  // Update password
-  const updatePassword = async (currentPassword: string, newPassword: string) => {
-    try {
-      await account.updatePassword(newPassword, currentPassword);
-    } catch (error) {
-      console.error('Error updating password:', error);
-      throw error;
-    }
-  };
-
-  // Handle GitHub OAuth
-  const handleGitHubOAuth = async (code?: string) => {
-    // Implementation for GitHub OAuth
-    console.log('GitHub OAuth flow with code:', code);
-    // After successful OAuth, refresh user
-    await refreshUser();
+  // Wrap state and functions to prevent serialization issues
+  const contextValue = {
+    user,
+    isLoading,
+    isAnonymous,
+    profilePicture,
+    setUser,
+    setIsAnonymous,
+    setProfilePicture,
+    refreshUser,
+    signOut: handleSignOut
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        isLoading,
-        isAnonymous,
-        setIsAnonymous,
-        isMfaRequired,
-        setIsMfaRequired,
-        signOut,
-        handleGitHubOAuth,
-        refreshUser,
-        updatePassword,
-        profilePicture,
-        setProfilePicture,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);

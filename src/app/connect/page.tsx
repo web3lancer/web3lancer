@@ -1,12 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { 
   Typography, Grid, Card, CardContent, Avatar, Button, Alert, CircularProgress,
   TextField, IconButton, Tabs, Tab, Badge, List, ListItem, ListItemAvatar, ListItemText, Divider,
   Box
 } from "@mui/material";
-import { databases, ID } from "@/utils/api";
-import { APPWRITE_CONFIG } from "@/lib/env";
 import { useAuth } from '@/contexts/AuthContext';
 import SendIcon from '@mui/icons-material/Send';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
@@ -55,15 +53,9 @@ interface Activity {
   time: string;
 }
 
-const activities: Activity[] = [
-  { type: 'started a voice call', user: 'Alice', time: '2 minutes ago' },
-  { type: 'joined a space', user: 'Bob', time: '5 minutes ago' },
-  { type: 'sent a friend request', user: 'Charlie', time: '10 minutes ago' },
-];
-
 export default function ConnectPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [liveActivities, setLiveActivities] = useState<Activity[]>(activities);
+  const [liveActivities, setLiveActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -74,40 +66,70 @@ export default function ConnectPage() {
   const [activeSpaces, setActiveSpaces] = useState<Space[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
 
+  // Initialize mock data safely using useCallback to prevent serialization issues
+  const initializeMockData = useCallback(() => {
+    const mockUsers: User[] = [
+      { $id: '1', name: 'Alice Johnson', email: 'alice@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/1.jpg' },
+      { $id: '2', name: 'Bob Smith', email: 'bob@example.com', status: 'offline', avatarUrl: 'https://mui.com/static/images/avatar/2.jpg' },
+      { $id: '3', name: 'Charlie Brown', email: 'charlie@example.com', status: 'away', avatarUrl: 'https://mui.com/static/images/avatar/3.jpg' },
+      { $id: '4', name: 'Diana Prince', email: 'diana@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/4.jpg' },
+      { $id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/5.jpg' },
+    ];
+
+    const initialActivities: Activity[] = [
+      { type: 'started a voice call', user: 'Alice', time: '2 minutes ago' },
+      { type: 'joined a space', user: 'Bob', time: '5 minutes ago' },
+      { type: 'sent a friend request', user: 'Charlie', time: '10 minutes ago' },
+    ];
+
+    const initialFriendRequests: FriendRequest[] = user ? [
+      { id: 'fr1', senderId: '3', receiverId: user.$id || '', status: 'pending', senderName: 'Charlie Brown' },
+      { id: 'fr2', senderId: '5', receiverId: user.$id || '', status: 'pending', senderName: 'Ethan Hunt' },
+    ] : [];
+
+    const initialSpaces: Space[] = [
+      { id: 'space1', name: 'Web3 Developers', type: 'voice', participants: 7, hostId: '2' },
+      { id: 'space2', name: 'Blockchain Discussion', type: 'video', participants: 4, hostId: '4' },
+      { id: 'space3', name: 'Freelancer Tips', type: 'voice', participants: 12, hostId: '1' },
+    ];
+
+    const initialMessages: Message[] = user ? [
+      { id: 'm1', senderId: '1', receiverId: user.$id || '', content: 'Hey, how are you?', timestamp: '2023-08-10T10:30:00Z', senderName: 'Alice Johnson' },
+      { id: 'm2', senderId: user.$id || '', receiverId: '1', content: 'I\'m good, thanks! Working on a new project.', timestamp: '2023-08-10T10:32:00Z', senderName: user.name || '' },
+      { id: 'm3', senderId: '1', receiverId: user.$id || '', content: 'That sounds exciting! Tell me more about it.', timestamp: '2023-08-10T10:35:00Z', senderName: 'Alice Johnson' },
+    ] : [];
+
+    return {
+      mockUsers,
+      initialActivities,
+      initialFriendRequests,
+      initialSpaces,
+      initialMessages
+    };
+  }, [user]);
+
   useEffect(() => {
     async function loadUsers() {
       setLoading(true);
       setError(null);
       try {
-        const mockUsers: User[] = [
-          { $id: '1', name: 'Alice Johnson', email: 'alice@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/1.jpg' },
-          { $id: '2', name: 'Bob Smith', email: 'bob@example.com', status: 'offline', avatarUrl: 'https://mui.com/static/images/avatar/2.jpg' },
-          { $id: '3', name: 'Charlie Brown', email: 'charlie@example.com', status: 'away', avatarUrl: 'https://mui.com/static/images/avatar/3.jpg' },
-          { $id: '4', name: 'Diana Prince', email: 'diana@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/4.jpg' },
-          { $id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/5.jpg' },
-        ];
+        const { 
+          mockUsers, 
+          initialActivities, 
+          initialFriendRequests, 
+          initialSpaces, 
+          initialMessages 
+        } = initializeMockData();
+        
         setUsers(mockUsers);
-
-        setFriendRequests([
-          { id: 'fr1', senderId: '3', receiverId: user?.$id || '', status: 'pending', senderName: 'Charlie Brown' },
-          { id: 'fr2', senderId: '5', receiverId: user?.$id || '', status: 'pending', senderName: 'Ethan Hunt' },
-        ]);
-
-        setActiveSpaces([
-          { id: 'space1', name: 'Web3 Developers', type: 'voice', participants: 7, hostId: '2' },
-          { id: 'space2', name: 'Blockchain Discussion', type: 'video', participants: 4, hostId: '4' },
-          { id: 'space3', name: 'Freelancer Tips', type: 'voice', participants: 12, hostId: '1' },
-        ]);
-
-        setMessages([
-          { id: 'm1', senderId: '1', receiverId: user?.$id || '', content: 'Hey, how are you?', timestamp: '2023-08-10T10:30:00Z', senderName: 'Alice Johnson' },
-          { id: 'm2', senderId: user?.$id || '', receiverId: '1', content: 'I\'m good, thanks! Working on a new project.', timestamp: '2023-08-10T10:32:00Z', senderName: user?.name || '' },
-          { id: 'm3', senderId: '1', receiverId: user?.$id || '', content: 'That sounds exciting! Tell me more about it.', timestamp: '2023-08-10T10:35:00Z', senderName: 'Alice Johnson' },
-        ]);
+        setLiveActivities(initialActivities);
+        setFriendRequests(initialFriendRequests);
+        setActiveSpaces(initialSpaces);
+        setMessages(initialMessages);
 
       } catch (error) {
-        console.error('Error fetching users:', error);
-        setError('Failed to load users. Please try again later.');
+        console.error('Error initializing data:', error);
+        setError('Failed to load data. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -116,12 +138,13 @@ export default function ConnectPage() {
     loadUsers();
 
     const interval = setInterval(() => {
-      const newActivity = activities[Math.floor(Math.random() * activities.length)];
+      const { initialActivities } = initializeMockData();
+      const newActivity = initialActivities[Math.floor(Math.random() * initialActivities.length)];
       setLiveActivities((prev) => [newActivity, ...prev].slice(0, 10));
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, [initializeMockData]);
 
   const handleSendMessage = () => {
     if (!message.trim() || !selectedChat) return;

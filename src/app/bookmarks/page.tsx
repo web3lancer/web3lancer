@@ -24,6 +24,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useRouter } from "next/navigation";
+import { Query } from 'appwrite';
 
 const MotionCard = motion(Card);
 const MotionContainer = motion(Container);
@@ -55,13 +56,20 @@ export default function BookmarksPage() {
 
   useEffect(() => {
     async function fetchBookmarks() {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
-        const response = await databases.listDocuments('67b885ed000038dd7ab9', '67b8860100311b7d7939', [
-          `userId=${user.$id}`
-        ]);
+        // Use Query approach instead of string interpolation to prevent issues
+        const response = await databases.listDocuments(
+          '67b885ed000038dd7ab9', 
+          '67b8860100311b7d7939', 
+          [Query.equal('userId', user.$id)]
+        );
+        
         setBookmarks(response.documents as unknown as Bookmark[]);
         
         // Fetch jobs for these bookmarks
