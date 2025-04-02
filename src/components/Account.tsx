@@ -18,52 +18,58 @@ export function Account() {
   const [verificationSent, setVerificationSent] = useState(false);
   const open = Boolean(anchorEl);
 
-  // Safely try to use wagmi hooks
+  // Fix for the hook call issue
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        // Dynamically import and use wagmi hooks
-        import('wagmi').then(wagmi => {
-          // Create a function to get account data
-          const getAccountData = () => {
-            try {
-              const { useAccount, useDisconnect } = wagmi;
-              
-              // Get address
-              const { address } = useAccount();
-              setWalletAddress(address);
-              
-              // Get disconnect function
-              const { disconnect } = useDisconnect();
-              setDisconnectWallet(() => disconnect);
-            } catch (error) {
-              console.error('Error accessing wagmi hooks:', error);
-            }
+        // Let's first try to access wallet via window.ethereum directly
+        if (window.ethereum) {
+          window.ethereum.request({ method: 'eth_accounts' })
+            .then((accounts: string[]) => {
+              if (accounts && accounts.length > 0) {
+                setWalletAddress(accounts[0]);
+              }
+            })
+            .catch(console.error);
+            
+          // Setup listener for account changes
+          const handleAccountsChanged = (accounts: string[]) => {
+            setWalletAddress(accounts.length > 0 ? accounts[0] : undefined);
           };
           
-          // Call initially
-          getAccountData();
+          window.ethereum.on('accountsChanged', handleAccountsChanged);
           
-          // Setup event listener for account changes
-          if (window.ethereum) {
-            window.ethereum.on('accountsChanged', () => {
-              getAccountData();
-            });
+          return () => {
+            if (window.ethereum.removeListener) {
+              window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            }
+          };
+        }
+        
+        // As a fallback, try the wagmi approach but without direct hook calls
+        import('wagmi').then(wagmiModule => {
+          if (wagmiModule.getClient) {
+            const client = wagmiModule.getClient();
+            const account = client?.getAccount();
+            
+            if (account) {
+              setWalletAddress(account.address);
+              
+              // For disconnect function
+              setDisconnectWallet(() => () => {
+                if (client?.disconnect) {
+                  client.disconnect();
+                }
+              });
+            }
           }
         }).catch(err => {
           console.error('Error loading wagmi:', err);
         });
       } catch (error) {
-        console.error('Error in wagmi import:', error);
+        console.error('Error in wallet integration:', error);
       }
     }
-    
-    return () => {
-      // Cleanup listener
-      if (window.ethereum && window.ethereum.removeListener) {
-        window.ethereum.removeListener('accountsChanged', () => {});
-      }
-    };
   }, []);
 
   // Display GitHub info if available
