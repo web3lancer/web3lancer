@@ -266,40 +266,12 @@ async function ensureSession() {
 }
 
 /**
- * Verify current session and handle multi-account switching
- * This solves the "not authorized" errors when switching accounts
+ * Verify current session and handle authentication
  */
-async function verifySession(accountId?: string) {
+async function verifySession() {
   try {
     // Get current user information
     const currentUser = await account.get();
-    
-    // If we have a specific accountId to verify against
-    if (accountId && currentUser.$id !== accountId) {
-      console.log('Session mismatch detected, attempting to switch');
-      
-      // First try to use an active session for the specified account
-      try {
-        const sessions = await account.listSessions();
-        const targetSession = sessions.sessions.find(
-          session => session.userId === accountId
-        );
-        
-        if (targetSession) {
-          // Switch to the target session
-          await signOut(); // Clear current session first
-          await account.updateSession(targetSession.$id);
-          return await account.get();
-        } else {
-          console.log('No session found for target account');
-          return null;
-        }
-      } catch (error) {
-        console.error('Error switching sessions:', error);
-        return null;
-      }
-    }
-    
     return currentUser;
   } catch (error) {
     console.log('No active session');
@@ -329,36 +301,6 @@ async function validateSession() {
         console.error('Failed to refresh session:', refreshError);
       }
     }
-    return false;
-  }
-}
-
-/**
- * Handle account switching in multi-account context
- * @param targetAccountId The account ID to switch to
- * @returns Whether the switch was successful
- */
-async function switchToAccount(targetAccountId: string): Promise<boolean> {
-  try {
-    // First sign out of current session
-    await signOut();
-    
-    // List all sessions to find the one for the target account
-    const sessions = await account.listSessions();
-    const targetSession = sessions.sessions.find(
-      session => session.userId === targetAccountId
-    );
-    
-    if (targetSession) {
-      // Update to use the target session
-      await account.updateSession(targetSession.$id);
-      return true;
-    } else {
-      console.error('No session found for target account');
-      return false;
-    }
-  } catch (error) {
-    console.error('Error switching accounts:', error);
     return false;
   }
 }
@@ -1033,7 +975,6 @@ export {
   ensureSession,
   verifySession,
   validateSession,
-  switchToAccount,
   convertAnonymousSession,
   createEmailOTP,
   verifyEmailOTP,
