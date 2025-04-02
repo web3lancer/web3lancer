@@ -6,7 +6,7 @@ import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { signIn, createMagicURLToken, initiateGitHubLogin } from '@/utils/api';
+import { signIn, createMagicURLToken, createGitHubOAuthSession } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
@@ -80,8 +80,8 @@ export default function SignInForm() {
   const handleGitHubSignIn = async () => {
     try {
       setIsLoading(true);
-      // Use the auth context to initiate GitHub login
-      await initiateGitHubLogin();
+      // Use the correct function name
+      await createGitHubOAuthSession();
       // The page will redirect to GitHub
     } catch (error) {
       console.error('Error initiating GitHub login:', error);
@@ -94,7 +94,7 @@ export default function SignInForm() {
   const handleCloseWalletConnect = () => {
     setShowWalletConnect(false);
     // Reset any ongoing wallet connection attempts
-    if (window.ethereum && window.ethereum.removeAllListeners) {
+    if (window.ethereum && typeof window.ethereum.removeAllListeners === 'function') {
       window.ethereum.removeAllListeners();
     }
   };

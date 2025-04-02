@@ -2,6 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback } from '@/utils/api';
+import { ensureGuestSession, isAnonymousUser } from '@/utils/guestSession';
 
 interface User {
   $id: string;
@@ -25,6 +26,7 @@ interface AuthContextType {
   signOut: () => Promise<boolean>;
   handleGitHubOAuth: (code?: string) => Promise<User | null>;
   initiateGitHubLogin: () => Promise<void>;
+  ensureSession: () => Promise<User | null>;
 }
 
 // Create a context with a default value
@@ -40,6 +42,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => false,
   handleGitHubOAuth: async () => null,
   initiateGitHubLogin: async () => {},
+  ensureSession: async () => null,
 });
 
 // Provider component that wraps the app
@@ -52,17 +55,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Function to refresh the user data from Appwrite
   const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
-      setIsLoading(true);
       const currentUser = await account.get();
       setUser(currentUser);
-      setIsAnonymous(!!currentUser?.$id && currentUser?.status === false);
+      setIsAnonymous(isAnonymousUser(currentUser));
       return currentUser;
     } catch (error) {
-      console.log('No active session found');
+      console.log('No active session found during refresh');
       setUser(null);
+      setIsAnonymous(false);
       return null;
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -71,11 +72,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await account.deleteSession('current');
       setUser(null);
-      setProfilePicture(null);
       setIsAnonymous(false);
       return true;
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error during sign out:', error);
       return false;
     }
   }, []);
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       setUser(currentUser);
-      setIsAnonymous(!!currentUser?.$id && currentUser?.status === false);
+      setIsAnonymous(isAnonymousUser(currentUser));
       return currentUser;
     } catch (error) {
       console.error('Error handling GitHub OAuth:', error);
@@ -119,28 +119,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  // Function to ensure user has a valid session (anonymous if needed)
+  const ensureSession = useCallback(async (): Promise<User | null> => {
+    try {
+      // Try to get the current user
+      const currentUser = await account.get();
+      setUser(currentUser);
+      setIsAnonymous(isAnonymousUser(currentUser));
+      return currentUser;
+    } catch (error) {
+      console.log('No authenticated session found, creating anonymous session...');
+      
+      // Create anonymous session if no existing session
+      try {
+        const guestUser = await ensureGuestSession();
+        if (guestUser) {
+          setUser(guestUser);
+          setIsAnonymous(true);
+          return guestUser;
+        }
+      } catch (anonError) {
+        console.error('Failed to create anonymous session:', anonError);
+      }
+      
+      setUser(null);
+      setIsAnonymous(false);
+      return null;
+    }
+  }, []);
+
   // Effect to check for existing session on mount
   useEffect(() => {
-    const initAuth = async () => {
+    const initializeAuth = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
+        // First, try to validate existing session
         const isValid = await validateSession();
         
         if (isValid) {
           await refreshUser();
         } else {
-          setUser(null);
+          // If no valid session, create anonymous session
+          await ensureSession();
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('Error during auth initialization:', error);
         setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    initAuth();
-  }, [refreshUser]);
+    initializeAuth();
+  }, [refreshUser, ensureSession]);
 
   // Wrap state and functions to prevent serialization issues
   const contextValue = {
@@ -154,7 +185,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     refreshUser,
     signOut: handleSignOut,
     handleGitHubOAuth,
-    initiateGitHubLogin
+    initiateGitHubLogin,
+    ensureSession
   };
 
   return (

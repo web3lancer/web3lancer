@@ -219,6 +219,15 @@ async function createMagicURLSession(userId: string, secret: string) {
  */
 async function createAnonymousSession() {
   try {
+    // First check if we already have a session to avoid creating duplicate sessions
+    try {
+      const user = await account.get();
+      console.log('User already has an active session:', user);
+      return user;
+    } catch (error) {
+      // No active session, proceed to create anonymous session
+    }
+    
     const response = await account.createAnonymousSession();
     console.log('Anonymous session created successfully:', response);
     return response;
@@ -260,8 +269,15 @@ async function ensureSession() {
     }
     
     // If we still don't have a session, create an anonymous one
-    console.log('Creating anonymous session as fallback');
-    return createAnonymousSession();
+    try {
+      console.log('Creating anonymous session as fallback');
+      const anonymousSession = await createAnonymousSession();
+      // After creating the anonymous session, get the user
+      return await account.get();
+    } catch (anonymousError) {
+      console.error('Failed to create anonymous session:', anonymousError);
+      throw anonymousError; // Re-throw to indicate failure
+    }
   }
 }
 
