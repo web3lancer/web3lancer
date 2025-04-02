@@ -3,7 +3,6 @@ import { Box, Typography, Avatar, Menu, MenuItem, Tooltip, Divider, Button, List
 import { KeyboardArrowDown, Person, AccountCircle, ExitToApp, Login, PersonAdd, VerifiedUser, MarkEmailRead, GitHub } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useAccount, useDisconnect } from 'wagmi';
 import { useAuth } from '@/contexts/AuthContext';
 import { createEmailVerification, account, safeGetDocument } from '@/utils/api';
 import { APPWRITE_CONFIG } from '@/lib/env';
@@ -11,13 +10,61 @@ import { NetworkSwitcher } from './wallet/NetworkSwitcher';
 
 export function Account() {
   const router = useRouter();
-  const { address } = useAccount();
-  const { disconnect } = useDisconnect();
+  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+  const [disconnectWallet, setDisconnectWallet] = useState<(() => void) | undefined>(undefined);
   const { user, signOut, isAnonymous, profilePicture, setProfilePicture } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const open = Boolean(anchorEl);
+
+  // Safely try to use wagmi hooks
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        // Dynamically import and use wagmi hooks
+        import('wagmi').then(wagmi => {
+          // Create a function to get account data
+          const getAccountData = () => {
+            try {
+              const { useAccount, useDisconnect } = wagmi;
+              
+              // Get address
+              const { address } = useAccount();
+              setWalletAddress(address);
+              
+              // Get disconnect function
+              const { disconnect } = useDisconnect();
+              setDisconnectWallet(() => disconnect);
+            } catch (error) {
+              console.error('Error accessing wagmi hooks:', error);
+            }
+          };
+          
+          // Call initially
+          getAccountData();
+          
+          // Setup event listener for account changes
+          if (window.ethereum) {
+            window.ethereum.on('accountsChanged', () => {
+              getAccountData();
+            });
+          }
+        }).catch(err => {
+          console.error('Error loading wagmi:', err);
+        });
+      } catch (error) {
+        console.error('Error in wagmi import:', error);
+      }
+    }
+    
+    return () => {
+      // Cleanup listener
+      if (window.ethereum && window.ethereum.removeListener) {
+        window.ethereum.removeListener('accountsChanged', () => {});
+      }
+    };
+  }, []);
 
   // Display GitHub info if available
   const isGitHubUser = user?.provider === 'github';
@@ -51,12 +98,15 @@ export function Account() {
   const handleResendVerification = async () => {};
 
   // Format wallet address for display
-  const formatAddress = (addr?: string) => {};
+  const formatAddress = (addr?: string) => {
+    if (!addr) return '';
+    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+  };
 
   // Get display name (username or wallet address)
   const displayName = user?.name || 
                       (user?.walletId ? formatAddress(user.walletId) : 
-                      address ? formatAddress(address) : '');
+                      walletAddress ? formatAddress(walletAddress) : '');
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -73,7 +123,10 @@ export function Account() {
 
   const handleSignOut = async () => {
     try {
-      await disconnect();
+      // Disconnect wallet if available
+      if (disconnectWallet) {
+        disconnectWallet();
+      }
       await signOut();
       router.push('/signin');
       handleClose();
