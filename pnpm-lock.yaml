@@ -17,6 +17,9 @@ importers:
       '@emotion/styled':
         specifier: ^11.14.0
         version: 11.14.0(@emotion/react@11.14.0(@types/react@19.0.8)(react@19.0.0))(@types/react@19.0.8)(react@19.0.0)
+      '@metamask/sdk':
+        specifier: ^0.32.1
+        version: 0.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@mui/icons-material':
         specifier: ^6.4.4
         version: 6.4.4(@mui/material@6.4.4(@emotion/react@11.14.0(@types/react@19.0.8)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.8)(react@19.0.0))(@types/react@19.0.8)(react@19.0.0))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@types/react@19.0.8)(react@19.0.0)
@@ -806,8 +809,14 @@ packages:
   '@metamask/sdk-install-modal-web@0.32.0':
     resolution: {integrity: sha512-TFoktj0JgfWnQaL3yFkApqNwcaqJ+dw4xcnrJueMP3aXkSNev2Ido+WVNOg4IIMxnmOrfAC9t0UJ0u/dC9MjOQ==}
 
+  '@metamask/sdk-install-modal-web@0.32.1':
+    resolution: {integrity: sha512-MGmAo6qSjf1tuYXhCu2EZLftq+DSt5Z7fsIKr2P+lDgdTPWgLfZB1tJKzNcwKKOdf6q9Qmmxn7lJuI/gq5LrKw==}
+
   '@metamask/sdk@0.32.0':
     resolution: {integrity: sha512-WmGAlP1oBuD9hk4CsdlG1WJFuPtYJY+dnTHJMeCyohTWD2GgkcLMUUuvu9lO1/NVzuOoSi1OrnjbuY1O/1NZ1g==}
+
+  '@metamask/sdk@0.32.1':
+    resolution: {integrity: sha512-ulvScxyuX+A8VYgQ9FGugtpH5l2U8AF0lOjaw6XyqwnL7I/U0Lk9yyz9pns4Zyq356Z4+nIBzxmb6czWLzp8UQ==}
 
   '@metamask/superstruct@3.1.0':
     resolution: {integrity: sha512-N08M56HdOgBfRKkrgCMZvQppkZGcArEop3kixNEtVbJKm6P9Cfg0YkI6X0s1g78sNrj2fWUwvJADdZuzJgFttA==}
@@ -5767,6 +5776,10 @@ snapshots:
     dependencies:
       '@paulmillr/qr': 0.2.1
 
+  '@metamask/sdk-install-modal-web@0.32.1':
+    dependencies:
+      '@paulmillr/qr': 0.2.1
+
   '@metamask/sdk@0.32.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@babel/runtime': 7.27.0
@@ -5774,6 +5787,33 @@ snapshots:
       '@metamask/providers': 16.1.0
       '@metamask/sdk-communication-layer': 0.32.0(cross-fetch@4.1.0)(eciesjs@0.4.14)(eventemitter2@6.4.9)(readable-stream@3.6.2)(socket.io-client@4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@metamask/sdk-install-modal-web': 0.32.0
+      '@paulmillr/qr': 0.2.1
+      bowser: 2.11.0
+      cross-fetch: 4.1.0
+      debug: 4.4.0
+      eciesjs: 0.4.14
+      eth-rpc-errors: 4.0.3
+      eventemitter2: 6.4.9
+      obj-multiplex: 1.0.0
+      pump: 3.0.2
+      readable-stream: 3.6.2
+      socket.io-client: 4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      tslib: 2.8.1
+      util: 0.12.5
+      uuid: 8.3.2
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@metamask/sdk@0.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@babel/runtime': 7.27.0
+      '@metamask/onboarding': 1.0.1
+      '@metamask/providers': 16.1.0
+      '@metamask/sdk-communication-layer': 0.32.0(cross-fetch@4.1.0)(eciesjs@0.4.14)(eventemitter2@6.4.9)(readable-stream@3.6.2)(socket.io-client@4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@metamask/sdk-install-modal-web': 0.32.1
       '@paulmillr/qr': 0.2.1
       bowser: 2.11.0
       cross-fetch: 4.1.0

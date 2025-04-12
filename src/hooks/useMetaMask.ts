@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MetaMaskSDK } from '@metamask/sdk';
 
+
 interface UseMetaMaskReturn {
   provider: any;
   isMetaMaskInstalled: boolean;

@@ -12,6 +12,7 @@
     "@burnt-labs/abstraxion": "1.0.0-alpha.61",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@metamask/sdk": "^0.32.1",
     "@mui/icons-material": "^6.4.4",
     "@mui/material": "^6.4.4",
     "@mui/material-nextjs": "^7.0.0",
