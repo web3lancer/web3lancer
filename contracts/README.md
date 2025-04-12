@@ -1,3 +1,4 @@
 # integrations
 
-core on-chain integrations in contracts repo
+core on-chain integrations in contracts monorepo
+
