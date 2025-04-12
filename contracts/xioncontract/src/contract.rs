@@ -1,6 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, Addr, Order, StdError, Event};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, Order, Event};
+use std::ops::Bound;
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
@@ -77,7 +78,7 @@ pub fn execute(
             execute_submit_review(deps, env, info, project_id, rating, comment)
         },
         ExecuteMsg::UpdatePlatformFee { new_fee_percent } => {
-            execute_update_platform_fee(deps, info, new_fee_percent)
+            execute_update_platform_fee(deps, env, info, new_fee_percent)
         },
         ExecuteMsg::CancelProject { project_id } => {
             execute_cancel_project(deps, env, info, project_id)
@@ -460,7 +461,7 @@ pub fn execute_approve_milestone(
     let project_milestones = PROJECT_MILESTONES.load(deps.storage, project_id)?;
     let mut all_completed = true;
     
-    for mid in project_milestones {
+    for &mid in &project_milestones {
         let m = MILESTONES.load(deps.storage, mid)?;
         if m.status != MilestoneStatus::Approved {
             all_completed = false;
@@ -602,9 +603,9 @@ pub fn execute_vote_on_dispute(
     if dispute.voters.len() >= 3 {
         // Determine winner
         if dispute.votes_for_client > dispute.votes_for_freelancer {
-            response = resolve_dispute(deps, project_id, true, response)?;
+            response = resolve_dispute(&mut deps, project_id, true, response)?;
         } else if dispute.votes_for_freelancer > dispute.votes_for_client {
-            response = resolve_dispute(deps, project_id, false, response)?;
+            response = resolve_dispute(&mut deps, project_id, false, response)?;
         }
         // If tie, continue voting
     }
@@ -616,7 +617,7 @@ pub fn execute_vote_on_dispute(
 }
 
 fn resolve_dispute(
-    deps: DepsMut,
+    deps: &mut DepsMut,
     project_id: u64,
     client_wins: bool,
     mut response: Response,
@@ -633,7 +634,7 @@ fn resolve_dispute(
     let winner = if client_wins {
         project.client.to_string()
     } else {
-        project.freelancer.clone().unwrap_or_default().to_string()
+        project.freelancer.clone().map(|addr| addr.to_string()).unwrap_or_else(|| "".to_string())
     };
     
     if client_wins {
@@ -801,16 +802,16 @@ pub fn execute_cancel_project(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetProject { project_id } => to_binary(&query_project(deps, project_id)?),
-        QueryMsg::GetProposal { proposal_id } => to_binary(&query_proposal(deps, proposal_id)?),
-        QueryMsg::GetMilestone { milestone_id } => to_binary(&query_milestone(deps, milestone_id)?),
-        QueryMsg::GetDispute { project_id } => to_binary(&query_dispute(deps, project_id)?),
-        QueryMsg::GetUserProjects { user } => to_binary(&query_user_projects(deps, user)?),
-        QueryMsg::GetProjectProposals { project_id } => to_binary(&query_project_proposals(deps, project_id)?),
-        QueryMsg::GetProjectMilestones { project_id } => to_binary(&query_project_milestones(deps, project_id)?),
-        QueryMsg::GetUserRating { user } => to_binary(&query_user_rating(deps, user)?),
-        QueryMsg::GetConfig {} => to_binary(&query_config(deps)?),
-        QueryMsg::ListProjects { start_after, limit } => to_binary(&query_list_projects(deps, start_after, limit)?),
+        QueryMsg::GetProject { project_id } => to_json_binary(&query_project(deps, project_id)?),
+        QueryMsg::GetProposal { proposal_id } => to_json_binary(&query_proposal(deps, proposal_id)?),
+        QueryMsg::GetMilestone { milestone_id } => to_json_binary(&query_milestone(deps, milestone_id)?),
+        QueryMsg::GetDispute { project_id } => to_json_binary(&query_dispute(deps, project_id)?),
+        QueryMsg::GetUserProjects { user } => to_json_binary(&query_user_projects(deps, user)?),
+        QueryMsg::GetProjectProposals { project_id } => to_json_binary(&query_project_proposals(deps, project_id)?),
+        QueryMsg::GetProjectMilestones { project_id } => to_json_binary(&query_project_milestones(deps, project_id)?),
+        QueryMsg::GetUserRating { user } => to_json_binary(&query_user_rating(deps, user)?),
+        QueryMsg::GetConfig {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::ListProjects { start_after, limit } => to_json_binary(&query_list_projects(deps, start_after, limit)?),
     }
 }
 

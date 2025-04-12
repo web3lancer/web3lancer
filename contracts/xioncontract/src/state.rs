@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Timestamp, Uint128};
-use cw_storage_plus::{Item, Map, U64Key, Bound};
+use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
