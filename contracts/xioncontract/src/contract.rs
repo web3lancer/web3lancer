@@ -1,8 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, Order, Event};
-use std::ops::Bound;
 use cw2::set_contract_version;
+use std::ops::Bound;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ProjectResponse, ProjectsResponse, ProposalResponse, MilestoneResponse, DisputeResponse, UserRatingResponse, ConfigResponse};
@@ -546,7 +546,7 @@ pub fn execute_create_dispute(
 }
 
 pub fn execute_vote_on_dispute(
-    deps: DepsMut,
+    mut deps: DepsMut,
     _env: Env,
     info: MessageInfo,
     project_id: u64,
@@ -742,6 +742,7 @@ pub fn execute_submit_review(
 
 pub fn execute_update_platform_fee(
     deps: DepsMut,
+    _env: Env,
     info: MessageInfo,
     new_fee_percent: u64,
 ) -> Result<Response, ContractError> {
@@ -918,10 +919,20 @@ fn query_list_projects(
     limit: Option<u32>,
 ) -> StdResult<ProjectsResponse> {
     let limit = limit.unwrap_or(30) as usize;
-    let start = start_after.map(|s| Bound::exclusive(s));
     
-    let projects: StdResult<Vec<_>> = PROJECTS
-        .range(deps.storage, start, None, Order::Ascending)
+    // Handle pagination by getting all keys and filtering
+    let projects: StdResult<Vec<ProjectResponse>> = PROJECTS
+        .range(deps.storage, None, None, Order::Ascending)
+        .filter(|item| {
+            if let Some(start) = start_after {
+                match item {
+                    Ok((id, _)) => *id > start,
+                    _ => true,
+                }
+            } else {
+                true
+            }
+        })
         .take(limit)
         .map(|item| {
             let (_, project) = item?;
