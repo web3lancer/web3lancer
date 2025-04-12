@@ -2,7 +2,6 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, Order, Event};
 use cw2::set_contract_version;
-use std::ops::Bound;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ProjectResponse, ProjectsResponse, ProposalResponse, MilestoneResponse, DisputeResponse, UserRatingResponse, ConfigResponse};
@@ -422,7 +421,7 @@ pub fn execute_submit_milestone(
 
 pub fn execute_approve_milestone(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     project_id: u64,
     milestone_id: u64,
