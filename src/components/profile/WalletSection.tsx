@@ -4,7 +4,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import ShieldIcon from '@mui/icons-material/Shield';
-import { walletStore } from '@/utils/stellar/walletStore';
+import { useWalletStore } from '@/utils/stellar/walletStore';
 import { getAccountBalance } from '@/utils/stellar/horizonQueries';
 
 interface WalletSectionProps {
@@ -12,42 +12,46 @@ interface WalletSectionProps {
 }
 
 export default function WalletSection({ onGoToWallet }: WalletSectionProps) {
-  const [hasWallet, setHasWallet] = useState<boolean>(false);
-  const [publicKey, setPublicKey] = useState<string | null>(null);
-  const [balances, setBalances] = useState<Array<{asset: string, balance: string}>>([]);
+  const { publicKey, isConnected } = useWalletStore();
+  const [balances, setBalances] = useState<Array<{ asset: string, balance: string }>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = walletStore.subscribe((state) => {
-      setHasWallet(!!state.publicKey && state.hasSecret);
-      setPublicKey(state.publicKey);
-      
-      if (state.publicKey) {
-        loadBalance(state.publicKey);
-      } else {
+    const loadBalance = async (key: string) => {
+      if (!key) {
+        setBalances([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const fetchedBalances = await getAccountBalance(key);
+        if (fetchedBalances) {
+          setBalances(fetchedBalances);
+        } else {
+          setError('Failed to load balance.');
+          setBalances([]);
+        }
+      } catch (err) {
+        console.error("Error in loadBalance:", err);
+        setError('Error loading balance');
+        setBalances([]);
+      } finally {
         setLoading(false);
       }
-    });
-    
-    return () => {
-      unsubscribe();
     };
-  }, []);
 
-  const loadBalance = async (key: string) => {
-    if (!key) return;
-    
-    setLoading(true);
-    try {
-      const fetchedBalances = await getAccountBalance(key);
-      setBalances(fetchedBalances);
-    } catch (err) {
-      setError('Error loading balance');
-    } finally {
+    if (publicKey) {
+      loadBalance(publicKey);
+    } else {
+      setBalances([]);
       setLoading(false);
+      setError(null);
     }
-  };
+  }, [publicKey]);
 
   const truncateKey = (key: string) => {
     if (!key) return '';
@@ -58,8 +62,8 @@ export default function WalletSection({ onGoToWallet }: WalletSectionProps) {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Wallet Management</Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           onClick={onGoToWallet}
           endIcon={<ArrowForwardIcon />}
         >
@@ -81,26 +85,26 @@ export default function WalletSection({ onGoToWallet }: WalletSectionProps) {
                 <AccountBalanceWalletIcon sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="h6">Stellar Wallet</Typography>
               </Box>
-              
+
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
                   <CircularProgress size={24} />
                 </Box>
-              ) : hasWallet ? (
+              ) : isConnected && publicKey ? (
                 <>
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="text.secondary">Public Key</Typography>
                     <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
-                      {truncateKey(publicKey || '')}
+                      {truncateKey(publicKey)}
                     </Typography>
                   </Box>
-                  
+
                   <Divider sx={{ my: 2 }} />
-                  
+
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     Balances
                   </Typography>
-                  
+
                   {balances.length > 0 ? (
                     <Box>
                       {balances.map((balance, index) => (
@@ -112,22 +116,22 @@ export default function WalletSection({ onGoToWallet }: WalletSectionProps) {
                     </Box>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      No assets found in this wallet
+                      No assets found or balance could not be loaded.
                     </Typography>
                   )}
                 </>
               ) : (
                 <Box sx={{ my: 2 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    You haven't set up a Stellar wallet yet
+                    You haven't connected a Stellar wallet yet.
                   </Typography>
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     onClick={onGoToWallet}
                     size="small"
                     sx={{ mt: 1 }}
                   >
-                    Set up wallet
+                    Connect Wallet
                   </Button>
                 </Box>
               )}
@@ -142,7 +146,7 @@ export default function WalletSection({ onGoToWallet }: WalletSectionProps) {
                 <CurrencyExchangeIcon sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="h6">Payment Settings</Typography>
               </Box>
-              
+
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>Default Currency</Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -152,7 +156,7 @@ export default function WalletSection({ onGoToWallet }: WalletSectionProps) {
                   <Chip label="BTC" variant="outlined" />
                 </Box>
               </Box>
-              
+
               <Box>
                 <Typography variant="subtitle2" gutterBottom>Payment Protection</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
