@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback, getUserProfile } from '@/utils/api';
-import { ensureGuestSession, isAnonymousUser } from '@/utils/guestSession';
+import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; // Renamed convertAnonymousSession to avoid conflict
+import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
+import { Models } from 'appwrite';
 
 interface User {
   $id: string;
@@ -15,18 +16,19 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: Models.User<Models.Preferences> | null;
   isLoading: boolean;
   isAnonymous: boolean;
   profilePicture: string | null;
-  setUser: (user: User | null) => void;
+  setUser: (user: Models.User<Models.Preferences> | null) => void;
   setIsAnonymous: (isAnonymous: boolean) => void;
   setProfilePicture: (url: string | null) => void;
-  refreshUser: () => Promise<User | null>;
+  refreshUser: () => Promise<Models.User<Models.Preferences> | null>;
   signOut: () => Promise<boolean>;
-  handleGitHubOAuth: (code?: string) => Promise<User | null>;
+  handleGitHubOAuth: (code?: string) => Promise<Models.User<Models.Preferences> | null>;
   initiateGitHubLogin: () => Promise<void>;
-  ensureSession: () => Promise<User | null>;
+  ensureSession: () => Promise<Models.User<Models.Preferences> | null>;
+  convertSession: (email: string, password: string, name?: string) => Promise<Models.User<Models.Preferences>>;
 }
 
 // Create a context with a default value
@@ -43,29 +45,45 @@ const AuthContext = createContext<AuthContextType>({
   handleGitHubOAuth: async () => null,
   initiateGitHubLogin: async () => {},
   ensureSession: async () => null,
+  convertSession: async () => null,
 });
 
 // Provider component that wraps the app
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   // Function to refresh the user data from Appwrite
-  const refreshUser = useCallback(async (): Promise<User | null> => {
+  const refreshUser = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
+    setIsLoading(true);
     try {
       const currentUser = await account.get();
+      const anonymousStatus = isAnonymousUser(currentUser);
       setUser(currentUser);
-      setIsAnonymous(isAnonymousUser(currentUser));
+      setIsAnonymous(anonymousStatus);
+      // Load profile picture if authenticated
+      if (!anonymousStatus && currentUser) {
+        try {
+          const userProfile = await getUserProfile(currentUser.$id);
+          setProfilePicture(userProfile?.profilePicture || null);
+        } catch (profileError) {
+          console.error('Error fetching profile during refresh:', profileError);
+          setProfilePicture(null);
+        }
+      } else {
+        setProfilePicture(null); // Clear profile picture for anonymous users
+      }
       return currentUser;
     } catch (error) {
-      console.log('No active session found during refresh');
-      setUser(null);
-      setIsAnonymous(false);
-      return null;
+      console.log('No active session found during refresh.');
+      // Attempt to ensure an anonymous session exists if refresh fails
+      return await ensureSession();
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  }, [ensureSession]);
 
   // Function to handle sign out
   const handleSignOut = useCallback(async (): Promise<boolean> => {
@@ -93,7 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
   
   // Function to handle GitHub OAuth callback
-  const handleGitHubOAuth = useCallback(async (code?: string): Promise<User | null> => {
+  const handleGitHubOAuth = useCallback(async (code?: string): Promise<Models.User<Models.Preferences> | null> => {
     try {
       setIsLoading(true);
       
@@ -158,7 +176,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   // Function to ensure user has a valid session (anonymous if needed)
-  const ensureSession = useCallback(async (): Promise<User | null> => {
+  const ensureSession = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
+    setIsLoading(true);
     try {
       // Try to get the current user
       const currentUser = await account.get();
@@ -184,12 +203,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       return currentUser;
     } catch (error) {
-      console.log('No authenticated session found, creating anonymous session...');
+      console.log('No authenticated session found, attempting to create anonymous session...');
       
       // Create anonymous session if no existing session
       try {
         const guestUser = await ensureGuestSession();
         if (guestUser) {
+          console.log('Created anonymous session:', guestUser);
           setUser(guestUser);
           setIsAnonymous(true);
           return guestUser;
@@ -198,9 +218,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Failed to create anonymous session:', anonError);
       }
       
+      // If all fails, set user to null
       setUser(null);
       setIsAnonymous(false);
       return null;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -209,37 +232,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const initializeAuth = async () => {
       setIsLoading(true);
       try {
-        // First, try to validate existing session
-        const isValid = await validateSession();
-        
-        if (isValid) {
-          const currentUser = await refreshUser();
-          
-          // If we have a valid user that's not anonymous, ensure their profile exists
-          if (currentUser && !isAnonymousUser(currentUser)) {
-            try {
-              const userProfile = await getUserProfile(currentUser.$id);
-              if (userProfile?.profilePicture) {
-                setProfilePicture(userProfile.profilePicture);
-              }
-            } catch (profileError) {
-              console.error('Error fetching profile during init:', profileError);
-            }
-          }
-        } else {
-          // If no valid session, create anonymous session
-          await ensureSession();
-        }
+        // Use ensureSession which handles both existing and anonymous cases
+        await ensureSession();
       } catch (error) {
-        console.error('Error during auth initialization:', error);
+        console.error('Initialization error:', error);
         setUser(null);
+        setIsAnonymous(false);
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeAuth();
-  }, [refreshUser, ensureSession]);
+  }, [ensureSession]);
+
+  // Expose convertAnonymousSession from guestSession.ts via context
+  const convertSession = useCallback(async (email: string, password: string, name?: string): Promise<Models.User<Models.Preferences>> => {
+    // Use the function imported from guestSession.ts
+    const updatedUser = await apiConvertAnonymousSession(email, password, name);
+    // Refresh user state after conversion
+    await refreshUser();
+    return updatedUser;
+  }, [refreshUser]);
 
   // Wrap state and functions to prevent serialization issues
   const contextValue = {
@@ -254,7 +268,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut: handleSignOut,
     handleGitHubOAuth,
     initiateGitHubLogin,
-    ensureSession
+    ensureSession,
+    convertSession
   };
 
   return (

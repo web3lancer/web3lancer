@@ -10,8 +10,7 @@ import {
   CircularProgress 
 } from '@mui/material';
 import { KeyboardArrowDown } from '@mui/icons-material';
-import { useMetaMask } from '@/hooks/useMetaMask';
-import { chainNames } from '@/utils/config';
+import { useMetaMask } from '../../hooks/useMetaMask';
 
 // Network configurations
 const networks = {
@@ -75,10 +74,10 @@ export function NetworkSwitcher() {
     (chainId.startsWith('0x') ? parseInt(chainId, 16) : Number(chainId)) : 
     null;
   
-  // Get current chain name
-  const currentChainName = numericChainId ? 
-    (chainNames[numericChainId] || 'Unknown Network') : 
-    'Not Connected';
+  // Get current chain name using the local networks object
+  const currentChainName = numericChainId && networks[numericChainId as keyof typeof networks] ?
+    networks[numericChainId as keyof typeof networks].name :
+    (isConnected ? 'Unknown Network' : 'Not Connected');
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -104,7 +103,8 @@ export function NetworkSwitcher() {
       });
     } catch (err: any) {
       // If the error code is 4902, the network needs to be added
-      if (err.code === 4902) {
+      // Also check if rpcUrls exist before attempting to add
+      if (err.code === 4902 && network.rpcUrls) {
         try {
           await provider.request({
             method: "wallet_addEthereumChain",

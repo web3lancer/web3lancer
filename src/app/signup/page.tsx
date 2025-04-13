@@ -1,19 +1,32 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton, Tabs, Tab } from '@mui/material';
 import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { signUp, convertAnonymousSession, createMagicURLToken } from '@/utils/api';
+import { signUp, sendMagicLink } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 
+// Define a type for window.ethereum if it exists
+interface EthereumWindow extends Window {
+  ethereum?: {
+    isMetaMask?: boolean;
+    request: (args: { method: string; params?: any[] | object }) => Promise<any>;
+    on?: (event: string, handler: (...args: any[]) => void) => void;
+    removeListener?: (event: string, handler: (...args: any[]) => void) => void;
+    removeAllListeners?: () => void;
+  };
+}
+
+declare const window: EthereumWindow;
+
 export default function SignUpPage() {
   const router = useRouter();
-  const { isAnonymous, setIsAnonymous, initiateGitHubLogin } = useAuth();
+  const { isAnonymous, setIsAnonymous, initiateGitHubLogin, convertSession } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,77 +48,76 @@ export default function SignUpPage() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       let response;
 
-      // If user has an anonymous session, convert it instead of creating new account
+      // If user has an anonymous session, convert it using the context function
       if (isAnonymous) {
-        response = await convertAnonymousSession(formData.email, formData.password, formData.name);
-        setIsAnonymous(false);
+        console.log('Converting anonymous session for:', formData.email);
+        response = await convertSession(formData.email, formData.password, formData.name);
       } else {
         // Regular signup flow
+        console.log('Performing regular signup for:', formData.email);
         response = await signUp(formData.email, formData.password, formData.name);
       }
 
       if (response) {
+        console.log('Signup/Conversion successful, redirecting...');
         router.push('/dashboard');
+      } else {
+        setError('Signup failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error signing up:', error);
-      setError('Failed to create account. Email may already be in use.');
+      console.error('Error during sign up/conversion:', error);
+      setError(`Failed to create account. ${error instanceof Error ? error.message : 'Email may already be in use or another error occurred.'}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle Magic Link sign up
   const handleMagicLinkSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setSuccess(null);
-    
-    if (!magicLinkEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(magicLinkEmail)) {
+
+    if (!magicLinkEmail || !/^\S+@\S+\.\S+$/.test(magicLinkEmail)) {
       setError('Please enter a valid email address');
       setIsLoading(false);
       return;
     }
-    
+
     try {
-      await createMagicURLToken(magicLinkEmail);
-      setSuccess(`Magic link sent to ${magicLinkEmail}. Please check your email.`);
-      setMagicLinkEmail('');
+      await sendMagicLink(magicLinkEmail);
+      setSuccess('Magic link sent! Check your email to sign in.');
     } catch (error) {
-      console.error('Error creating magic link:', error);
-      setError('Failed to send magic link. Please try again.');
+      console.error('Error sending magic link:', error);
+      setError(`Failed to send magic link. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle GitHub sign up
-  const handleGitHubSignUp = async () => {
-    try {
-      setIsLoading(true);
-      // Use auth context to initiate GitHub login
-      await initiateGitHubLogin();
-      // Page will redirect to GitHub
-    } catch (error) {
-      console.error('Error initiating GitHub login:', error);
-      setError('Failed to connect to GitHub. Please try again.');
-      setIsLoading(false);
-    }
+  const handleGitHubSignUp = () => {
+    initiateGitHubLogin();
   };
 
-  // Function to handle closing the wallet connect modal
   const handleCloseWalletConnect = () => {
     setShowWalletConnect(false);
-    // Reset any ongoing wallet connection attempts
     if (window.ethereum && window.ethereum.removeAllListeners) {
       window.ethereum.removeAllListeners();
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (window.ethereum && typeof window.ethereum.removeAllListeners === 'function') {
+        window.ethereum.removeAllListeners();
+      }
+    };
+  }, []);
 
   return (
     <Box sx={{ 
@@ -147,7 +159,6 @@ export default function SignUpPage() {
           </Alert>
         )}
         
-        {/* Social logins section - Moved to top */}
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
           <Button
             variant="outlined"
@@ -193,7 +204,6 @@ export default function SignUpPage() {
           </Typography>
         </Divider>
         
-        {/* Sign up method selector */}
         <Box sx={{ mb: 3 }}>
           <Tabs 
             value={signupMethod} 
@@ -207,7 +217,6 @@ export default function SignUpPage() {
           </Tabs>
         </Box>
         
-        {/* Email/Password form */}
         {signupMethod === 'email' && (
           <form onSubmit={handleSignUp}>
             <TextField
@@ -252,7 +261,6 @@ export default function SignUpPage() {
           </form>
         )}
 
-        {/* Magic Link form */}
         {signupMethod === 'magic' && (
           <form onSubmit={handleMagicLinkSignUp}>
             <TextField
@@ -278,7 +286,6 @@ export default function SignUpPage() {
           </form>
         )}
         
-        {/* Email OTP form */}
         {signupMethod === 'otp' && (
           <EmailOTPForm redirectPath="/dashboard" />
         )}
@@ -289,7 +296,6 @@ export default function SignUpPage() {
           </Typography>
         </Box>
         
-        {/* Add wallet connection modal */}
         {showWalletConnect && (
           <Box 
             sx={{ 
