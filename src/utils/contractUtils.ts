@@ -186,8 +186,9 @@ export const WEB3LANCER_CONTRACTS = {
   // Add Xion contract details
   XION: {
     CONTRACT_ID: XION_CONTRACT_ADDRESS,
-    TREASURY_ADDRESS: XION_TREASURY_ADDRESS,
-    // Add ABI or relevant details if needed (e.g., query/execute message schemas)
+    TREASURY_ID: XION_TREASURY_ADDRESS,
+    RPC_URL: "https://rpc.xion-testnet-2.burnt.com/",
+    REST_URL: "https://api.xion-testnet-2.burnt.com/"
   },
   // Add other chains/contracts as needed
 };

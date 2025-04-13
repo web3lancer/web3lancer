@@ -128,12 +128,114 @@ main {
   color: #1E40AF;
 }
 
-/* Add modern glass effect */
+/* Add modern glass effect with improved aesthetics */
 .glass-effect {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.glass-effect:hover {
+  box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Dark mode glass effect */
+@media (prefers-color-scheme: dark) {
+  .glass-effect {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Improve card animations */
+.card-hover-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+/* Voting system specific styles */
+.vote-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.vote-button:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.vote-button:focus:after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+/* Add responsive layout improvements */
+.content-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .content-container {
+    padding: 0 2rem;
+  }
+}
+
+/* Add support for light/dark mode switching */
+:root {
+  --background-light: linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%);
+  --background-dark: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  --text-light: #333;
+  --text-dark: #f3f4f6;
+  --card-light: rgba(255, 255, 255, 0.8);
+  --card-dark: rgba(30, 41, 59, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background: var(--background-dark);
+    color: var(--text-dark);
+  }
+  
+  ::selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: #93C5FD;
+  }
 }
 
 /* Add responsive container */
