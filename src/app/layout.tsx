@@ -9,7 +9,7 @@ import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@/theme/theme';
+import theme from '@/theme/theme'; // Assuming the theme file is at src/theme.ts or src/theme/index.ts
 
 const inter = Inter({ subsets: ['latin'] });
 
