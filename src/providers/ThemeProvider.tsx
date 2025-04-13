@@ -101,35 +101,46 @@ const darkTheme = createTheme({
 
 interface ThemeProviderProps {
   children: ReactNode;
-  );
 }
 
-// This component adapts next-themes to MUI
-function ColorModeProvider({ children }: { children: ReactNode }) {
-  const [currentTheme, setCurrentTheme] = useState(lightTheme);
-  const { theme } = useTheme();
-
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [mounted, setMounted] = useState(false);
+  
+  // To avoid hydration mismatch
   useEffect(() => {
-    setCurrentTheme(theme === 'dark' ? darkTheme : lightTheme);
-  }, [theme]);
+    setMounted(true);
+  }, []);
 
   return (
-    <MUIThemeProvider theme={currentTheme}>
-      <CssBaseline />
-      {children}
-    </MUIThemeProvider>
+    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+      <ColorModeProvider>
+        {mounted && children}
+      </ColorModeProvider>
+    </NextThemesProvider>
   );
 }
 
-// Export a hook to use the theme
-export function useTheme() {
-  const { theme, setTheme, resolvedTheme, systemTheme } = useTheme();
-  return { 
-    theme, 
-    setTheme, 
-    resolvedTheme,
-    systemTheme,
-    toggleTheme: () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
-    isDarkMode: resolvedTheme === 'dark' 
-  };
+function ColorModeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState(lightTheme);
+  const { resolvedTheme } = useTheme();
+  
+  useEffect(() => {
+    setTheme(resolvedTheme === 'dark' ? darkTheme : lightTheme);
+  }, [resolvedTheme]);
+
+  return (
+    <MuiThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </MuiThemeProvider>
+  );
 }
+
+// Custom hook for using theme
+export function useTheme() {
+  return useNextThemes();
+}
+
+// Re-export next-themes hook for convenience
+import { useTheme as useNextThemes } from 'next-themes';
+export { useNextThemes };
