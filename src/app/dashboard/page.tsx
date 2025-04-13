@@ -32,20 +32,28 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      // Simulate loading time for better UX
+      // Simulate loading time for better UX - Replace with actual loading state management
       const timer = setTimeout(() => {
-        fetchUserStats();
+        // TODO: Replace fetchUserStats and fetchUserActivities with actual Appwrite calls
+        fetchUserStats(); 
         fetchUserActivities();
         setIsLoading(false);
       }, 500);
       
       return () => clearTimeout(timer);
+    } else {
+      // Handle case where user is not logged in or loading
+      setIsLoading(false); 
     }
   }, [user]);
 
   const fetchUserStats = async () => {
+    // TODO: Replace mock data with Appwrite database queries
+    // Example: Fetch earnings, project counts, ratings from relevant collections
+    console.log("Fetching user stats from Appwrite..."); 
     try {
       // In a real app, this would fetch from your database
+      // Example: const earnings = await databases.listDocuments(...);
       setUserStats([
         { title: 'Total Earnings', value: '$12,350', icon: 'AccountBalance', increase: '+15%', color: '#1E40AF' },
         { title: 'Active Projects', value: '8', icon: 'WorkOutline', increase: '+5%', color: '#3B82F6' },
@@ -54,12 +62,17 @@ export default function DashboardPage() {
       ]);
     } catch (error) {
       console.error('Error fetching user stats:', error);
+      // Handle error state in UI
     }
   };
 
   const fetchUserActivities = async () => {
+    // TODO: Replace mock data with Appwrite database queries
+    // Example: Fetch recent activities (project updates, payments, proposals) from an 'activities' collection
+    console.log("Fetching user activities from Appwrite...");
     try {
       // In a real app, this would fetch from your database
+      // Example: const activities = await databases.listDocuments('DATABASE_ID', 'ACTIVITIES_COLLECTION_ID', [Query.equal('userId', user.$id), Query.orderDesc('$createdAt'), Query.limit(5)]);
       setUserActivities([
         { title: 'Project Completed', description: 'Blockchain Integration', time: '2 hours ago' },
         { title: 'New Project', description: 'Smart Contract Development', time: '5 hours ago' },
@@ -68,6 +81,7 @@ export default function DashboardPage() {
       ]);
     } catch (error) {
       console.error('Error fetching user activities:', error);
+      // Handle error state in UI
     }
   };
 

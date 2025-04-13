@@ -5,8 +5,7 @@ import {
   TextField, IconButton, Tabs, Tab, Badge, List, ListItem, ListItemAvatar, ListItemText, Divider,
   Box
 } from "@mui/material";
-import { databases, ID } from "@/utils/api";
-import { APPWRITE_CONFIG } from "@/lib/env";
+import { databases, ID, Query } from "@/utils/api";
 import { useAuth } from '@/contexts/AuthContext';
 import SendIcon from '@mui/icons-material/Send';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
@@ -16,36 +15,42 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import ChatIcon from '@mui/icons-material/Chat';
 import PeopleIcon from '@mui/icons-material/People';
 
-interface User {
+const DB_SOCIAL_ID = 'YOUR_SOCIAL_DATABASE_ID';
+const COLL_USERS_PROFILES_ID = 'YOUR_USER_PROFILES_COLLECTION_ID';
+const COLL_MESSAGES_ID = 'YOUR_MESSAGES_COLLECTION_ID';
+const COLL_FRIEND_REQUESTS_ID = 'YOUR_FRIEND_REQUESTS_COLLECTION_ID';
+const COLL_SPACES_ID = 'YOUR_SPACES_COLLECTION_ID';
+
+interface UserProfile {
   $id: string;
   name: string;
-  email: string;
-  status: string;
+  email?: string;
+  status?: string;
   avatarUrl?: string;
 }
 
 interface Message {
-  id: string;
+  $id?: string;
   senderId: string;
   receiverId: string;
   content: string;
   timestamp: string;
-  senderName: string;
+  senderName?: string;
 }
 
 interface FriendRequest {
-  id: string;
+  $id?: string;
   senderId: string;
   receiverId: string;
   status: 'pending' | 'accepted' | 'rejected';
-  senderName: string;
+  senderName?: string;
 }
 
 interface Space {
-  id: string;
+  $id?: string;
   name: string;
   type: 'voice' | 'video';
-  participants: number;
+  participantsCount?: number;
   hostId: string;
 }
 
@@ -62,7 +67,7 @@ const activities: Activity[] = [
 ];
 
 export default function ConnectPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [liveActivities, setLiveActivities] = useState<Activity[]>(activities);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,48 +77,14 @@ export default function ConnectPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [activeSpaces, setActiveSpaces] = useState<Space[]>([]);
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [selectedChatUserId, setSelectedChatUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadUsers() {
-      setLoading(true);
-      setError(null);
-      try {
-        const mockUsers: User[] = [
-          { $id: '1', name: 'Alice Johnson', email: 'alice@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/1.jpg' },
-          { $id: '2', name: 'Bob Smith', email: 'bob@example.com', status: 'offline', avatarUrl: 'https://mui.com/static/images/avatar/2.jpg' },
-          { $id: '3', name: 'Charlie Brown', email: 'charlie@example.com', status: 'away', avatarUrl: 'https://mui.com/static/images/avatar/3.jpg' },
-          { $id: '4', name: 'Diana Prince', email: 'diana@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/4.jpg' },
-          { $id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/5.jpg' },
-        ];
-        setUsers(mockUsers);
-
-        setFriendRequests([
-          { id: 'fr1', senderId: '3', receiverId: user?.$id || '', status: 'pending', senderName: 'Charlie Brown' },
-          { id: 'fr2', senderId: '5', receiverId: user?.$id || '', status: 'pending', senderName: 'Ethan Hunt' },
-        ]);
-
-        setActiveSpaces([
-          { id: 'space1', name: 'Web3 Developers', type: 'voice', participants: 7, hostId: '2' },
-          { id: 'space2', name: 'Blockchain Discussion', type: 'video', participants: 4, hostId: '4' },
-          { id: 'space3', name: 'Freelancer Tips', type: 'voice', participants: 12, hostId: '1' },
-        ]);
-
-        setMessages([
-          { id: 'm1', senderId: '1', receiverId: user?.$id || '', content: 'Hey, how are you?', timestamp: '2023-08-10T10:30:00Z', senderName: 'Alice Johnson' },
-          { id: 'm2', senderId: user?.$id || '', receiverId: '1', content: 'I\'m good, thanks! Working on a new project.', timestamp: '2023-08-10T10:32:00Z', senderName: user?.name || '' },
-          { id: 'm3', senderId: '1', receiverId: user?.$id || '', content: 'That sounds exciting! Tell me more about it.', timestamp: '2023-08-10T10:35:00Z', senderName: 'Alice Johnson' },
-        ]);
-
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        setError('Failed to load users. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
+    if (user) {
+      fetchAllData();
+    } else {
+      setLoading(false);
     }
-    
-    loadUsers();
 
     const interval = setInterval(() => {
       const newActivity = activities[Math.floor(Math.random() * activities.length)];
@@ -123,62 +94,196 @@ export default function ConnectPage() {
     return () => clearInterval(interval);
   }, [user]);
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !selectedChat) return;
-    
-    const newMessage: Message = {
-      id: `m${Date.now()}`,
-      senderId: user?.$id || '',
-      receiverId: selectedChat,
-      content: message,
-      timestamp: new Date().toISOString(),
-      senderName: user?.name || ''
-    };
-    
-    setMessages([...messages, newMessage]);
-    setMessage('');
-  };
+  useEffect(() => {
+    if (selectedChatUserId && user) {
+      fetchMessages(selectedChatUserId);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedChatUserId, user]);
 
-  const handleSendFriendRequest = async (userId: string) => {
-    if(!user) return;
+  const fetchAllData = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
     try {
-      const newRequest: FriendRequest = {
-        id: `fr${Date.now()}`,
-        senderId: user.$id,
-        receiverId: userId,
-        status: 'pending',
-        senderName: user.name || ''
-      };
-      
-      setFriendRequests([...friendRequests, newRequest]);
-      
-    } catch (error) {
-      console.error("Error sending friend request:", error);
+      await Promise.all([
+        fetchUserProfiles(),
+        fetchFriendRequests(),
+        fetchActiveSpaces(),
+      ]);
+    } catch (err) {
+      console.error('Error fetching initial data:', err);
+      setError('Failed to load connection data. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAcceptFriendRequest = (requestId: string) => {
-    setFriendRequests(
-      friendRequests.map(req => 
-        req.id === requestId ? {...req, status: 'accepted'} : req
-      )
-    );
+  const fetchUserProfiles = async () => {
+    try {
+      const response = await databases.listDocuments(DB_SOCIAL_ID, COLL_USERS_PROFILES_ID, []);
+      setUserProfiles(response.documents as UserProfile[]);
+    } catch (error) {
+      console.error('Error fetching user profiles:', error);
+    }
+  };
+
+  const fetchFriendRequests = async () => {
+    if (!user) return;
+    try {
+      const response = await databases.listDocuments(DB_SOCIAL_ID, COLL_FRIEND_REQUESTS_ID, [
+        Query.equal('receiverId', user.$id),
+        Query.equal('status', 'pending'),
+        Query.orderDesc('$createdAt')
+      ]);
+      setFriendRequests(response.documents as FriendRequest[]);
+    } catch (error) {
+      console.error('Error fetching friend requests:', error);
+    }
+  };
+
+  const fetchActiveSpaces = async () => {
+    try {
+      const response = await databases.listDocuments(DB_SOCIAL_ID, COLL_SPACES_ID, [
+        Query.orderDesc('$createdAt')
+      ]);
+      setActiveSpaces(response.documents as Space[]);
+    } catch (error) {
+      console.error('Error fetching active spaces:', error);
+    }
+  };
+
+  const fetchMessages = async (otherUserId: string) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const response = await databases.listDocuments(DB_SOCIAL_ID, COLL_MESSAGES_ID, [
+        Query.or([
+          Query.and([Query.equal('senderId', user.$id), Query.equal('receiverId', otherUserId)]),
+          Query.and([Query.equal('senderId', otherUserId), Query.equal('receiverId', user.$id)])
+        ]),
+        Query.orderAsc('$createdAt')
+      ]);
+      setMessages(response.documents as Message[]);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      setError('Failed to load messages for this chat.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedChatUserId || !user) return;
+
+    const newMessageData: Omit<Message, '$id' | 'senderName'> = {
+      senderId: user.$id,
+      receiverId: selectedChatUserId,
+      content: message.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      const createdDoc = await databases.createDocument(
+        DB_SOCIAL_ID, 
+        COLL_MESSAGES_ID, 
+        ID.unique(), 
+        newMessageData
+      );
+
+      setMessages([...messages, { ...createdDoc, senderName: user.name } as Message]);
+      setMessage('');
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setError("Failed to send message.");
+    }
+  };
+
+  const handleSendFriendRequest = async (targetUserId: string) => {
+    if (!user) return;
+
+    const newRequestData = {
+      senderId: user.$id,
+      receiverId: targetUserId,
+      status: 'pending',
+      senderName: user.name || 'Unknown User'
+    };
+
+    try {
+      await databases.createDocument(
+        DB_SOCIAL_ID, 
+        COLL_FRIEND_REQUESTS_ID, 
+        ID.unique(), 
+        newRequestData
+      );
+
+      alert('Friend request sent!');
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      setError("Failed to send friend request.");
+    }
+  };
+
+  const handleAcceptFriendRequest = async (request: FriendRequest) => {
+    if (!request.$id) return;
+    try {
+      await databases.updateDocument(
+        DB_SOCIAL_ID, 
+        COLL_FRIEND_REQUESTS_ID, 
+        request.$id, 
+        { status: 'accepted' }
+      );
+
+      setFriendRequests(prev => prev.filter(req => req.$id !== request.$id));
+      alert('Friend request accepted!');
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      setError("Failed to accept friend request.");
+    }
+  };
+
+  const handleDeclineFriendRequest = async (request: FriendRequest) => {
+    if (!request.$id) return;
+    try {
+      await databases.deleteDocument(DB_SOCIAL_ID, COLL_FRIEND_REQUESTS_ID, request.$id);
+
+      setFriendRequests(prev => prev.filter(req => req.$id !== request.$id));
+      alert('Friend request declined.');
+    } catch (error) {
+      console.error("Error declining friend request:", error);
+      setError("Failed to decline friend request.");
+    }
   };
 
   const handleJoinSpace = (spaceId: string) => {
     console.log(`Joining space ${spaceId}`);
   };
 
-  const handleCreateSpace = () => {
-    const newSpace: Space = {
-      id: `space${Date.now()}`,
-      name: `${user?.name}'s Space`,
+  const handleCreateSpace = async () => {
+    if (!user) return;
+
+    const newSpaceData = {
+      name: `${user.name || 'User'}'s Space`,
       type: 'voice',
-      participants: 1,
-      hostId: user?.$id || ''
+      hostId: user.$id,
+      participantsCount: 1,
     };
-    
-    setActiveSpaces([...activeSpaces, newSpace]);
+
+    try {
+      const createdDoc = await databases.createDocument(
+        DB_SOCIAL_ID, 
+        COLL_SPACES_ID, 
+        ID.unique(), 
+        newSpaceData
+      );
+
+      setActiveSpaces(prev => [createdDoc as Space, ...prev]);
+      alert('Space created!');
+    } catch (error) {
+      console.error("Error creating space:", error);
+      setError("Failed to create space.");
+    }
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -209,7 +314,7 @@ export default function ConnectPage() {
         <Tab icon={<ChatIcon />} label="Chat" />
         <Tab 
           icon={
-            <Badge badgeContent={friendRequests.filter(r => r.status === 'pending').length} color="error">
+            <Badge badgeContent={friendRequests.length} color="error">
               <PeopleIcon />
             </Badge>
           } 
@@ -227,27 +332,27 @@ export default function ConnectPage() {
                 <Grid item xs={12} md={4}>
                   <Card sx={{ height: '70vh', overflow: 'auto' }}>
                     <List>
-                      {users.map((contact) => (
-                        <React.Fragment key={contact.$id}>
+                      {userProfiles.map((profile) => (
+                        <React.Fragment key={profile.$id}>
                           <ListItem 
                             button 
-                            onClick={() => setSelectedChat(contact.$id)}
-                            selected={selectedChat === contact.$id}
-                            sx={{ backgroundColor: selectedChat === contact.$id ? 'rgba(0, 0, 0, 0.04)' : 'transparent' }}
+                            onClick={() => setSelectedChatUserId(profile.$id)}
+                            selected={selectedChatUserId === profile.$id}
+                            sx={{ backgroundColor: selectedChatUserId === profile.$id ? 'rgba(0, 0, 0, 0.04)' : 'transparent' }}
                           >
                             <ListItemAvatar>
                               <Badge
                                 overlap="circular"
                                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                                 variant="dot"
-                                color={contact.status === 'online' ? 'success' : (contact.status === 'away' ? 'warning' : 'error')}
+                                color={profile.status === 'online' ? 'success' : (profile.status === 'away' ? 'warning' : 'default')}
                               >
-                                <Avatar src={contact.avatarUrl}>{contact.name[0]}</Avatar>
+                                <Avatar src={profile.avatarUrl}>{profile.name ? profile.name[0] : '?'}</Avatar>
                               </Badge>
                             </ListItemAvatar>
                             <ListItemText 
-                              primary={contact.name} 
-                              secondary={contact.status}
+                              primary={profile.name} 
+                              secondary={profile.status || 'offline'}
                             />
                           </ListItem>
                           <Divider variant="inset" component="li" />
@@ -258,14 +363,14 @@ export default function ConnectPage() {
                 </Grid>
                 <Grid item xs={12} md={8}>
                   <Card sx={{ height: '70vh', display: 'flex', flexDirection: 'column' }}>
-                    {selectedChat ? (
+                    {selectedChatUserId ? (
                       <>
                         <Box sx={{ p: 2, borderBottom: '1px solid rgba(0, 0, 0, 0.12)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar src={users.find(u => u.$id === selectedChat)?.avatarUrl}>
-                              {users.find(u => u.$id === selectedChat)?.name[0]}
+                            <Avatar src={userProfiles.find(p => p.$id === selectedChatUserId)?.avatarUrl}>
+                              {userProfiles.find(p => p.$id === selectedChatUserId)?.name?.[0] || '?'}
                             </Avatar>
-                            <Typography variant="h6">{users.find(u => u.$id === selectedChat)?.name}</Typography>
+                            <Typography variant="h6">{userProfiles.find(p => p.$id === selectedChatUserId)?.name}</Typography>
                           </Box>
                           <Box>
                             <IconButton color="primary"><CallIcon /></IconButton>
@@ -273,14 +378,9 @@ export default function ConnectPage() {
                           </Box>
                         </Box>
                         <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-                          {messages
-                            .filter(m => 
-                              (m.senderId === selectedChat && m.receiverId === user?.$id) || 
-                              (m.senderId === user?.$id && m.receiverId === selectedChat)
-                            )
-                            .map((msg) => (
+                          {messages.map((msg) => (
                               <Box 
-                                key={msg.id} 
+                                key={msg.$id}
                                 sx={{ 
                                   display: 'flex', 
                                   justifyContent: msg.senderId === user?.$id ? 'flex-end' : 'flex-start',
@@ -289,10 +389,10 @@ export default function ConnectPage() {
                               >
                                 {msg.senderId !== user?.$id && (
                                   <Avatar 
-                                    src={users.find(u => u.$id === msg.senderId)?.avatarUrl} 
+                                    src={userProfiles.find(p => p.$id === msg.senderId)?.avatarUrl} 
                                     sx={{ mr: 1, width: 32, height: 32 }}
                                   >
-                                    {msg.senderName[0]}
+                                    {msg.senderName?.[0] || userProfiles.find(p => p.$id === msg.senderId)?.name?.[0] || '?'}
                                   </Avatar>
                                 )}
                                 <Box 
@@ -306,7 +406,7 @@ export default function ConnectPage() {
                                 >
                                   <Typography variant="body1">{msg.content}</Typography>
                                   <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                                    {new Date(msg.timestamp).toLocaleTimeString()}
+                                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -344,26 +444,32 @@ export default function ConnectPage() {
               <Typography variant="h5" sx={{ mb: 2 }}>Find Connections</Typography>
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>Friend Requests</Typography>
-                {friendRequests.filter(r => r.status === 'pending' && r.receiverId === user?.$id).length > 0 ? (
+                {friendRequests.length > 0 ? (
                   <Grid container spacing={2}>
-                    {friendRequests
-                      .filter(r => r.status === 'pending' && r.receiverId === user?.$id)
-                      .map((request) => (
-                        <Grid item xs={12} sm={6} md={4} key={request.id}>
+                    {friendRequests.map((request) => (
+                        <Grid item xs={12} sm={6} md={4} key={request.$id}>
                           <Card sx={{ p: 2 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <Avatar sx={{ mr: 2 }}>{request.senderName[0]}</Avatar>
-                              <Typography variant="body1">{request.senderName}</Typography>
+                              <Avatar sx={{ mr: 2 }} src={userProfiles.find(p => p.$id === request.senderId)?.avatarUrl}>
+                                {request.senderName?.[0] || '?'}
+                              </Avatar>
+                              <Typography variant="body1">{request.senderName || 'Unknown User'}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', gap: 1 }}>
                               <Button 
                                 variant="contained" 
                                 size="small" 
-                                onClick={() => handleAcceptFriendRequest(request.id)}
+                                onClick={() => handleAcceptFriendRequest(request)}
                               >
                                 Accept
                               </Button>
-                              <Button variant="outlined" size="small">Decline</Button>
+                              <Button 
+                                variant="outlined" 
+                                size="small"
+                                onClick={() => handleDeclineFriendRequest(request)}
+                              >
+                                Decline
+                              </Button>
                             </Box>
                           </Card>
                         </Grid>
@@ -376,54 +482,56 @@ export default function ConnectPage() {
               
               <Typography variant="h6" sx={{ mb: 2 }}>Discover Web3Lancers</Typography>
               <Grid container spacing={2}>
-                {users.map((user) => (
-                  <Grid item xs={12} sm={6} md={4} key={user.$id}>
-                    <Card 
-                      sx={{
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        backdropFilter: 'blur(10px)',
-                        borderRadius: 2,
-                      }}
-                    >
-                      <CardContent>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <Badge
-                            overlap="circular"
-                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                            variant="dot"
-                            color={user.status === 'online' ? 'success' : (user.status === 'away' ? 'warning' : 'error')}
-                          >
-                            <Avatar src={user.avatarUrl} sx={{ width: 56, height: 56, mr: 2 }}>{user.name[0]}</Avatar>
-                          </Badge>
-                          <Box>
-                            <Typography variant="h6">{user.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">{user.status}</Typography>
+                {userProfiles.map((profile) => (
+                  profile.$id !== user?.$id && (
+                    <Grid item xs={12} sm={6} md={4} key={profile.$id}>
+                      <Card 
+                        sx={{
+                          background: 'rgba(255, 255, 255, 0.7)',
+                          backdropFilter: 'blur(10px)',
+                          borderRadius: 2,
+                        }}
+                      >
+                        <CardContent>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <Badge
+                              overlap="circular"
+                              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                              variant="dot"
+                              color={profile.status === 'online' ? 'success' : (profile.status === 'away' ? 'warning' : 'default')}
+                            >
+                              <Avatar src={profile.avatarUrl} sx={{ width: 56, height: 56, mr: 2 }}>{profile.name ? profile.name[0] : '?'}</Avatar>
+                            </Badge>
+                            <Box>
+                              <Typography variant="h6">{profile.name}</Typography>
+                              <Typography variant="body2" color="text.secondary">{profile.status || 'offline'}</Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button 
-                            variant="outlined" 
-                            size="small"
-                            startIcon={<PersonAddIcon />}
-                            onClick={() => handleSendFriendRequest(user.$id)}
-                          >
-                            Connect
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small"
-                            startIcon={<ChatIcon />}
-                            onClick={() => {
-                              setSelectedChat(user.$id);
-                              setTabValue(0);
-                            }}
-                          >
-                            Message
-                          </Button>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Button 
+                              variant="outlined" 
+                              size="small"
+                              startIcon={<PersonAddIcon />}
+                              onClick={() => handleSendFriendRequest(profile.$id)}
+                            >
+                              Connect
+                            </Button>
+                            <Button 
+                              variant="outlined" 
+                              size="small"
+                              startIcon={<ChatIcon />}
+                              onClick={() => {
+                                setSelectedChatUserId(profile.$id);
+                                setTabValue(0);
+                              }}
+                            >
+                              Message
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )
                 ))}
               </Grid>
             </Box>
@@ -443,7 +551,7 @@ export default function ConnectPage() {
               </Box>
               <Grid container spacing={2}>
                 {activeSpaces.map((space) => (
-                  <Grid item xs={12} sm={6} md={4} key={space.id}>
+                  <Grid item xs={12} sm={6} md={4} key={space.$id}>
                     <Card 
                       sx={{
                         background: 'rgba(255, 255, 255, 0.7)',
@@ -459,30 +567,34 @@ export default function ConnectPage() {
                               {space.type === 'voice' ? 'Voice Call' : 'Video Call'}
                             </Typography>
                           </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {[...Array(Math.min(space.participants, 3))].map((_, i) => (
-                              <Avatar 
-                                key={i} 
-                                sx={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  ml: i > 0 ? -1 : 0 
-                                }}
-                              />
-                            ))}
-                            {space.participants > 3 && (
-                              <Avatar sx={{ width: 32, height: 32, ml: -1 }}>
-                                +{space.participants - 3}
-                              </Avatar>
-                            )}
-                          </Box>
+                          {space.participantsCount && space.participantsCount > 0 && (
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {[...Array(Math.min(space.participantsCount, 3))].map((_, i) => (
+                                <Avatar 
+                                  key={i} 
+                                  sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    ml: i > 0 ? -1 : 0,
+                                    bgcolor: 'grey.300'
+                                  }}
+                                />
+                              ))}
+                              {space.participantsCount > 3 && (
+                                <Avatar sx={{ width: 32, height: 32, ml: -1, bgcolor: 'grey.300' }}>
+                                  +{space.participantsCount - 3}
+                                </Avatar>
+                              )}
+                            </Box>
+                          )}
                         </Box>
                         <Button 
                           variant="contained"
                           color="primary"
                           size="small"
                           startIcon={space.type === 'voice' ? <CallIcon /> : <VideoCallIcon />}
-                          onClick={() => handleJoinSpace(space.id)}
+                          onClick={() => space.$id && handleJoinSpace(space.$id)}
+                          disabled={!space.$id}
                         >
                           Join
                         </Button>

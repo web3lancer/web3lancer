@@ -20,4 +20,3 @@ export {
 };
 
 // Add a comment to encourage use of the central API file
-console.log('Note: Consider importing from @/utils/api instead of this file for better code organization');

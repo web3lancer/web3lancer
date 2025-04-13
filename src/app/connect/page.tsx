@@ -16,6 +16,8 @@ import ChatIcon from '@mui/icons-material/Chat';
 import PeopleIcon from '@mui/icons-material/People';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
+// Import Appwrite services if not already available via context
+import { databases, ID, Query, Realtime } from '@/utils/api'; 
 
 // Animation variants
 const containerVariants = {
@@ -92,6 +94,7 @@ export default function ConnectPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Initialize mock data safely using useCallback to prevent serialization issues
+  // TODO: Remove initializeMockData and fetch real data from Appwrite in useEffect
   const initializeMockData = useCallback(() => {
     const mockUsers: User[] = [
       { $id: '1', name: 'Alice Johnson', email: 'alice@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/1.jpg' },
@@ -134,34 +137,70 @@ export default function ConnectPage() {
   }, [user]);
 
   useEffect(() => {
-    async function loadUsers() {
+    async function loadData() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
-        const { 
-          mockUsers, 
-          initialActivities, 
-          initialFriendRequests, 
-          initialSpaces, 
-          initialMessages 
-        } = initializeMockData();
+        // TODO: Replace mock data initialization with Appwrite fetches
+        // Fetch users, friend requests, spaces, messages
+        // Example: Fetch users (consider privacy/search strategy)
+        // const usersResponse = await databases.listDocuments('DB_ID', 'USERS_COLLECTION_ID', [Query.limit(25)]); 
+        // setUsers(usersResponse.documents as unknown as User[]);
+
+        // Example: Fetch friend requests for the current user
+        // const requestsResponse = await databases.listDocuments('DB_ID', 'FRIEND_REQUESTS_COLLECTION_ID', [Query.equal('receiverId', user.$id)]);
+        // setFriendRequests(requestsResponse.documents as unknown as FriendRequest[]);
         
+        // Example: Fetch active spaces
+        // const spacesResponse = await databases.listDocuments('DB_ID', 'SPACES_COLLECTION_ID', [Query.limit(10)]);
+        // setActiveSpaces(spacesResponse.documents as unknown as Space[]);
+
+        // Example: Fetch initial messages for a default/last chat (if applicable)
+        // if (selectedChat) {
+        //   const messagesResponse = await databases.listDocuments('DB_ID', 'MESSAGES_COLLECTION_ID', [
+        //     Query.equal('chatId', generateChatId(user.$id, selectedChat)), // Assuming a combined chat ID
+        //     Query.orderDesc('$createdAt'),
+        //     Query.limit(50)
+        //   ]);
+        //   setMessages(messagesResponse.documents.reverse() as unknown as Message[]);
+        // }
+
+        // Using mock data for now:
+        const { mockUsers, initialActivities, initialFriendRequests, initialSpaces, initialMessages } = initializeMockData();
         setUsers(mockUsers);
-        setLiveActivities(initialActivities);
+        setLiveActivities(initialActivities); // TODO: Replace with Realtime subscription or fetch
         setFriendRequests(initialFriendRequests);
         setActiveSpaces(initialSpaces);
-        setMessages(initialMessages);
+        setMessages(initialMessages); // Load messages based on selectedChat
 
       } catch (error) {
-        console.error('Error initializing data:', error);
+        console.error('Error loading connect page data:', error);
         setError('Failed to load data. Please try again later.');
       } finally {
         setLoading(false);
       }
     }
     
-    loadUsers();
+    loadData();
 
+    // TODO: Implement Realtime subscriptions for messages, activities, user status, etc.
+    // Example:
+    // const unsubscribeMessages = client.subscribe(`databases.DB_ID.collections.MESSAGES_COLLECTION_ID.documents`, response => {
+    //   if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+    //      const newMessage = response.payload as Message;
+    //      // Check if message belongs to the current chat and update state
+    //      if ((newMessage.senderId === user?.$id && newMessage.receiverId === selectedChat) || (newMessage.senderId === selectedChat && newMessage.receiverId === user?.$id)) {
+    //        setMessages(prev => [...prev, newMessage]);
+    //      }
+    //   }
+    // });
+    // return () => { unsubscribeMessages(); };
+
+    // Mock activity interval (replace with Realtime)
     const interval = setInterval(() => {
       const { initialActivities } = initializeMockData();
       const newActivity = initialActivities[Math.floor(Math.random() * initialActivities.length)];
@@ -169,64 +208,162 @@ export default function ConnectPage() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [initializeMockData]);
+  }, [user, initializeMockData, selectedChat]); // Added selectedChat dependency
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !selectedChat) return;
+  const handleSendMessage = async () => { // Made async
+    if (!message.trim() || !selectedChat || !user) return;
     
-    const newMessage: Message = {
-      id: `m${Date.now()}`,
-      senderId: user?.$id || '',
+    const newMessageData = {
+      // chatId: generateChatId(user.$id, selectedChat), // Consider a combined ID for querying
+      senderId: user.$id,
       receiverId: selectedChat,
       content: message,
-      timestamp: new Date().toISOString(),
-      senderName: user?.name || ''
+      senderName: user.name || 'User' // Get sender name from user context
+      // timestamp is handled by Appwrite ($createdAt)
     };
     
-    setMessages([...messages, newMessage]);
-    setMessage('');
+    setMessage(''); // Clear input immediately for better UX
+
+    try {
+      // TODO: Implement Appwrite database call
+      // const createdMessage = await databases.createDocument(
+      //   'DB_ID', 
+      //   'MESSAGES_COLLECTION_ID', 
+      //   ID.unique(), 
+      //   newMessageData
+      // );
+      // If not using realtime, manually add to state:
+      // setMessages([...messages, createdMessage as unknown as Message]);
+      console.log("Sending message via Appwrite:", newMessageData);
+      // Using mock update for now:
+      const mockNewMessage: Message = {
+        id: `m${Date.now()}`,
+        ...newMessageData,
+        timestamp: new Date().toISOString(), // Mock timestamp
+      };
+      setMessages([...messages, mockNewMessage]);
+
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setError("Failed to send message.");
+      setMessage(newMessageData.content); // Restore message input on error
+    }
   };
 
   const handleSendFriendRequest = async (userId: string) => {
     if(!user) return;
+    
+    const requestData = {
+      senderId: user.$id,
+      receiverId: userId,
+      status: 'pending',
+      senderName: user.name || 'User' 
+    };
+
     try {
-      const newRequest: FriendRequest = {
+      // TODO: Implement Appwrite database call
+      // Check if a request already exists first
+      // const existing = await databases.listDocuments('DB_ID', 'FRIEND_REQUESTS_COLLECTION_ID', [
+      //   Query.equal('senderId', user.$id),
+      //   Query.equal('receiverId', userId)
+      // ]);
+      // if (existing.total === 0) {
+      //   const newRequest = await databases.createDocument(
+      //     'DB_ID', 
+      //     'FRIEND_REQUESTS_COLLECTION_ID', 
+      //     ID.unique(), 
+      //     requestData
+      //   );
+      //   // If not using realtime, manually add to state:
+      //   // setFriendRequests([...friendRequests, newRequest as unknown as FriendRequest]);
+      // } else {
+      //   console.log("Friend request already sent or exists.");
+      // }
+      console.log("Sending friend request via Appwrite:", requestData);
+      // Using mock update for now:
+      const mockNewRequest: FriendRequest = {
         id: `fr${Date.now()}`,
-        senderId: user.$id,
-        receiverId: userId,
-        status: 'pending',
-        senderName: user.name || ''
+        ...requestData,
       };
-      
-      setFriendRequests([...friendRequests, newRequest]);
+      setFriendRequests([...friendRequests, mockNewRequest]);
       
     } catch (error) {
       console.error("Error sending friend request:", error);
+      setError("Failed to send friend request.");
     }
   };
 
-  const handleAcceptFriendRequest = (requestId: string) => {
-    setFriendRequests(
-      friendRequests.map(req => 
-        req.id === requestId ? {...req, status: 'accepted'} : req
-      )
-    );
+  const handleAcceptFriendRequest = async (requestId: string) => { // Made async
+    const request = friendRequests.find(req => req.id === requestId);
+    if (!request) return;
+
+    try {
+      // TODO: Implement Appwrite database call to update status
+      // await databases.updateDocument(
+      //   'DB_ID', 
+      //   'FRIEND_REQUESTS_COLLECTION_ID', 
+      //   requestId, 
+      //   { status: 'accepted' }
+      // );
+      // If not using realtime, manually update state:
+      // setFriendRequests(
+      //   friendRequests.map(req => 
+      //     req.id === requestId ? {...req, status: 'accepted'} : req
+      //   )
+      // );
+      console.log("Accepting friend request via Appwrite:", requestId);
+      // Using mock update for now:
+      setFriendRequests(
+        friendRequests.map(req => 
+          req.id === requestId ? {...req, status: 'accepted'} : req
+        )
+      );
+      // TODO: Optionally create a 'friendship' document or update user profiles
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      setError("Failed to accept friend request.");
+    }
   };
 
+  // TODO: Implement handleDeclineFriendRequest similarly using updateDocument or deleteDocument
+
   const handleJoinSpace = (spaceId: string) => {
+    // TODO: Implement logic to join a space (potentially using Appwrite Functions or Realtime)
     console.log(`Joining space ${spaceId}`);
   };
 
-  const handleCreateSpace = () => {
-    const newSpace: Space = {
-      id: `space${Date.now()}`,
-      name: `${user?.name}'s Space`,
-      type: 'voice',
-      participants: 1,
-      hostId: user?.$id || ''
-    };
+  const handleCreateSpace = async () => { // Made async
+    if (!user) return;
     
-    setActiveSpaces([...activeSpaces, newSpace]);
+    const newSpaceData = {
+      name: `${user.name || 'User'}'s Space`,
+      type: 'voice', // Default or allow selection
+      participants: 1, // Initial participant count
+      hostId: user.$id,
+      // participantIds: [user.$id] // Store participant IDs
+    };
+
+    try {
+      // TODO: Implement Appwrite database call
+      // const createdSpace = await databases.createDocument(
+      //   'DB_ID', 
+      //   'SPACES_COLLECTION_ID', 
+      //   ID.unique(), 
+      //   newSpaceData
+      // );
+      // If not using realtime, manually add to state:
+      // setActiveSpaces([...activeSpaces, createdSpace as unknown as Space]);
+      console.log("Creating space via Appwrite:", newSpaceData);
+      // Using mock update for now:
+      const mockNewSpace: Space = {
+        id: `space${Date.now()}`,
+        ...newSpaceData,
+      };
+      setActiveSpaces([...activeSpaces, mockNewSpace]);
+    } catch (error) {
+      console.error("Error creating space:", error);
+      setError("Failed to create space.");
+    }
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
