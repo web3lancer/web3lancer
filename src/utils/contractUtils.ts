@@ -168,3 +168,34 @@ function encodeFunction(abiItem: any, args: any[]) {
   const functionHash = `0x${functionSignature.slice(0, 10).padEnd(10, '0')}`;
   return functionHash;
 }
+
+// Define contract addresses and ABIs here
+
+// Example for Stellar (adjust based on your actual setup)
+const STELLAR_CONTRACT_ID = process.env.NEXT_PUBLIC_STELLAR_CONTRACT_ID || "CD...YOUR_STELLAR_CONTRACT_ID...XYZ";
+
+// Xion Contract Addresses
+const XION_CONTRACT_ADDRESS = "xion1zmfzcrhl50044neqzdxcf4aa8dec9h04yvfqqamyxme0v2xwdwpsetfsz0";
+const XION_TREASURY_ADDRESS = "xion1tgklnqvs58zpfpetphqxulkx8c380hqvdjppu34tqte5kldj23msed7pau";
+
+export const WEB3LANCER_CONTRACTS = {
+  STELLAR: {
+    CONTRACT_ID: STELLAR_CONTRACT_ID,
+    // Add ABI or relevant details if needed
+  },
+  // Add Xion contract details
+  XION: {
+    CONTRACT_ID: XION_CONTRACT_ADDRESS,
+    TREASURY_ADDRESS: XION_TREASURY_ADDRESS,
+    // Add ABI or relevant details if needed (e.g., query/execute message schemas)
+  },
+  // Add other chains/contracts as needed
+};
+
+// Function to get contract details by chain name
+export const getContractDetails = (chain: 'STELLAR' | 'XION') => {
+  return WEB3LANCER_CONTRACTS[chain];
+};
+
+// You might add functions here to interact with contracts using libraries
+// like stellar-sdk or cosmwasm clients, initialized with the addresses above.

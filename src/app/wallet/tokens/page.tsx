@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Grid, 
-  Paper, 
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
   Tabs,
   Tab,
   CircularProgress
 } from '@mui/material';
 import { useMetaMask } from '@/hooks/useMetaMask';
+import { useAbstraxionAccount, useModal } from '@burnt-labs/abstraxion';
+import { Abstraxion } from "@burnt-labs/abstraxion";
 import { TokenBalance } from '@/components/wallet/TokenBalance';
 import { MintNFT } from '@/components/wallet/MintNFT';
 import Link from 'next/link';
@@ -25,7 +27,9 @@ const EXAMPLE_TOKENS = [
 ];
 
 export default function TokensPage() {
-  const { isConnected, account } = useMetaMask();
+  const { isConnected: isMetaMaskConnected, account: metaMaskAccount } = useMetaMask();
+  const { data: xionAccount, isConnected: isXionConnected } = useAbstraxionAccount();
+  const [showXionModal, setShowXionModal] = useModal();
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -33,7 +37,7 @@ export default function TokensPage() {
   };
 
   // Show a loading state until MetaMask connection status is determined
-  if (typeof isConnected === 'undefined') {
+  if (typeof isMetaMaskConnected === 'undefined') {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 8 }}>
         <CircularProgress />
@@ -45,9 +49,19 @@ export default function TokensPage() {
     <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4, px: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4">Tokens & NFTs</Typography>
-        <Link href="/wallet" passHref>
-          <Button variant="outlined">Back to Wallet</Button>
-        </Link>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => setShowXionModal(true)}
+            sx={{ ml: 2 }}
+          >
+            {isXionConnected ? `Xion: ${xionAccount?.bech32Address.substring(0, 6)}...${xionAccount?.bech32Address.substring(xionAccount?.bech32Address.length - 4)}` : 'Connect Xion'}
+          </Button>
+          <Link href="/wallet" passHref>
+            <Button variant="outlined" sx={{ ml: 2 }}>Back to Wallet</Button>
+          </Link>
+        </Box>
       </Box>
 
       <Paper sx={{ mb: 4 }}>
@@ -69,13 +83,13 @@ export default function TokensPage() {
                 Your Tokens
               </Typography>
 
-              {!isConnected && (
+              {!isMetaMaskConnected && (
                 <Typography color="text.secondary" sx={{ my: 4 }}>
                   Please connect your wallet to view your tokens
                 </Typography>
               )}
 
-              {isConnected && (
+              {isMetaMaskConnected && (
                 <Grid container spacing={2}>
                   {/* Native ETH Balance would go here */}
                   
@@ -99,13 +113,13 @@ export default function TokensPage() {
                 Your NFTs
               </Typography>
 
-              {!isConnected && (
+              {!isMetaMaskConnected && (
                 <Typography color="text.secondary" sx={{ my: 4 }}>
                   Please connect your wallet to view your NFTs
                 </Typography>
               )}
 
-              {isConnected && (
+              {isMetaMaskConnected && (
                 <Typography color="text.secondary" sx={{ my: 4 }}>
                   NFT display functionality coming soon...
                 </Typography>
@@ -165,6 +179,40 @@ export default function TokensPage() {
           View on Stellar Explorer
         </Button>
       </Paper>
+
+      {/* Information about Xion contracts */}
+      <Paper sx={{ p: 3, mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Xion Contract Integration
+        </Typography>
+
+        <Typography variant="body1" paragraph>
+          Web3Lancer utilizes the Xion blockchain for core functionalities like project management, proposals, and dispute resolution via the `xioncontract`.
+        </Typography>
+
+        <Typography variant="subtitle2">Contract Details:</Typography>
+        <Box
+          component="pre"
+          sx={{
+            p: 2,
+            bgcolor: 'background.default',
+            borderRadius: 1,
+            overflow: 'auto',
+            fontSize: '0.875rem'
+          }}
+        >
+          Contract Address: {WEB3LANCER_CONTRACTS.XION?.CONTRACT_ID || 'N/A - Update contractUtils.ts'}
+        </Box>
+
+        {isXionConnected && (
+           <Typography sx={{ mt: 2, wordBreak: 'break-all' }}>Connected Xion Address: {xionAccount?.bech32Address}</Typography>
+        )}
+      </Paper>
+
+      {/* Abstraxion Modal Component */}
+      <Abstraxion
+        onClose={() => setShowXionModal(false)}
+      />
     </Box>
   );
 }
