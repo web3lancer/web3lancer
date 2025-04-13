@@ -9,7 +9,7 @@ import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@/theme/theme'; // Assuming the theme file is at src/theme.ts or src/theme/index.ts
+import { createAppTheme } from '@/theme/index'; // Using the named export instead of default
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AbstraxionProvider config={xionConfig}>
-          <ThemeProvider theme={theme}>
+          <ThemeProvider theme={createAppTheme('light')}>
             <CssBaseline />
             <Suspense fallback={<div>Loading...</div>}>
               {children}
