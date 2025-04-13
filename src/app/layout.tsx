@@ -7,9 +7,8 @@ import '@burnt-labs/abstraxion/dist/index.css';
 import '@burnt-labs/ui/dist/index.css';
 import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { createAppTheme } from '@/theme/index'; // Using the named export instead of default
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AbstraxionProvider config={xionConfig}>
-          <ThemeProvider theme={createAppTheme('light')}>
+          <ThemeProvider>
             <CssBaseline />
             <Suspense fallback={<div>Loading...</div>}>
               {children}
