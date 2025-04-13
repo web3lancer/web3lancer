@@ -2,20 +2,19 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import { getTheme } from '@/theme';
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
-import { useTheme } from 'next-themes';
-import { PaletteMode } from '@mui/material';
+import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes';
+import { PaletteMode, CssBaseline } from '@mui/material';
 
 // Custom hook to use theme with MUI
 export const useThemeContext = () => {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
-  // Convert next-themes theme value to MUI PaletteMode
-  const mode: PaletteMode = theme === 'dark' ? 'dark' : 'light';
+  // Convert next-themes theme value to MUI PaletteMode, default to light if undefined
+  const mode: PaletteMode = resolvedTheme === 'dark' ? 'dark' : 'light';
   
   return { mode, toggleTheme };
 };
@@ -29,6 +28,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <MUIThemeProvider theme={muiTheme}>
+      <CssBaseline /> {/* Add CssBaseline here */}
       {children}
     </MUIThemeProvider>
   );
