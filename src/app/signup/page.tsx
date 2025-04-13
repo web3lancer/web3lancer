@@ -6,7 +6,7 @@ import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { signUp, sendMagicLink } from '@/utils/api';
+import { signUp, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
@@ -90,7 +90,7 @@ export default function SignUpPage() {
     }
 
     try {
-      await sendMagicLink(magicLinkEmail);
+      await createMagicURLToken(magicLinkEmail);
       setSuccess('Magic link sent! Check your email to sign in.');
     } catch (error) {
       console.error('Error sending magic link:', error);
