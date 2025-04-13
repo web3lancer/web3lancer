@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@burnt-labs/abstraxion": "1.0.0-alpha.61",
+    "@burnt-labs/ui": "0.1.0-alpha.17",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@metamask/sdk": "^0.32.1",

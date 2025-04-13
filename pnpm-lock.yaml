@@ -11,6 +11,9 @@ importers:
       '@burnt-labs/abstraxion':
         specifier: 1.0.0-alpha.61
         version: 1.0.0-alpha.61(@types/react@19.0.8)(bufferutil@4.0.9)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(utf-8-validate@5.0.10)
+      '@burnt-labs/ui':
+        specifier: 0.1.0-alpha.17
+        version: 0.1.0-alpha.17(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.0.8)(react@19.0.0)
