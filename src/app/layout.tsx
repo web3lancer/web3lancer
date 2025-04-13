@@ -9,6 +9,7 @@ import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import AppLayout from '@/components/layout/AppLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,7 +31,7 @@ export default function RootLayout({
           <ThemeProvider>
             <CssBaseline />
             <Suspense fallback={<div>Loading...</div>}>
-              {children}
+              <AppLayout>{children}</AppLayout>
             </Suspense>
           </ThemeProvider>
         </AbstraxionProvider>
