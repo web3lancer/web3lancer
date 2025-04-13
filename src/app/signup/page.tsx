@@ -113,6 +113,7 @@ export default function SignUpPage() {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
+      width: '100%',
       p: { xs: 2, sm: 4 },
       pt: { xs: '80px', sm: '100px' },
       background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',

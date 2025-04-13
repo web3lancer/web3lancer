@@ -1,52 +1,46 @@
 'use client';
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import { getTheme } from '@/theme';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { useTheme } from 'next-themes';
 import { PaletteMode } from '@mui/material';
 
-interface ThemeContextProps {
-  mode: PaletteMode;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
-
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [mode, setMode] = useState<PaletteMode>('light');
-
-  useEffect(() => {
-    // Load saved theme preference from localStorage
-    const savedTheme = localStorage.getItem('theme-mode');
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      setMode(savedTheme);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      // Use system preference as fallback
-      setMode('dark');
-    }
-  }, []);
-
+// Custom hook to use theme with MUI
+export const useThemeContext = () => {
+  const { theme, setTheme } = useTheme();
+  
   const toggleTheme = () => {
-    const newMode = mode === 'light' ? 'dark' : 'light';
-    setMode(newMode);
-    localStorage.setItem('theme-mode', newMode);
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  // Convert next-themes theme value to MUI PaletteMode
+  const mode: PaletteMode = theme === 'dark' ? 'dark' : 'light';
+  
+  return { mode, toggleTheme };
+};
+
+// MUI Theme Provider that uses next-themes
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const { mode } = useThemeContext();
+  
   // Create the theme based on the current mode
-  const theme = getTheme(mode);
+  const muiTheme = getTheme(mode);
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme }}>
-      <MUIThemeProvider theme={theme}>
-        {children}
-      </MUIThemeProvider>
-    </ThemeContext.Provider>
+    <MUIThemeProvider theme={muiTheme}>
+      {children}
+    </MUIThemeProvider>
   );
 };
 
-export const useThemeContext = (): ThemeContextProps => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useThemeContext must be used within a ThemeProvider');
-  }
-  return context;
+// Root provider to wrap your app with
+export const ThemeProviderWrapper = ({ children }: { children: ReactNode }) => {
+  return (
+    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
+    </NextThemesProvider>
+  );
 };

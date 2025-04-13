@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
 import { shouldShowSidebar } from '@/utils/navigation'; // Import the utility function
+import { useTheme } from '@/providers/ThemeProvider';
 
 const menuItems = [
   { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },

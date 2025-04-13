@@ -1,4 +1,5 @@
 import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { PaletteMode } from '@mui/material';
 
 // Create light theme options
 const lightTheme: ThemeOptions = {
@@ -125,8 +126,11 @@ const darkTheme: ThemeOptions = {
 };
 
 // Function to get the theme based on the selected mode
-export const getTheme = (mode: 'light' | 'dark') => {
+export const getTheme = (mode: PaletteMode) => {
   return createTheme(mode === 'dark' ? darkTheme : lightTheme);
 };
+
+// For backwards compatibility
+export const createAppTheme = (mode: PaletteMode) => getTheme(mode);
 
 export { lightTheme, darkTheme };

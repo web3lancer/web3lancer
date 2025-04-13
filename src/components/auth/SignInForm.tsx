@@ -1,21 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Alert, Button, Divider, TextField, IconButton, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Paper, Alert, Button, Divider, TextField, Tabs, Tab } from '@mui/material';
 import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { signIn, createMagicURLToken, createGitHubOAuthSession } from '@/utils/api';
+import { signIn, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 
 export default function SignInForm() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { initiateGitHubLogin } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
   });
@@ -23,7 +21,7 @@ export default function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [signInMethod, setSignInMethod] = useState<'email' | 'otp' | 'magic'>('email');
+  const [signinMethod, setSigninMethod] = useState<'email' | 'otp' | 'magic'>('email');
   const [showWalletConnect, setShowWalletConnect] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,14 +36,12 @@ export default function SignInForm() {
 
     try {
       const response = await signIn(formData.email, formData.password);
-      
       if (response) {
-        setUser(response);
         router.push('/dashboard');
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      setError('Invalid email or password. Please try again.');
+      setError('Invalid email or password');
     } finally {
       setIsLoading(false);
     }
@@ -80,16 +76,8 @@ export default function SignInForm() {
   const handleGitHubSignIn = async () => {
     try {
       setIsLoading(true);
-      setError(null);
-      
-      // Log that we're attempting GitHub login
-      console.log('Initiating GitHub login...');
-      
-      // Call the createGitHubOAuthSession function
-      await createGitHubOAuthSession(['user:email']);
-      
-      // The page will redirect to GitHub authorization page
-      // No need to handle redirect here as it will happen automatically
+      await initiateGitHubLogin();
+      // Page will redirect to GitHub
     } catch (error) {
       console.error('Error initiating GitHub login:', error);
       setError('Failed to connect to GitHub. Please try again.');
@@ -100,8 +88,7 @@ export default function SignInForm() {
   // Function to handle closing the wallet connect modal
   const handleCloseWalletConnect = () => {
     setShowWalletConnect(false);
-    // Reset any ongoing wallet connection attempts
-    if (window.ethereum && typeof window.ethereum.removeAllListeners === 'function') {
+    if (window.ethereum && window.ethereum.removeAllListeners) {
       window.ethereum.removeAllListeners();
     }
   };
@@ -112,6 +99,7 @@ export default function SignInForm() {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
+      width: '100%',
       p: { xs: 2, sm: 4 },
       pt: { xs: '80px', sm: '100px' },
       background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
@@ -126,11 +114,11 @@ export default function SignInForm() {
         backdropFilter: 'blur(20px)',
       }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
-          Welcome Back
+          Sign In
         </Typography>
         
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Sign in to your Web3Lancer account
+          Welcome back to Web3Lancer
         </Typography>
         
         {error && (
@@ -194,8 +182,8 @@ export default function SignInForm() {
         {/* Sign in method selector */}
         <Box sx={{ mb: 3 }}>
           <Tabs 
-            value={signInMethod} 
-            onChange={(_, value) => setSignInMethod(value)}
+            value={signinMethod} 
+            onChange={(_, value) => setSigninMethod(value)}
             variant="fullWidth"
             sx={{ mb: 3 }}
           >
@@ -206,7 +194,7 @@ export default function SignInForm() {
         </Box>
         
         {/* Email/Password form */}
-        {signInMethod === 'email' && (
+        {signinMethod === 'email' && (
           <form onSubmit={handleSignIn}>
             <TextField
               label="Email"
@@ -228,17 +216,11 @@ export default function SignInForm() {
               onChange={handleChange}
               required
             />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
-              <Link href="/forgot-password">
-                <Typography variant="body2" color="primary">
-                  Forgot password?
-                </Typography>
-              </Link>
-            </Box>
             <Button
               type="submit"
               variant="contained"
               fullWidth
+              sx={{ mt: 2 }}
               disabled={isLoading}
               startIcon={<Email />}
             >
@@ -248,7 +230,7 @@ export default function SignInForm() {
         )}
 
         {/* Magic Link form */}
-        {signInMethod === 'magic' && (
+        {signinMethod === 'magic' && (
           <form onSubmit={handleMagicLinkSignIn}>
             <TextField
               label="Email"
@@ -274,8 +256,8 @@ export default function SignInForm() {
         )}
         
         {/* Email OTP form */}
-        {signInMethod === 'otp' && (
-          <EmailOTPForm redirectPath="/dashboard" />
+        {signinMethod === 'otp' && (
+          <EmailOTPForm isSignIn redirectPath="/dashboard" />
         )}
         
         <Box sx={{ mt: 3, textAlign: 'center' }}>
