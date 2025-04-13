@@ -4,50 +4,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Account } from './Account';
 import { WalletOptions } from './WalletOptions';
 import { useEffect } from 'react';
-import { useMetaMask } from '@/hooks/useMetaMask';
 import { NetworkStatus } from './wallet/NetworkStatus';
 import { NetworkWatcher } from './wallet/NetworkWatcher';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function ConnectWallet() {
-  const { isConnected, isConnecting, isReconnecting } = useAccount();
-  const { isLoading: isConnectLoading, error: connectError, reset: resetConnect } = useConnect();
+  const { address, isConnected, isConnecting, isReconnecting } = useAccount();
+  const { connectors, connect, status, error: connectError, reset: resetConnect } = useConnect();
   const { disconnect } = useDisconnect();
   const { user } = useAuth();
-  
-  // Add MetaMask SDK integration
-  const { 
-    isConnected: isMetaMaskConnected, 
-    error: metaMaskError, 
-    isPending: isMetaMaskPending 
-  } = useMetaMask();
-  
-  const isLoading = isConnecting || isReconnecting || isConnectLoading || isMetaMaskPending;
-  const error = connectError || metaMaskError;
-  
-  // Reset state when component mounts - important for modal reopening
+
+  const isLoading = isConnecting || isReconnecting || status === 'pending';
+  const error = connectError;
+
   useEffect(() => {
-    // Cancel any pending wallet connection attempts
-    if (window.ethereum) {
-      if (window.ethereum.removeAllListeners) {
-        try {
-          window.ethereum.removeAllListeners();
-        } catch (e) {
-          console.log("Couldn't remove ethereum listeners", e);
-        }
-      }
-    }
-    
-    // Reset wagmi connection state
     resetConnect?.();
-    
+
     return () => {
-      // Also cleanup on unmount
       resetConnect?.();
     };
   }, [resetConnect]);
 
-  // Track account changes
   useEffect(() => {
     function onConnect(data: any) {
       console.log("Connected!", {
@@ -78,14 +55,13 @@ export function ConnectWallet() {
       }
     };
   }, []);
-  
-  // Add the NetworkWatcher for monitoring chain changes
+
   return (
     <>
       <NetworkWatcher />
       <AnimatePresence mode="wait">
         <motion.div
-          key={isConnected || isMetaMaskConnected ? 'connected' : 'disconnected'}
+          key={isConnected || user?.walletId ? 'connected' : 'disconnected'}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
@@ -96,18 +72,34 @@ export function ConnectWallet() {
             width: '100%'
           }}
         >
-          {isConnected || isMetaMaskConnected || user?.walletId ? (
+          {isConnected || user?.walletId ? (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Account />
+                <Typography variant="h6">Connected Wallet</Typography>
                 <NetworkStatus />
               </Box>
+              <Account address={address} disconnect={disconnect} />
             </>
           ) : (
-            <WalletOptions />
+            <>
+              <Typography variant="h6" sx={{ mb: 2 }}>Connect Wallet</Typography>
+              <WalletOptions connectors={connectors} connect={connect} />
+            </>
           )}
         </motion.div>
       </AnimatePresence>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+        <Typography sx={{ ml: 2 }}>Connecting...</Typography>
+      </Backdrop>
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error.message || 'Failed to connect wallet.'}
+        </Alert>
+      )}
     </>
   );
 }
