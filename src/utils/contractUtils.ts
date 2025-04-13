@@ -142,7 +142,8 @@ export async function readContract({
     }
 
     // This is a simplified implementation - in production, use ethers.js or web3.js
-    const result = await window.ethereum.request({
+    // The check above ensures window.ethereum is defined here
+    const result = await window.ethereum!.request({
       method: 'eth_call',
       params: [
         {
