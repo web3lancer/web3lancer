@@ -30,7 +30,6 @@ export default function ResetPassword() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Check if we're in reset mode (have userId and secret in URL)
     const hasResetParams = searchParams.has('userId') && searchParams.has('secret');
     setIsResetMode(hasResetParams);
   }, [searchParams]);
@@ -80,7 +79,6 @@ export default function ResetPassword() {
       await completePasswordRecovery(userId, secret, newPassword);
       setSuccess(true);
       
-      // Redirect to login after successful password reset
       setTimeout(() => {
         router.push('/signin');
       }, 3000);
@@ -94,37 +92,37 @@ export default function ResetPassword() {
 
   return (
     <Container maxWidth="sm">
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
           py: 4,
-          pt: { xs: '80px', sm: '100px' }, // Add padding-top to account for header
+          pt: { xs: '80px', sm: '100px' },
         }}
       >
         <Paper
-          elevation={3}
+          variant="outlined"
           sx={{
-            p: 4,
+            p: { xs: 3, sm: 4 },
             width: '100%',
-            borderRadius: 2,
-            background: 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(10px)'
+            borderRadius: 3,
+            border: '1px solid rgba(0, 0, 0, 0.12)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)',
           }}
         >
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, textAlign: 'center' }}>
+          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, textAlign: 'center', mb: 3 }}>
             {isResetMode ? 'Reset Your Password' : 'Forgot Password'}
           </Typography>
-          
+
           {!isResetMode && !success && (
             <form onSubmit={handleRequestReset}>
-              <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+              <Typography variant="body1" sx={{ mb: 3, textAlign: 'center', color: 'text.secondary' }}>
                 Enter your email address and we'll send you a link to reset your password.
               </Typography>
-              
+
               <TextField
                 fullWidth
                 label="Email Address"
@@ -140,12 +138,13 @@ export default function ResetPassword() {
                       <Email color="primary" />
                     </InputAdornment>
                   ),
+                  sx: { borderRadius: 2 }
                 }}
               />
-              
-              {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-              
-              <Button 
+
+              {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>{error}</Alert>}
+
+              <Button
                 type="submit"
                 fullWidth
                 variant="contained"
@@ -155,24 +154,28 @@ export default function ResetPassword() {
                   mb: 2,
                   py: 1.5,
                   borderRadius: '12px',
-                  background: 'linear-gradient(90deg, #3B82F6 0%, #1E40AF 100%)',
-                  boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.4)',
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  background: 'linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%)',
+                  boxShadow: '0 4px 12px 0 rgba(59, 130, 246, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%)',
+                    background: 'linear-gradient(90deg, #2563EB 0%, #1E40AF 100%)',
+                    boxShadow: '0 6px 16px 0 rgba(59, 130, 246, 0.4)',
                   }
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Send Reset Link'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Send Reset Link'}
               </Button>
             </form>
           )}
-          
+
           {isResetMode && !success && (
             <form onSubmit={handleCompleteReset}>
-              <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+              <Typography variant="body1" sx={{ mb: 3, textAlign: 'center', color: 'text.secondary' }}>
                 Create a new password for your account.
               </Typography>
-              
+
               <TextField
                 fullWidth
                 label="New Password"
@@ -198,9 +201,10 @@ export default function ResetPassword() {
                       </IconButton>
                     </InputAdornment>
                   ),
+                  sx: { borderRadius: 2 }
                 }}
               />
-              
+
               <TextField
                 fullWidth
                 label="Confirm Password"
@@ -216,12 +220,13 @@ export default function ResetPassword() {
                       <LockReset color="primary" />
                     </InputAdornment>
                   ),
+                  sx: { borderRadius: 2 }
                 }}
               />
-              
-              {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-              
-              <Button 
+
+              {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>{error}</Alert>}
+
+              <Button
                 type="submit"
                 fullWidth
                 variant="contained"
@@ -231,29 +236,33 @@ export default function ResetPassword() {
                   mb: 2,
                   py: 1.5,
                   borderRadius: '12px',
-                  background: 'linear-gradient(90deg, #3B82F6 0%, #1E40AF 100%)',
-                  boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.4)',
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  background: 'linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%)',
+                  boxShadow: '0 4px 12px 0 rgba(59, 130, 246, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%)',
+                    background: 'linear-gradient(90deg, #2563EB 0%, #1E40AF 100%)',
+                    boxShadow: '0 6px 16px 0 rgba(59, 130, 246, 0.4)',
                   }
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Reset Password'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Reset Password'}
               </Button>
             </form>
           )}
-          
+
           {success && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              {isResetMode ? 
-                'Password reset successful! Redirecting to login...' : 
+            <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
+              {isResetMode ?
+                'Password reset successful! Redirecting to login...' :
                 'Reset link sent! Please check your email.'}
             </Alert>
           )}
-          
+
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Typography variant="body2">
-              Remember your password? <Link href="/signin">Sign in</Link>
+              Remember your password? <Link href="/signin" style={{ color: 'primary.main', textDecoration: 'none', fontWeight: 500 }}>Sign in</Link>
             </Typography>
           </Box>
         </Paper>

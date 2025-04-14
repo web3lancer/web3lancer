@@ -64,15 +64,16 @@ export default function HomePage() {
         onClick={scrollToTop}
         sx={{
           position: 'fixed',
-          bottom: { xs: 72, md: 16 },
-          right: 16,
-          background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
-          boxShadow: '0 4px 14px 0 rgba(30, 64, 175, 0.39)',
-          zIndex: 1000,
-          opacity: 0.9,
+          bottom: { xs: 72, md: 24 }, // Adjusted bottom position
+          right: 24, // Adjusted right position
+          background: 'linear-gradient(45deg, #3B82F6, #1E40AF)', // Swapped gradient direction for consistency
+          boxShadow: '0 6px 16px rgba(30, 64, 175, 0.3)', // Softer shadow
+          zIndex: 1100, // Ensure it's above other elements like AppBar
+          opacity: 0.85,
+          transition: 'opacity 0.3s ease, background 0.3s ease',
           '&:hover': {
             opacity: 1,
-            background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
+            background: 'linear-gradient(45deg, #1E40AF, #3B82F6)', // Consistent hover gradient
           },
         }}
       >

@@ -1,11 +1,11 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; /* Modern font stack */
+  background: #f8f9fa; /* Lighter, cleaner background */
   min-height: 100vh;
   scroll-behavior: smooth;
-  color: #333;
+  color: #212529; /* Slightly softer black */
 }
 
 body {
@@ -15,6 +15,7 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Ensure main content utilizes available space */
@@ -32,13 +33,13 @@ section, article {
 }
 
 main {
-  padding: 20px;
+  padding: 24px; /* Consistent padding */
   box-sizing: border-box;
 }
 
 @media (max-width: 600px) {
   main {
-    padding: 10px;
+    padding: 16px; /* Adjust padding for smaller screens */
   }
 }
 
@@ -46,17 +47,24 @@ main {
   width: 240px;
 }
 
-/* Keep scrollbar styles */
+/* Keep scrollbar styles - Refined */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px; /* Slightly thinner */
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.03); /* Lighter track */
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
-  border-radius: 5px;
+  background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%); /* Adjusted gradient */
+  border-radius: 4px;
+  border: 2px solid transparent; /* Add border to prevent overlap */
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%); /* Darker on hover */
 }
