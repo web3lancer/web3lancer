@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { ThemeProvider as MUIThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { PaletteMode } from '@mui/material';
+import { useTheme as useNextTheme } from 'next-themes';
 
 // Define theme type
 type ThemeContextType = {
@@ -21,39 +22,20 @@ export const ThemeContext = createContext<ThemeContextType>({
 export const useThemeContext = () => useContext(ThemeContext);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Initialize theme from localStorage or default to light
-  const [mode, setMode] = useState<PaletteMode>('light');
-
-  useEffect(() => {
-    // Check for saved theme preference
-    const savedMode = localStorage.getItem('themeMode') as PaletteMode | null;
-    
-    // Check for system preference if no saved preference
-    if (!savedMode) {
-      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setMode(prefersDarkMode ? 'dark' : 'light');
-    } else {
-      setMode(savedMode);
-    }
-
-    // Apply theme class to document for global CSS styling
-    document.documentElement.setAttribute('data-theme', mode);
-  }, []);
-
-  useEffect(() => {
-    // Update data-theme attribute when mode changes
-    document.documentElement.setAttribute('data-theme', mode);
-    localStorage.setItem('themeMode', mode);
-  }, [mode]);
+  // Use next-themes to handle theme
+  const { resolvedTheme, setTheme } = useNextTheme();
+  
+  // Convert next-themes theme to MUI theme mode
+  const mode = (resolvedTheme === 'dark' ? 'dark' : 'light') as PaletteMode;
 
   const colorMode = React.useMemo(
     () => ({
       mode,
       toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+        setTheme(mode === 'light' ? 'dark' : 'light');
       },
     }),
-    [mode]
+    [mode, setTheme]
   );
 
   // Create theme
@@ -186,5 +168,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         {children}
       </MUIThemeProvider>
     </ThemeContext.Provider>
+  );
+}
+
+// Export a wrapper component that can be used directly with next-themes
+export const ThemeProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ThemeProvider>{children}</ThemeProvider>
   );
 }
