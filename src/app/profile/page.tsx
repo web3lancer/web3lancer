@@ -6,6 +6,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useRouter } from 'next/navigation';
+import ThemeToggle from '@/components/ThemeToggle'; // Add this import
 
 // Import your profile section components
 import ProfileSection from '@/components/profile/ProfileSection';
@@ -60,12 +61,19 @@ export default function ProfilePage() {
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Account Settings
-        </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Manage your account settings and preferences
-        </Typography>
+        {/* Modified Header Section */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box>
+            <Typography variant="h4" component="h1" gutterBottom>
+              Account Settings
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Manage your account settings and preferences
+            </Typography>
+          </Box>
+          {/* Add ThemeToggle here */}
+          <ThemeToggle />
+        </Box>
 
         <Paper sx={{ mt: 4 }}>
           <Tabs
@@ -105,7 +113,7 @@ export default function ProfilePage() {
               <SecuritySection section="connected" />
             )}
             {securitySubtab === 3 && (
-              <ActivitySection />
+              <ActivitySection activities={[]} filterCriteria={''} />
             )}
           </TabPanel>
 
