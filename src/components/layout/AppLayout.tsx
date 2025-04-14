@@ -1,21 +1,14 @@
 "use client";
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import DashboardLayout from './DashboardLayout'; // Assuming DashboardLayout is in the same directory
 import { Box } from '@mui/material';
+import Sidebar from '@/components/Sidebar'; // Import Sidebar
+import Header from '@/components/Header';   // Import Header
+import { shouldShowSidebar } from '@/utils/navigation'; // Import the utility
 
-// List of paths that should NOT use the DashboardLayout
-const EXCLUDED_PATHS = ['/', '/signin', '/signup', '/home']; 
-
-// Helper function to check if the path starts with any of the excluded paths
-const isExcludedPath = (pathname: string | null): boolean => {
-  if (!pathname) return false;
-  // Check for exact matches or if the path starts with an excluded path followed by a '/' or end of string
-  return EXCLUDED_PATHS.some(excludedPath => 
-    pathname === excludedPath || pathname.startsWith(excludedPath + '/')
-  );
-};
+// Define sidebar width (consider making this a constant or theme value)
+const drawerWidth = 240;
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -23,15 +16,54 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Determine if the current path should use the DashboardLayout
-  const useDashboardLayout = !isExcludedPath(pathname);
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
-  if (useDashboardLayout) {
-    return <DashboardLayout>{children}</DashboardLayout>;
-  }
+  // Determine if the sidebar should be shown
+  const showSidebar = shouldShowSidebar(pathname);
 
-  // For excluded paths, render children directly or within a minimal wrapper
-  // Ensure it still occupies the necessary space, e.g., using flex-grow if needed in your global styles
-  return <Box component="main" sx={{ flexGrow: 1, width: '100%' }}>{children}</Box>; 
+  // Determine if the page is a pre-auth page (like signin/signup)
+  // Adjust this logic based on your actual pre-auth routes if different from sidebar hidden paths
+  const isPreAuthPage = ['/signin', '/signup'].includes(pathname);
+  const isHomePage = pathname === '/';
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <Header 
+        isHomePage={isHomePage} 
+        isPreAuthPage={isPreAuthPage} 
+        onToggleDrawer={handleDrawerToggle} 
+      />
+      
+      {/* Conditionally render Sidebar */}
+      {showSidebar && <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />}
+
+      {/* Main content area */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          // Apply margin only on md+ screens when sidebar is shown
+          ml: { md: showSidebar ? `${drawerWidth}px` : 0 }, 
+          // Add padding top to account for the fixed Header height (adjust value as needed)
+          pt: { xs: '56px', sm: '64px' }, 
+          width: { 
+            xs: '100%', 
+            // Adjust width calculation for md+ screens when sidebar is shown
+            md: showSidebar ? `calc(100% - ${drawerWidth}px)` : '100%' 
+          },
+          // Add padding bottom to account for bottom navigation on mobile
+          pb: { xs: showSidebar ? '70px' : 0, md: 0 }, 
+        }}
+      >
+        {/* Add inner padding for content */}
+        <Box sx={{ p: 3 }}> 
+          {children}
+        </Box>
+      </Box>
+    </Box>
+  );
 }
