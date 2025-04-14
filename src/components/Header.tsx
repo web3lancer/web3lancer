@@ -10,6 +10,7 @@ import { Account } from './Account';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { shouldShowSidebar } from '@/utils/navigation';
+import { useTheme } from '@mui/material/styles'; // Import useTheme
 
 interface HeaderProps {
   isHomePage?: boolean;
@@ -21,6 +22,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
   const pathname = usePathname();
   const showSidebar = shouldShowSidebar(pathname);
+  const theme = useTheme(); // Get the current theme
 
   useEffect(() => {
     let isMounted = true;
@@ -78,18 +80,24 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
     return null;
   }
 
+  // Common AppBar styles
+  const appBarSx = {
+    // Use theme palette for background and border
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(31, 41, 55, 0.8)' // Dark mode background from theme/index.ts
+      : 'rgba(255, 255, 255, 0.8)', // Light mode background
+    backdropFilter: 'blur(20px)',
+    borderBottom: `1px solid ${theme.palette.divider}`, // Use theme divider color
+    width: '100%',
+    zIndex: theme.zIndex.drawer + 1,
+  };
+
   if (isPreAuthPage) {
     return (
       <AppBar
         position="fixed"
         elevation={0}
-        sx={{
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(231, 231, 231, 0.8)',
-          width: '100%',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-        }}
+        sx={appBarSx} // Apply common styles
       >
         <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>
           <Link href="/" passHref>
@@ -124,13 +132,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
     <AppBar
       position="fixed"
       elevation={0}
-      sx={{
-        background: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(231, 231, 231, 0.8)',
-        width: '100%',
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-      }}
+      sx={appBarSx} // Apply common styles
     >
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4, md: 6 } }}>
         <motion.div
