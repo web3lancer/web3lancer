@@ -6,6 +6,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TelegramIcon from '@mui/icons-material/Telegram';
 // import DiscordIcon from '@/components/icons/DiscordIcon'; // Assuming a custom Discord icon component exists or can be created
+import DiscordIcon from '@mui/icons-material/Github';
 
 const MotionBox = motion(Box);
 
