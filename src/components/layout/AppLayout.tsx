@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode } from 'react'; // Removed useState
 import { usePathname } from 'next/navigation';
 import { Box } from '@mui/material';
 import Sidebar from '@/components/Sidebar'; // Import Sidebar
@@ -16,11 +16,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  // Removed mobileOpen state and handleDrawerToggle function
 
   // Determine if the sidebar should be shown
   const showSidebar = shouldShowSidebar(pathname);
@@ -35,11 +31,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <Header 
         isHomePage={isHomePage} 
         isPreAuthPage={isPreAuthPage} 
-        onToggleDrawer={handleDrawerToggle} 
+        // Removed onToggleDrawer prop
       />
       
-      {/* Conditionally render Sidebar */}
-      {showSidebar && <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />}
+      {/* Conditionally render Sidebar - Removed mobileOpen and handleDrawerToggle props */}
+      {showSidebar && <Sidebar />}
 
       {/* Main content area */}
       <Box

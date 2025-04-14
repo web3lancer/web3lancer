@@ -1,7 +1,7 @@
 "use client";
 
 import { AppBar, Toolbar, Typography, Button, IconButton, Box } from "@mui/material";
-import { Notifications, Menu as MenuIcon } from "@mui/icons-material";
+import { Notifications } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
@@ -14,10 +14,9 @@ import { shouldShowSidebar } from '@/utils/navigation';
 interface HeaderProps {
   isHomePage?: boolean;
   isPreAuthPage?: boolean;
-  onToggleDrawer?: () => void;
 }
 
-export default function Header({ isHomePage = false, isPreAuthPage = false, onToggleDrawer }: HeaderProps) {
+export default function Header({ isHomePage = false, isPreAuthPage = false }: HeaderProps) {
   const { user } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
   const pathname = usePathname();
@@ -140,18 +139,6 @@ export default function Header({ isHomePage = false, isPreAuthPage = false, onTo
           transition={{ duration: 0.5 }}
           style={{ display: 'flex', alignItems: 'center' }}
         >
-          {showSidebar && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={onToggleDrawer}
-              sx={{ mr: 2, display: { md: 'none' } }}
-            >
-              <MenuIcon sx={{ color: '#1E40AF' }} />
-            </IconButton>
-          )}
-
           <Box sx={{ position: 'relative', width: 40, height: 40, mr: 2 }}>
             <Image
               src="/logo/web3lancer.jpg"

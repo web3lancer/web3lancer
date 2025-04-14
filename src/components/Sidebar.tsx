@@ -16,12 +16,7 @@ const menuItems = [
   { text: 'Profile', icon: Person, path: '/profile' },
 ];
 
-interface SidebarProps {
-  mobileOpen: boolean;
-  handleDrawerToggle: () => void;
-}
-
-export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps) {
+export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
@@ -77,9 +72,6 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
                 <ListItemButton 
                   onClick={() => {
                     router.push(item.path);
-                    if (isMobile) {
-                      handleDrawerToggle();
-                    }
                   }}
                   sx={{
                     my: 0.5,
@@ -171,26 +163,6 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
           },
           width: drawerWidth,
           flexShrink: 0,
-        }}
-      >
-        {drawerContent}
-      </Drawer>
-      
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
-            width: drawerWidth,
-            borderRight: 'none',
-            background: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
-          },
-          zIndex: theme.zIndex.drawer + 1,
         }}
       >
         {drawerContent}
