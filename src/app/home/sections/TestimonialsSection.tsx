@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Card, CardContent, Avatar, Divider, Container } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Avatar, Divider, Container, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 
 const MotionCard = motion(Card);
@@ -26,8 +26,10 @@ const testimonials = [
 ];
 
 export default function TestimonialsSection() {
+  const theme = useTheme();
+  
   return (
-    <Box sx={{ py: 15, background: '#fff', width: '100%', overflow: 'hidden' }}>
+    <Box sx={{ py: 15, background: theme.palette.background.paper, width: '100%', overflow: 'hidden' }}>
       <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
         <motion.div
           initial={{ opacity: 0, y: 50 }}

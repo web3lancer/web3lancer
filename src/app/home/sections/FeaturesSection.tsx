@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Card, CardContent, Container, Avatar } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Container, Avatar, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
@@ -48,9 +48,11 @@ const steps = [
 ];
 
 export default function FeaturesSection() {
+  const theme = useTheme();
+  
   return (
     <>
-      <Box sx={{ py: { xs: 8, md: 12 }, background: '#ffffff', width: '100%', overflow: 'hidden' }}>
+      <Box sx={{ py: { xs: 8, md: 12 }, background: theme.palette.background.paper, width: '100%', overflow: 'hidden' }}>
         <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -95,9 +97,9 @@ export default function FeaturesSection() {
                       sx={{
                         height: '100%',
                         borderRadius: 3,
-                        background: '#ffffff',
+                        background: theme.palette.background.paper,
                         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                        border: `1px solid ${theme.palette.divider}`,
                         transition: 'all 0.3s ease-out',
                         overflow: 'visible'
                       }}
@@ -139,7 +141,14 @@ export default function FeaturesSection() {
         </Container>
       </Box>
 
-      <Box sx={{ py: { xs: 8, md: 12 }, background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)', width: '100%', overflow: 'hidden' }}>
+      <Box sx={{ 
+        py: { xs: 8, md: 12 }, 
+        background: theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #111827 0%, #1F2937 100%)' 
+          : 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)', 
+        width: '100%', 
+        overflow: 'hidden' 
+      }}>
         <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}

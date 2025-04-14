@@ -1,22 +1,22 @@
 import React from 'react';
-import { Box, Typography, Button, Stack, IconButton, Container } from '@mui/material';
+import { Box, Typography, Button, Stack, IconButton, Container, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TelegramIcon from '@mui/icons-material/Telegram';
-// import DiscordIcon from '@/components/icons/DiscordIcon'; // Assuming a custom Discord icon component exists or can be created
-// import DiscordIcon from '@mui/icons-material/GitHub';
 import DiscordIcon from '@mui/icons-material/GitHub';
 
 const MotionBox = motion(Box);
 
 export default function CommunitySection() {
+  const theme = useTheme();
+
   return (
     <Box 
       sx={{ 
         py: { xs: 8, md: 12 }, 
-        background: '#ffffff', // White background
+        backgroundColor: theme.palette.background.default, 
         position: 'relative',
         overflow: 'hidden'
       }}
@@ -33,8 +33,8 @@ export default function CommunitySection() {
             sx={{
               p: { xs: 4, sm: 6, md: 8 },
               borderRadius: 4,
-              background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.06)',
+              backgroundColor: theme.palette.background.paper, 
+              boxShadow: theme.shadows[4],
               border: (theme) => `1px solid ${theme.palette.divider}`,
               textAlign: 'center',
               position: 'relative',
@@ -102,7 +102,9 @@ export default function CommunitySection() {
           width: 250,
           height: 250,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0) 70%)',
+          background: theme.palette.mode === 'dark' 
+            ? 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0) 70%)'
+            : 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0) 70%)',
           top: -80,
           left: -80,
           zIndex: 1
@@ -114,7 +116,9 @@ export default function CommunitySection() {
           width: 180,
           height: 180,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(30, 64, 175, 0.05) 0%, rgba(30, 64, 175, 0) 70%)',
+          background: theme.palette.mode === 'dark' 
+            ? 'radial-gradient(circle, rgba(30, 64, 175, 0.1) 0%, rgba(30, 64, 175, 0) 70%)'
+            : 'radial-gradient(circle, rgba(30, 64, 175, 0.05) 0%, rgba(30, 64, 175, 0) 70%)',
           bottom: -60,
           right: -60,
           zIndex: 1
@@ -125,9 +129,10 @@ export default function CommunitySection() {
 }
 
 function SocialButtons() {
+  const theme = useTheme();
   const socialNetworks = [
     { icon: <TwitterIcon />, color: '#1DA1F2', name: 'Twitter', url: 'https://twitter.com/web3lancer' },
-    { icon: <GitHubIcon />, color: '#333', name: 'GitHub', url: 'https://github.com/web3lancer' },
+    { icon: <GitHubIcon />, color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#333', name: 'GitHub', url: 'https://github.com/web3lancer' },
     { icon: <TelegramIcon />, color: '#0088cc', name: 'Telegram', url: 'https://t.me/web3lancer' },
     { icon: <LinkedInIcon />, color: '#0077B5', name: 'LinkedIn', url: 'https://linkedin.com/company/web3lancer' },
   ];
@@ -155,8 +160,10 @@ function SocialButtons() {
             sx={{
               width: { xs: 56, sm: 64 },
               height: { xs: 56, sm: 64 },
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.07)',
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.1)' 
+                : 'rgba(255, 255, 255, 0.8)',
+              boxShadow: theme.shadows[2],
               color: social.color,
               border: (theme) => `1px solid ${theme.palette.divider}`,
               transition: 'all 0.3s ease',

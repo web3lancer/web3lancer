@@ -1,18 +1,23 @@
 import React from 'react';
-import { Box, Typography, Button, Grid, Container, AppBar, Toolbar } from '@mui/material';
+import { Box, Typography, Button, Grid, Container, AppBar, Toolbar, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function HeroSection() {
+  const theme = useTheme();
+  
   return (
     <Box
       component={motion.div}
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }} // Start visible
       animate={{ opacity: 1 }}
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
+        // Use theme background color for dark mode compatibility
+        background: theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #111827 0%, #1F2937 100%)' 
+          : 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
         position: 'relative',
         pt: { xs: 10, md: 0 },
         width: '100%',
@@ -28,7 +33,7 @@ export default function HeroSection() {
           right: 0,
           bottom: 0,
           background: 'url("/grid.svg")',
-          opacity: 0.1,
+          opacity: theme.palette.mode === 'dark' ? 0.05 : 0.1, // Reduce opacity in dark mode
           zIndex: 0,
         }
       }}
@@ -38,7 +43,9 @@ export default function HeroSection() {
         position="fixed"
         elevation={0}
         sx={{
-          background: 'rgba(255, 255, 255, 0.85)',
+          background: theme.palette.mode === 'dark' 
+            ? 'rgba(17, 24, 39, 0.85)' 
+            : 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(12px)',
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           boxShadow: 'none',
