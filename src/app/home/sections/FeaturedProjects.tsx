@@ -19,7 +19,7 @@ export default function FeaturedProjects() {
     <Box 
       sx={{ 
         py: { xs: 8, md: 12 }, 
-        background: '#ffffff',
+        background: theme.palette.background.paper,
         width: '100%',
         overflow: 'hidden'
       }}

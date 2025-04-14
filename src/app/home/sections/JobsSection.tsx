@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Card, CardContent, Container } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Container, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 
 const MotionCard = motion(Card);
@@ -15,6 +15,8 @@ interface JobsSectionProps {
 }
 
 export default function JobsSection({ jobs }: JobsSectionProps) {
+  const theme = useTheme();
+  
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -49,9 +51,16 @@ export default function JobsSection({ jobs }: JobsSectionProps) {
                     whileHover={{ y: -10 }}
                     sx={{
                       height: '100%',
-                      background: 'rgba(255, 255, 255, 0.7)',
+                      background: theme.palette.mode === 'dark'
+                        ? 'rgba(30, 41, 59, 0.7)'
+                        : 'rgba(255, 255, 255, 0.7)',
                       backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.18)',
+                      border: theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255, 255, 255, 0.05)'
+                        : '1px solid rgba(255, 255, 255, 0.18)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 8px 32px rgba(0, 0, 0, 0.2)'
+                        : '0 8px 32px rgba(31, 38, 135, 0.1)',
                     }}
                   >
                     <CardContent>

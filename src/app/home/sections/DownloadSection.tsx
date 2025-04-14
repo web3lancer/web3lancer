@@ -20,7 +20,9 @@ export default function DownloadSection() {
       sx={{ 
         py: { xs: 8, md: 12 }, 
         textAlign: 'center',
-        background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
+        background: theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #111827 0%, #1F2937 100%)' 
+          : 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
         position: 'relative',
         overflow: 'hidden',
       }}

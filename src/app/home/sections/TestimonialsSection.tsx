@@ -63,16 +63,24 @@ export default function TestimonialsSection() {
                   <MotionCard
                     whileHover={{ 
                       y: -15,
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
+                      boxShadow: theme.palette.mode === 'dark' 
+                        ? '0 20px 40px rgba(0, 0, 0, 0.5)' 
+                        : '0 20px 40px rgba(0, 0, 0, 0.1)'
                     }}
                     sx={{
                       height: '100%',
                       borderRadius: 4,
                       p: 2,
-                      background: 'rgba(255, 255, 255, 0.7)',
+                      background: theme.palette.mode === 'dark'
+                        ? 'rgba(31, 41, 55, 0.7)'
+                        : 'rgba(255, 255, 255, 0.7)',
                       backdropFilter: 'blur(10px)',
-                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 10px 30px rgba(0, 0, 0, 0.2)'
+                        : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                      border: theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255, 255, 255, 0.05)'
+                        : '1px solid rgba(255, 255, 255, 0.2)',
                       position: 'relative',
                     }}
                   >

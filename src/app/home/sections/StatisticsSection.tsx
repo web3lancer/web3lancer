@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Container } from '@mui/material';
+import { Box, Typography, Grid, Container, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
 
@@ -11,11 +11,15 @@ const statistics = [
 ];
 
 export default function StatisticsSection() {
+  const theme = useTheme();
+  
   return (
     <Box 
       sx={{ 
         py: 12, 
-        background: 'linear-gradient(135deg, #EFF6FF 0%, #F3F4F6 100%)',
+        background: theme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, #111827 0%, #1F2937 100%)'
+          : 'linear-gradient(135deg, #EFF6FF 0%, #F3F4F6 100%)',
         width: '100%',
         overflow: 'hidden'
       }}
