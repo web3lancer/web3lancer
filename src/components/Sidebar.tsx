@@ -20,7 +20,6 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [value, setValue] = useState(() => {
     const index = menuItems.findIndex(item => item.path === pathname);
@@ -217,7 +216,7 @@ export default function Sidebar() {
           }
         }}
       >
-        {menuItems.map((item, index) => (
+        {menuItems.map((item) => (
           <BottomNavigationAction
             key={item.text}
             label={item.text}
