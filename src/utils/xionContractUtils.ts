@@ -1,17 +1,41 @@
-// src/utils/xionContractUtils.ts
+// ...existing code...
 
-// Import necessary libraries or modules if needed
-// Example: import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+export function getXionContractAddress(): string {
+  // TODO: implement actual logic
+  return '';
+}
 
-/**
- * Placeholder for a utility function related to Xion contracts.
- * @param param Example parameter.
- * @returns Example return value.
- */
-export const placeholderXionUtil = (param: string): string => {
-    console.log(`Received parameter: ${param}`);
-    // Add actual utility logic here
-    return `Processed: ${param}`;
-};
+export function getDisputeMsg(projectId: number): any {
+  // TODO: implement actual logic
+  return { get_dispute: { project_id: projectId } };
+}
 
-// Add more Xion contract related utility functions below
+export function createDisputeMsg(projectId: number, reason: string): any {
+  // TODO: implement actual logic
+  return { create_dispute: { project_id: projectId, reason } };
+}
+
+export function voteOnDisputeMsg(projectId: number, voteForClient: boolean): any {
+  // TODO: implement actual logic
+  return { vote_on_dispute: { project_id: projectId, vote_for_client: voteForClient } };
+}
+
+export function hasUserVotedMsg(projectId: number, user: string): any {
+  // TODO: implement actual logic
+  return { has_user_voted: { project_id: projectId, user } };
+}
+
+export function getActiveDisputesMsg(): any {
+  // TODO: implement actual logic
+  return { get_active_disputes: {} };
+}
+
+export interface Dispute {
+  projectId: number;
+  status: string;
+  reason: string;
+  votesForClient: number;
+  votesForFreelancer: number;
+  // Add more fields as needed
+}
+// ...existing code...
