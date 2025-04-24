@@ -1177,6 +1177,5 @@ export {
   isLoggedIn,
   Query,
   safeGetDocument,
-  safeListDocuments,
-  getProfilePictureUrl
+  safeListDocuments
 };
