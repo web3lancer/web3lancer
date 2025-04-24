@@ -373,12 +373,23 @@ export default function ConnectPage() {
                     <Grid item xs={12} sm={5} md={4}>
                       <Paper 
                         elevation={0} 
+                        sx={{ 
+                          height: { xs: 'auto', sm: 'calc(100vh - 200px)' },
                           minHeight: 300,
                           overflow: 'hidden', 
                           borderRadius: 3, 
                           border: `1px solid ${theme.palette.divider}`,
                           display: 'flex',
-                          flexDirection: 'column'
+                          flexDirection: 'column',
+                          position: { xs: 'fixed', sm: 'static' },
+                          zIndex: { xs: 1200, sm: 'auto' },
+                          width: { xs: selectedChat ? 0 : '100vw', sm: 'auto' },
+                          left: 0,
+                          top: 64,
+                          bgcolor: 'background.paper',
+                          transition: 'width 0.3s',
+                          boxShadow: { xs: 3, sm: 0 },
+                          display: { xs: selectedChat ? 'none' : 'flex', sm: 'flex' },
                         }}
                       >
                         <Box sx={{ p: 1.5, borderBottom: `1px solid ${theme.palette.divider}` }}>
@@ -470,9 +481,22 @@ export default function ConnectPage() {
                           flexDirection: 'column', 
                           borderRadius: 3,
                           overflow: 'hidden',
-                          border: `1px solid ${theme.palette.divider}`
+                          border: `1px solid ${theme.palette.divider}`,
+                          width: '100%',
+                          position: 'relative',
                         }}
                       >
+                        {/* Add a back button for mobile to return to contacts */}
+                        {selectedChat && (
+                          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', p: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                            <IconButton onClick={() => setSelectedChat(null)}>
+                              <FilterListIcon />
+                            </IconButton>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1 }}>
+                              Back to Contacts
+                            </Typography>
+                          </Box>
+                        )}
                         {selectedChat ? (
                           <>
                             <Box sx={{ 
