@@ -1,4 +1,5 @@
-import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor } from 'appwrite';
+import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor, AppwriteException } from 'appwrite'; // Add AppwriteException
+import { Models } from 'appwrite'; // Import Models for type hints
 import { APPWRITE_CONFIG, APP_CONFIG } from '@/lib/env';
 
 // Initialize client according to Appwrite docs
@@ -508,30 +509,37 @@ async function createMfaEmailVerification() {
 /**
  * User profile functions
  */
-async function getUserProfile(userId: string) {
+async function getUserProfile(userId: string): Promise<Models.Document | null> { // Add return type
   try {
     console.log('Fetching user profile for user ID:', userId);
-    // Verify we're using the correct database and collection IDs from the documentation
     const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
     const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
     
     try {
-      const response = await databases.getDocument(databaseId, collectionId, userId);
-      console.log('Profile found:', response);
-      return response;
+      // Attempt to get the profile document using the userId as the documentId
+      const profile = await databases.getDocument(databaseId, collectionId, userId);
+      console.log('Profile found:', profile);
+      return profile;
     } catch (error: any) {
-      // If document not found (404), create a new profile document
-      if (error.code === 404) {
-        console.log('Profile not found, creating new profile for user:', userId);
-        // Get the user account info to populate basic profile data
-        const currentUser = await account.get();
-        return await createUserProfile(userId, currentUser);
+      // If document not found (404), try to create it
+      if (error instanceof AppwriteException && error.code === 404) {
+        console.log('Profile not found for user:', userId, 'Attempting to create one.');
+        // Fetch user data to pass to createUserProfile
+        try {
+          const currentUserData = await account.get();
+          return await createUserProfile(userId, currentUserData);
+        } catch (accountError) {
+          console.error('Failed to get user account data while creating profile:', accountError);
+          return null; // Cannot create profile without user data
+        }
+      } else {
+        // Re-throw other errors
+        console.error('Error fetching profile document:', error);
+        throw error;
       }
-      throw error;
     }
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    // Return null instead of throwing to allow graceful handling
+    console.error('General error in getUserProfile:', error);
     return null;
   }
 }
@@ -539,39 +547,46 @@ async function getUserProfile(userId: string) {
 /**
  * Create a new user profile in the database
  */
-async function createUserProfile(userId: string, userData: any) {
+async function createUserProfile(userId: string, userData: Models.User<Models.Preferences>): Promise<Models.Document | null> { // Add return type and use correct userData type
   try {
     console.log('Creating new user profile for:', userId, userData);
     const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
     const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
     
-    // Extract email from GitHub OAuth user if available
-    const email = userData.email || 
-                 (userData.provider === 'github' && userData.providerUid ? 
-                  `${userData.providerUid}@github.user` : '');
+    const email = userData.email || '';
+    const name = userData.name || '';
     
-    // Create the profile document with the user ID as document ID
     const response = await databases.createDocument(
       databaseId,
       collectionId,
-      userId, // Use the userId as the document ID for easy lookup
+      userId, // Use the Appwrite User ID as the Document ID
       {
         userId: userId,
-        name: userData.name || '',
+        name: name,
         email: email,
         profilePicture: '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         skills: [],
         bio: ''
-      }
+      },
+      [
+        `read("user:${userId}")`,
+        `write("user:${userId}")`
+      ]
     );
     
     console.log('User profile created successfully:', response);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating user profile:', error);
-    throw new Error(`Failed to create user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    if (error instanceof AppwriteException && error.code === 409) {
+      console.log('Profile already exists for user (concurrent creation attempt?):', userId);
+      // If it already exists due to a race condition, try fetching it again.
+      return await databases.getDocument(APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411', APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6', userId);
+    }
+    // Return null instead of throwing for create errors if getUserProfile called it
+    return null; 
   }
 }
 

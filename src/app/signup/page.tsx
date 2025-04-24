@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton, Tabs, Tab } from '@mui/material';
 import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { signUp, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
