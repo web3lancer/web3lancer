@@ -946,58 +946,25 @@ async function getFilePreview(bucketId: string, fileId: string, width?: number, 
  */
 async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
   try {
-    // Generate proper callback URLs
-    const baseURL = APP_CONFIG.APP_URL || 
-      (typeof window !== 'undefined' ? window.location.origin : 'https://web3lancer.app');
+    // Ensure base URL is correctly determined
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    const successUrl = `${baseURL}/auth/callback`; // Redirect to a dedicated callback page
+    const failureUrl = `${baseURL}/signin?error=github_oauth_failed`; // Redirect back to signin on failure
+
+    console.log(`Initiating GitHub OAuth: Success URL: ${successUrl}, Failure URL: ${failureUrl}`);
     
-    const successURL = `${baseURL}/oauth/callback`;
-    const failureURL = `${baseURL}/signin?error=github_auth_failed`;
-    
-    // Ensure OAuthProvider is correctly referenced
-    if (!OAuthProvider || !OAuthProvider.Github) {
-      console.error('OAuthProvider or OAuthProvider.Github is undefined');
-      throw new Error('OAuth Provider configuration error');
-    }
-    
-    // Create GitHub OAuth session with proper scopes and redirect URLs
+    // Use Appwrite's built-in OAuth method
     await account.createOAuth2Session(
-      OAuthProvider.Github, // Use OAuthProvider enum
-      successURL,
-      failureURL,
+      OAuthProvider.Github, // Use the correct provider enum
+      successUrl,
+      failureUrl,
       scopes
     );
-    
-    return true;
+    // No return needed, Appwrite handles the redirect
   } catch (error) {
-    console.error('Error creating GitHub OAuth session:', error);
-    throw new Error(`Failed to create GitHub OAuth session: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Process GitHub OAuth callback
- * This function helps when handling the callback manually rather than using automatic redirects
- */
-async function handleGitHubOAuthCallback(code: string) {
-  try {
-    // For manual handling of the OAuth flow, you would verify the code
-    // This is a placeholder for any manual verification needed
-    // Appwrite handles most of this automatically through redirects
-    
-    // After OAuth redirect, we can get the current session which should now be authenticated
-    const user = await account.get();
-    
-    // Create or update the user's profile after successful GitHub login
-    try {
-      await getUserProfile(user.$id);
-    } catch (profileError) {
-      console.log('Error checking profile during GitHub callback, will create later if needed');
-    }
-    
-    return user;
-  } catch (error) {
-    console.error('Error handling GitHub OAuth callback:', error);
-    throw new Error(`Failed to complete GitHub authentication: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Error initiating GitHub OAuth session:', error);
+    throw new Error(`Failed to initiate GitHub OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -1208,7 +1175,6 @@ export {
   fetchJobs,
   fetchJob,
   createGitHubOAuthSession,
-  handleGitHubOAuthCallback,
   getCurrentSession,
   refreshOAuthSession,
   ensureValidOAuthToken,
