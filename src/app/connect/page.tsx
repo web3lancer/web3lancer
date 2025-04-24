@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { 
   Typography, Grid, Card, CardContent, Avatar, Button, Alert, CircularProgress,
   TextField, IconButton, Tabs, Tab, Badge, List, ListItem, ListItemAvatar, ListItemText, Divider,
-  Box, Container, Paper, Chip, InputAdornment, useTheme
+  Box, Container, Paper, Chip, InputAdornment, useTheme, ListItemButton
 } from "@mui/material";
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -257,6 +257,7 @@ export default function ConnectPage() {
       const mockNewSpace: Space = {
         id: `space${Date.now()}`,
         ...newSpaceData,
+        type: newSpaceData.type as 'voice' | 'video',
       };
       setActiveSpaces([...activeSpaces, mockNewSpace]);
     } catch (error) {
@@ -307,10 +308,10 @@ export default function ConnectPage() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, md: 3 } }}>
+    <Container maxWidth="xl" sx={{ py: { xs: 1, md: 4 }, px: { xs: 0.5, md: 3 } }}>
       <motion.div>
         <motion.div variants={itemVariants}>
-          <Typography variant="h4" sx={{ mb: 3, fontWeight: 600, color: 'text.primary' }}>
+          <Typography variant="h4" sx={{ mb: { xs: 2, md: 3 }, fontWeight: 600, color: 'text.primary', fontSize: { xs: 24, md: 32 } }}>
             Connect
           </Typography>
         </motion.div>
@@ -331,69 +332,47 @@ export default function ConnectPage() {
               mb: 3, 
               bgcolor: 'background.paper', 
               border: `1px solid ${theme.palette.divider}`,
-              overflow: 'hidden'
+              overflow: 'hidden',
+              width: '100%',
             }}
           >
             <Tabs 
               value={tabValue} 
               onChange={handleTabChange} 
-              variant="fullWidth"
+              variant="scrollable"
+              scrollButtons="auto"
               indicatorColor="primary"
               textColor="primary"
               sx={{ 
-                '& .MuiTabs-indicator': {
-                  height: 3,
-                },
+                '& .MuiTabs-indicator': { height: 3 },
                 '& .MuiTab-root': {
                   textTransform: 'none',
                   fontWeight: 500,
-                  fontSize: '0.95rem',
+                  fontSize: { xs: '0.9rem', md: '1rem' },
                   py: 1.5,
                   minHeight: 'auto',
-                  '&.Mui-selected': {
-                    fontWeight: 600,
-                  },
-                  '& .MuiBadge-badge': {
-                    top: 8,
-                    right: -4
-                  }
+                  '&.Mui-selected': { fontWeight: 600 },
+                  '& .MuiBadge-badge': { top: 8, right: -4 }
                 }
               }}
             >
-              <Tab 
-                icon={<ChatOutlinedIcon sx={{ mb: 0.5 }} />}
-                iconPosition="start"
-                label="Chat" 
-              />
-              <Tab 
-                icon={
-                  <Badge badgeContent={friendRequests.filter(r => r.status === 'pending' && r.receiverId === user?.$id).length} color="error">
-                    <PeopleAltOutlinedIcon sx={{ mb: 0.5 }} />
-                  </Badge>
-                } 
-                iconPosition="start"
-                label="Connections" 
-              />
-              <Tab 
-                icon={<GroupsOutlinedIcon sx={{ mb: 0.5 }} />} 
-                iconPosition="start"
-                label="Spaces" 
-              />
+              <Tab icon={<ChatOutlinedIcon sx={{ mb: 0.5 }} />} iconPosition="start" label="Chat" />
+              <Tab icon={<Badge badgeContent={friendRequests.filter(r => r.status === 'pending' && r.receiverId === user?.$id).length} color="error"><PeopleAltOutlinedIcon sx={{ mb: 0.5 }} /></Badge>} iconPosition="start" label="Connections" />
+              <Tab icon={<GroupsOutlinedIcon sx={{ mb: 0.5 }} />} iconPosition="start" label="Spaces" />
             </Tabs>
           </Paper>
         </motion.div>
 
-        <Grid container spacing={{ xs: 2, md: 3 }}>
+        <Grid container spacing={{ xs: 1, md: 3 }}>
           <Grid item xs={12} md={8}>
             <motion.div variants={itemVariants}>
               {tabValue === 0 && (
                 <Box>
                   <Grid container spacing={2}>
+                    {/* On mobile, show contacts as a Drawer */}
                     <Grid item xs={12} sm={5} md={4}>
                       <Paper 
                         elevation={0} 
-                        sx={{ 
-                          height: { xs: 'auto', sm: 'calc(100vh - 200px)' },
                           minHeight: 300,
                           overflow: 'hidden', 
                           borderRadius: 3, 
@@ -422,65 +401,60 @@ export default function ConnectPage() {
                         </Box>
                         <List sx={{ flexGrow: 1, overflow: 'auto', py: 1 }}>
                           {filterUsers(users).map((contact) => (
-                            <ListItem 
-                              button 
-                              key={contact.$id}
-                              onClick={() => setSelectedChat(contact.$id)}
-                              selected={selectedChat === contact.$id}
-                              sx={{ 
-                                px: 1.5,
-                                py: 1,
-                                borderRadius: 2,
-                                mx: 1,
-                                my: 0.5,
-                                '&.Mui-selected': {
-                                  bgcolor: theme.palette.action.selected,
-                                  '&:hover': {
+                            <ListItem key={contact.$id} disableGutters sx={{ px: 0 }}>
+                              <ListItemButton
+                                onClick={() => setSelectedChat(contact.$id)}
+                                selected={selectedChat === contact.$id}
+                                sx={{
+                                  px: 1.5,
+                                  py: 1,
+                                  borderRadius: 2,
+                                  mx: 1,
+                                  my: 0.5,
+                                  cursor: 'pointer',
+                                  transition: 'background 0.2s',
+                                  '&.Mui-selected': {
                                     bgcolor: theme.palette.action.selected,
-                                  }
-                                },
-                                '&:hover': {
-                                  bgcolor: theme.palette.action.hover
-                                }
-                              }}
-                            >
-                              <ListItemAvatar sx={{ minWidth: 'auto', mr: 1.5 }}>
-                                <Badge
-                                  sx={{
-                                    '& .MuiBadge-dot': {
-                                      border: `2px solid ${theme.palette.background.paper}`,
-                                      width: 10,
-                                      height: 10,
-                                      borderRadius: '50%'
-                                    }
-                                  }}
-                                >
-                                  <Avatar 
-                                    src={contact.avatarUrl}
-                                    sx={{ 
-                                      width: 40,
-                                      height: 40,
+                                    '&:hover': { bgcolor: theme.palette.action.selected }
+                                  },
+                                  '&:hover': { bgcolor: theme.palette.action.hover }
+                                }}
+                              >
+                                <ListItemAvatar sx={{ minWidth: 'auto', mr: 1.5 }}>
+                                  <Badge
+                                    sx={{
+                                      '& .MuiBadge-dot': {
+                                        border: `2px solid ${theme.palette.background.paper}`,
+                                        width: 10,
+                                        height: 10,
+                                        borderRadius: '50%'
+                                      }
                                     }}
                                   >
-                                    {contact.name[0]}
-                                  </Avatar>
-                                </Badge>
-                              </ListItemAvatar>
-                              <ListItemText 
-                                primary={
-                                  <Typography variant="body1" sx={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {contact.name}
-                                  </Typography>
-                                }
-                                secondary={
-                                  <Typography variant="caption" sx={{ 
-                                    color: contact.status === 'online' ? 'success.main' : (contact.status === 'away' ? 'warning.main' : 'text.disabled'),
-                                    fontWeight: 500
-                                  }}>
-                                    {contact.status}
-                                  </Typography>
-                                }
-                              />
+                                    <Avatar 
+                                      src={contact.avatarUrl}
+                                      sx={{ width: 40, height: 40 }}
+                                    >
+                                      {contact.name[0]}
+                                    </Avatar>
+                                  </Badge>
+                                </ListItemAvatar>
+                                <ListItemText 
+                                  primary={
+                                    <Typography variant="body1" sx={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {contact.name}
+                                    </Typography>
+                                  }
+                                  secondary={
+                                    <Typography variant="caption" sx={{ 
+                                      color: contact.status === 'online' ? 'success.main' : (contact.status === 'away' ? 'warning.main' : 'text.disabled'),
+                                      fontWeight: 500
+                                    }}>
+                                      {contact.status}
+                                    </Typography>
+                                  }
+                                />
+                              </ListItemButton>
                             </ListItem>
                           ))}
                         </List>
@@ -1020,7 +994,7 @@ export default function ConnectPage() {
             </motion.div>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'block' } }}>
             <motion.div variants={itemVariants}>
               <Paper 
                 elevation={0} 

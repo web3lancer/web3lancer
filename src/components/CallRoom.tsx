@@ -46,7 +46,12 @@ export default function CallRoom({ callId, mode }: CallRoomProps) {
 
   useEffect(() => {
     // Connect to signaling server
-    socketRef.current = io('http://localhost:4000'); // <-- Set your signaling server URL
+    // socketRef.current = io('http://localhost:4000'); // <-- Set your signaling server URL
+
+    socketRef.current = io(window.location.origin, {
+        path: "/api/signaling"
+    });
+
     socketRef.current.emit('join-room', callId);
 
     socketRef.current.on('all-users', (users: string[]) => {
