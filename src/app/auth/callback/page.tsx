@@ -20,12 +20,9 @@ export default function AuthCallbackPage() {
   // Helper function (can be moved to a util or kept local)
   const isUserAnonymous = (userToCheck: Models.User<Models.Preferences> | null): boolean => {
     // Adjust this logic based on how anonymous users are identified in your setup.
-    // Common checks:
-    // - Lack of email verification: !userToCheck?.emailVerification
-    // - Specific label/tag: userToCheck?.labels?.includes('anonymous')
-    // - Absence of email: !userToCheck?.email
-    // For this example, let's assume an anonymous user lacks email verification.
-    return !userToCheck?.emailVerification;
+    // For OAuth users, the presence of an email is often a better indicator
+    // of a successful, non-anonymous login than emailVerification status.
+    return !userToCheck?.email; // Check for email presence instead
   };
 
   useEffect(() => {
@@ -45,7 +42,7 @@ export default function AuthCallbackPage() {
 
     const attemptRefresh = async () => {
       if (attemptCount.current >= MAX_REFRESH_ATTEMPTS) {
-        console.error(`AuthCallbackPage: Max refresh attempts (${MAX_REFRESH_ATTEMPTS}) reached.`);
+        console.error(`AuthCallbackPage: Max refresh attempts (${MAX_REFRESH_ATTEMPTS}) reached without fetching user.`);
         setError('Authentication failed. Could not retrieve user session after multiple attempts.');
         setIsProcessing(false);
         return;
@@ -58,13 +55,15 @@ export default function AuthCallbackPage() {
         const refreshedUser = await refreshUser();
         console.log(`AuthCallbackPage: refreshUser completed (Attempt ${attemptCount.current}). User:`, refreshedUser);
 
-        // Check the user returned by refreshUser directly
-        if (refreshedUser && !isUserAnonymous(refreshedUser)) {
-          console.log('AuthCallbackPage: User authenticated successfully.');
-          setIsProcessing(false); // Stop retrying, let the next effect handle redirect
+        // Stop retrying if we successfully fetched *any* user session.
+        // Let the AuthContext update and the second useEffect handle redirection based on context state.
+        if (refreshedUser) {
+          console.log(`AuthCallbackPage: User session obtained (Attempt ${attemptCount.current}). Stopping retries.`);
+          setIsProcessing(false); // Stop retrying, let the next effect handle state check
         } else {
-          // If user is null or anonymous after refresh, wait and retry
-          console.warn(`AuthCallbackPage: User not found or anonymous after refresh (Attempt ${attemptCount.current}). Retrying in ${REFRESH_DELAY_MS}ms...`);
+          // If user is still null after refresh, wait and retry
+          console.warn(`AuthCallbackPage: User not found after refresh (Attempt ${attemptCount.current}). Retrying in ${REFRESH_DELAY_MS}ms...`);
+          // Only schedule retry if not exceeding max attempts (already checked at the start)
           setTimeout(attemptRefresh, REFRESH_DELAY_MS);
         }
       } catch (err: any) {
@@ -97,7 +96,7 @@ export default function AuthCallbackPage() {
     if (!isProcessing && !authLoading) {
       console.log(`AuthCallbackPage: State check - authLoading: ${authLoading}, user: ${!!user}, isAnonymous: ${isAnonymous}, error: ${error}`);
       if (user && !isAnonymous) {
-        console.log('AuthCallbackPage: User authenticated in context, redirecting to dashboard...');
+        console.log('AuthCallbackPage: User authenticated successfully.');
         router.push('/dashboard');
       } else if (error) {
         // Error already set and displayed
