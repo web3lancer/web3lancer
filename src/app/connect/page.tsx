@@ -16,7 +16,8 @@ import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { databases, ID, Query, Realtime } from '@/utils/api'; 
+import { useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -91,6 +92,7 @@ export default function ConnectPage() {
   const [activeSpaces, setActiveSpaces] = useState<Space[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   const initializeMockData = useCallback(() => {
     const mockUsers: User[] = [
@@ -261,6 +263,16 @@ export default function ConnectPage() {
       console.error("Error creating space:", error);
       setError("Failed to create space.");
     }
+  };
+
+  const handleStartVoiceCall = () => {
+    const callId = uuidv4();
+    router.push(`/connect/spaces/voice/${callId}`);
+  };
+
+  const handleStartVideoCall = () => {
+    const callId = uuidv4();
+    router.push(`/connect/spaces/video/${callId}`);
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -867,18 +879,26 @@ export default function ConnectPage() {
                         Join or create voice/video discussions.
                       </Typography>
                     </Box>
-                    <Button 
-                      variant="contained" 
-                      size="medium"
-                      startIcon={<GroupsOutlinedIcon />}
-                      onClick={handleCreateSpace}
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none'
-                      }}
-                    >
-                      Create Space
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button 
+                        variant="contained" 
+                        size="medium"
+                        startIcon={<CallIcon />}
+                        onClick={handleStartVoiceCall}
+                        sx={{ borderRadius: 2, textTransform: 'none' }}
+                      >
+                        Start Voice Call
+                      </Button>
+                      <Button 
+                        variant="contained" 
+                        size="medium"
+                        startIcon={<VideoCallIcon />}
+                        onClick={handleStartVideoCall}
+                        sx={{ borderRadius: 2, textTransform: 'none' }}
+                      >
+                        Start Video Call
+                      </Button>
+                    </Box>
                   </Paper>
                   
                   <motion.div>

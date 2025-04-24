@@ -34,6 +34,8 @@
     "react-countup": "^6.5.3",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0",
+    "simple-peer": "^9.11.1",
+    "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0",
     "viem": "2.x",
     "wagmi": "^2.14.11",
