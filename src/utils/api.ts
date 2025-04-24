@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID, Query, OAuthProvider, Avatars } from 'appwrite';
+import { Client, Account, Databases, Storage, ID, Query, OAuthProvider, Avatars, ImageGravity, ImageFormat } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/env';
 import { APP_CONFIG } from '@/lib/env';
 
@@ -20,8 +20,22 @@ export function getProfilePictureUrl(fileId: string) {
   if (!endpoint || !project || !fileId) return '';
   const client = new Client().setEndpoint(endpoint).setProject(project);
   const storage = new Storage(client);
-  // getFileView returns a string URL
-  return storage.getFileView(bucketId, fileId);
+  // Use getFilePreview for optimized avatar (128x128, center, webp)
+  return storage.getFilePreview(
+    bucketId,
+    fileId,
+    128, // width
+    128, // height
+    ImageGravity.Center,
+    80, // quality
+    undefined, // borderWidth
+    undefined, // borderColor
+    64, // borderRadius for circle
+    undefined, // opacity
+    0, // rotation
+    undefined, // background
+    ImageFormat.Webp
+  );
 }
 
 /**
