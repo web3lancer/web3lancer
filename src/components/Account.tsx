@@ -5,9 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
+import { signOut as apiSignOut } from '@/utils/api'; // Import signOut from api
 
 export function Account() {
-  const { user, logout, profilePicture, isAnonymous } = useAuth();
+  const { user, profilePicture, isAnonymous } = useAuth();
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   
@@ -19,11 +20,27 @@ export function Account() {
     setAnchorEl(null);
   };
   
+  // const handleLogout = async () => {
+  //   handleClose();
+  //   await logout();
+  //   router.push('/');
+  // };
+
+
   const handleLogout = async () => {
     handleClose();
-    await logout();
-    router.push('/');
+    try {
+      console.log("Attempting sign out via apiSignOut...");
+      await apiSignOut(); // Directly call the imported signOut function
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      // Handle the error appropriately, maybe show a message to the user
+    } finally {
+      // Ensure redirection happens even if sign out fails
+      router.push('/'); 
+    }
   };
+
   
   const handleProfileClick = () => {
     handleClose();
