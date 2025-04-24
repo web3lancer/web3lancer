@@ -1,41 +1,54 @@
-import { Client, Account, Databases, Storage, ID, Query, OAuthProvider, Avatars, ImageGravity, ImageFormat } from 'appwrite';
-import { APPWRITE_CONFIG } from '@/lib/env';
-import { APP_CONFIG } from '@/lib/env';
+import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor } from 'appwrite';
+import { APPWRITE_CONFIG, APP_CONFIG } from '@/lib/env';
 
 // Initialize client according to Appwrite docs
 const client = new Client();
 client
-  .setEndpoint('https://cloud.appwrite.io/v1')
-  .setProject('67aed8360001b6dd8cb3'); // Verified project ID from documentation
+  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1') // Use env var or default
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '67aed8360001b6dd8cb3'); // Use env var or default
 
 const account = new Account(client);
 const databases = new Databases(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
 
-export function getProfilePictureUrl(fileId: string) {
-  const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
-  const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
-  const bucketId = '67b889200019e3d3519d';
-  if (!endpoint || !project || !fileId) return '';
-  const client = new Client().setEndpoint(endpoint).setProject(project);
-  const storage = new Storage(client);
-  // Use getFilePreview for optimized avatar (128x128, center, webp)
-  return storage.getFilePreview(
-    bucketId,
-    fileId,
-    128, // width
-    128, // height
-    ImageGravity.Center,
-    80, // quality
-    undefined, // borderWidth
-    undefined, // borderColor
-    64, // borderRadius for circle
-    undefined, // opacity
-    0, // rotation
-    undefined, // background
-    ImageFormat.Webp
-  );
+export function getProfilePictureUrl(fileId: string): string {
+  const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
+  if (!bucketId || !fileId) {
+    console.error('Missing bucketId or fileId for getProfilePictureUrl');
+    return ''; // Return empty string if essential info is missing
+  }
+
+  try {
+    // Use the globally defined storage instance
+    const result = storage.getFilePreview(
+      bucketId,
+      fileId,
+      128, // width
+      128, // height
+      ImageGravity.Center,
+      80, // quality
+      undefined, // borderWidth
+      undefined, // borderColor
+      64, // borderRadius for circle
+      undefined, // opacity
+      0, // rotation
+      undefined, // background
+      ImageFormat.Webp
+    );
+    // Convert the URL object to a string
+    return result.toString();
+  } catch (error) {
+    console.error('Error getting profile picture preview:', error);
+    // Fallback: Try getFileView if preview fails (e.g., non-image file)
+    try {
+      const viewResult = storage.getFileView(bucketId, fileId);
+      return viewResult.toString();
+    } catch (viewError) {
+      console.error('Error getting profile picture view (fallback):', viewError);
+      return ''; // Return empty string on error
+    }
+  }
 }
 
 /**
@@ -45,14 +58,14 @@ async function signUp(email: string, password: string, name: string) {
   try {
     // Create a unique user ID
     const userId = ID.unique();
-    
+
     // Create the user
     const response = await account.create(userId, email, password, name);
     console.log('User created successfully:', response);
-    
+
     // Send email verification after successful signup
     try {
-      const baseURL = APP_CONFIG.APP_URL;
+      const baseURL = APP_CONFIG.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       const verificationURL = `${baseURL}/verify-email`;
       await account.createVerification(verificationURL);
       console.log('Verification email sent');
@@ -60,7 +73,7 @@ async function signUp(email: string, password: string, name: string) {
       console.error('Error sending verification email:', verificationError);
       // We don't throw here to allow account creation to succeed even if verification fails
     }
-    
+
     return response;
   } catch (error) {
     console.error('Error creating user:', error);
@@ -455,7 +468,7 @@ async function listMfaFactors() {
 }
 
 // Create an MFA challenge for a specific factor
-async function createMfaChallenge(factor: 'email' | 'totp' | 'phone' | 'recoverycode') {
+async function createMfaChallenge(factor: AuthenticationFactor) { // Use AuthenticationFactor enum
   try {
     const response = await account.createMfaChallenge(factor);
     console.log(`MFA challenge created successfully for factor: ${factor}`);
@@ -933,7 +946,7 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
     
     // Create GitHub OAuth session with proper scopes and redirect URLs
     await account.createOAuth2Session(
-      'github', // Use string value directly instead of OAuthProvider.Github
+      OAuthProvider.Github, // Use OAuthProvider enum
       successURL,
       failureURL,
       scopes
@@ -1013,19 +1026,29 @@ async function ensureValidOAuthToken() {
   try {
     const session = await getCurrentSession();
     
-    if (!session) return null;
+    if (!session) {
+      console.log('No session found in ensureValidOAuthToken');
+      return null;
+    }
     
     // Only proceed if this is an OAuth session
     if (session.provider && session.provider === 'github') {
-      // Check if token is expired or about to expire (within 5 minutes)
-      const expiryTime = session.providerAccessTokenExpiry;
-      const now = Math.floor(Date.now() / 1000); // Current time in seconds
-      const expiresIn = expiryTime - now;
-      
-      // If token expires in less than 5 minutes, refresh it
-      if (expiresIn < 300) {
-        console.log('OAuth token about to expire, refreshing...');
-        return await refreshOAuthSession(session.$id);
+      // Ensure providerAccessTokenExpiry is treated as a number
+      const expiryTime = Number(session.providerAccessTokenExpiry) * 1000; // Convert seconds to milliseconds
+      const now = Date.now();
+      const buffer = 5 * 60 * 1000; // 5 minutes buffer
+
+      // Check if the token is close to expiring or already expired
+      if (!isNaN(expiryTime) && now >= expiryTime - buffer) {
+        console.log('GitHub OAuth token needs refresh.');
+        // Attempt to refresh the session
+        try {
+          return await refreshOAuthSession(session.$id);
+        } catch (refreshError) {
+          console.error('Failed to refresh GitHub OAuth token:', refreshError);
+          // If refresh fails, might need to re-authenticate
+          return null;
+        }
       }
     }
     
@@ -1166,7 +1189,7 @@ export {
   addPaymentMethod,
   getUserPaymentMethods,
   uploadFile,
-  getFilePreview,
+  getFilePreview, // Ensure getFilePreview is exported if needed elsewhere
   fetchJobs,
   fetchJob,
   createGitHubOAuthSession,
