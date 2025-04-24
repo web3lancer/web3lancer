@@ -55,6 +55,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
+  // Function to ensure user has a valid session (anonymous if needed)
+  const ensureSession = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
+    setIsLoading(true);
+    try {
+      // Try to get the current user
+      const currentUser = await account.get();
+      console.log('Found existing user session:', currentUser);
+      const anonymousStatus = isAnonymousUser(currentUser);
+      console.log('User anonymous status:', anonymousStatus);
+      setUser(currentUser);
+      setIsAnonymous(anonymousStatus);
+      // If authenticated user, ensure profile exists and load profile picture
+      if (!anonymousStatus && currentUser) {
+        try {
+          const userProfile = await getUserProfile(currentUser.$id);
+          if (userProfile?.profilePicture) {
+            setProfilePicture(userProfile.profilePicture);
+          }
+        } catch (profileError) {
+          console.error('Error fetching profile during session ensure:', profileError);
+        }
+      }
+      return currentUser;
+    } catch (error) {
+      console.log('No authenticated session found, attempting to create anonymous session...');
+      // Create anonymous session if no existing session
+      try {
+        const guestUser = await ensureGuestSession();
+        if (guestUser) {
+          console.log('Created anonymous session:', guestUser);
+          setUser(guestUser);
+          setIsAnonymous(true);
+          return guestUser;
+        }
+      } catch (anonError) {
+        console.error('Failed to create anonymous session:', anonError);
+      }
+      // If all fails, set user to null
+      setUser(null);
+      setIsAnonymous(false);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Function to refresh the user data from Appwrite
   const refreshUser = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
     setIsLoading(true);
@@ -169,58 +215,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Error handling GitHub OAuth:', error);
       setUser(null);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Function to ensure user has a valid session (anonymous if needed)
-  const ensureSession = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
-    setIsLoading(true);
-    try {
-      // Try to get the current user
-      const currentUser = await account.get();
-      console.log('Found existing user session:', currentUser);
-      
-      const anonymousStatus = isAnonymousUser(currentUser);
-      console.log('User anonymous status:', anonymousStatus);
-      
-      setUser(currentUser);
-      setIsAnonymous(anonymousStatus);
-      
-      // If authenticated user, ensure profile exists and load profile picture
-      if (!anonymousStatus && currentUser) {
-        try {
-          const userProfile = await getUserProfile(currentUser.$id);
-          if (userProfile?.profilePicture) {
-            setProfilePicture(userProfile.profilePicture);
-          }
-        } catch (profileError) {
-          console.error('Error fetching profile during session ensure:', profileError);
-        }
-      }
-      
-      return currentUser;
-    } catch (error) {
-      console.log('No authenticated session found, attempting to create anonymous session...');
-      
-      // Create anonymous session if no existing session
-      try {
-        const guestUser = await ensureGuestSession();
-        if (guestUser) {
-          console.log('Created anonymous session:', guestUser);
-          setUser(guestUser);
-          setIsAnonymous(true);
-          return guestUser;
-        }
-      } catch (anonError) {
-        console.error('Failed to create anonymous session:', anonError);
-      }
-      
-      // If all fails, set user to null
-      setUser(null);
-      setIsAnonymous(false);
       return null;
     } finally {
       setIsLoading(false);

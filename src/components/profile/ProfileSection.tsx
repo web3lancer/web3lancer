@@ -5,7 +5,7 @@ import ProfileCard from './ProfileCard';
 import ProfileForm from './ProfileForm';
 import CalendarSection from './CalendarSection';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserProfile, updateUserProfile } from '@/utils/api';
+import { getUserProfile, updateUserProfile, getProfilePictureUrl } from '@/utils/api';
 
 export default function ProfileSection() {
   const { user } = useAuth();
@@ -40,8 +40,9 @@ export default function ProfileSection() {
         
         // If profile picture exists, set the preview
         if (profile.profilePicture) {
-          // You would need to implement a function to get the image URL
-          // setImagePreview(getProfilePictureUrl(profile.profilePicture));
+          setImagePreview(getProfilePictureUrl(profile.profilePicture));
+        } else {
+          setImagePreview(null);
         }
       } else {
         console.log('No profile found, will create on save');

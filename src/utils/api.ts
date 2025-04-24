@@ -13,6 +13,17 @@ const databases = new Databases(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
 
+export function getProfilePictureUrl(fileId: string) {
+  const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+  const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
+  const bucketId = '67b889200019e3d3519d';
+  if (!endpoint || !project || !fileId) return '';
+  const client = new Client().setEndpoint(endpoint).setProject(project);
+  const storage = new Storage(client);
+  // getFileView returns a string URL
+  return storage.getFileView(bucketId, fileId);
+}
+
 /**
  * User authentication functions
  */
@@ -1152,5 +1163,6 @@ export {
   isLoggedIn,
   Query,
   safeGetDocument,
-  safeListDocuments
+  safeListDocuments,
+  getProfilePictureUrl
 };

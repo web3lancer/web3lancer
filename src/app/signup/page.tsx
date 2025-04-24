@@ -26,7 +26,7 @@ declare const window: EthereumWindow;
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { isAnonymous, setIsAnonymous, initiateGitHubLogin, convertSession } = useAuth();
+  const { isAnonymous, setIsAnonymous, initiateGitHubLogin, convertSession, refreshUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,6 +65,7 @@ export default function SignUpPage() {
 
       if (response) {
         console.log('Signup/Conversion successful, redirecting...');
+        await refreshUser();
         router.push('/dashboard');
       } else {
         setError('Signup failed. Please try again.');

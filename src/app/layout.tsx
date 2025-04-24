@@ -10,6 +10,7 @@ import { Suspense } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
 import AppLayout from '@/components/layout/AppLayout';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,12 +29,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AbstraxionProvider config={xionConfig}>
-          <ThemeProviderWrapper>
-            <CssBaseline />
-            <Suspense fallback={<div>Loading...</div>}>
-              <AppLayout>{children}</AppLayout>
-            </Suspense>
-          </ThemeProviderWrapper>
+          <AuthProvider>
+            <ThemeProviderWrapper>
+              <CssBaseline />
+              <Suspense fallback={<div>Loading...</div>}>
+                <AppLayout>{children}</AppLayout>
+              </Suspense>
+            </ThemeProviderWrapper>
+          </AuthProvider>
         </AbstraxionProvider>
       </body>
     </html>

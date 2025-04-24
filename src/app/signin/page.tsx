@@ -1,13 +1,305 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Paper, Alert, Button, Divider, TextField, Tabs, Tab } from '@mui/material';
+import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
+import { ConnectWallet } from '@/components/ConnectWallet';
+import { signIn, createMagicURLToken } from '@/utils/api';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import EmailOTPForm from '@/components/EmailOTPForm';
 
-// Import SignInForm with dynamic import to avoid SSR issues with wagmi
-const SignInForm = dynamic(
-  () => import('@/components/auth/SignInForm'),
-  { ssr: false }
-);
+// Define a type for window.ethereum if it exists
+interface EthereumWindow extends Window {
+  ethereum?: {
+    isMetaMask?: boolean;
+    request: (args: { method: string; params?: any[] | object }) => Promise<any>;
+    on?: (event: string, handler: (...args: any[]) => void) => void;
+    removeListener?: (event: string, handler: (...args: any[]) => void) => void;
+    removeAllListeners?: () => void;
+  };
+}
+declare const window: EthereumWindow;
 
 export default function SignInPage() {
-  return <SignInForm />;
+  const router = useRouter();
+  const { initiateGitHubLogin, refreshUser } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [signinMethod, setSigninMethod] = useState<'email' | 'otp' | 'magic'>('email');
+  const [showWalletConnect, setShowWalletConnect] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const response = await signIn(formData.email, formData.password);
+      if (response) {
+        await refreshUser();
+        router.push('/dashboard');
+      } else {
+        setError('Sign in failed. Please check your credentials.');
+      }
+    } catch (error) {
+      setError(`Failed to sign in. ${error instanceof Error ? error.message : ''}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    if (!magicLinkEmail || !/^\S+@\S+\.\S+$/.test(magicLinkEmail)) {
+      setError('Please enter a valid email address');
+      setIsLoading(false);
+      return;
+    }
+    try {
+      await createMagicURLToken(magicLinkEmail);
+      setSuccess('Magic link sent! Check your email to sign in.');
+    } catch (error) {
+      setError(`Failed to send magic link. ${error instanceof Error ? error.message : ''}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGitHubSignIn = () => {
+    initiateGitHubLogin();
+  };
+
+  const handleCloseWalletConnect = () => {
+    setShowWalletConnect(false);
+    if (window.ethereum && window.ethereum.removeAllListeners) {
+      window.ethereum.removeAllListeners();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (window.ethereum && typeof window.ethereum.removeAllListeners === 'function') {
+        window.ethereum.removeAllListeners();
+      }
+    };
+  }, []);
+
+  return (
+    <Box sx={{ 
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      width: '100%',
+      p: { xs: 2, sm: 4 },
+      pt: { xs: '80px', sm: '100px' },
+      background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+    }}>
+      <Paper sx={{ 
+        maxWidth: 480,
+        width: '100%',
+        p: { xs: 3, sm: 4 },
+        borderRadius: 2,
+        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(20px)',
+      }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+          Sign In
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          Welcome to Web3Lancer
+        </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+            {success}
+          </Alert>
+        )}
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+          <Button
+            variant="outlined"
+            startIcon={<GitHub />}
+            onClick={handleGitHubSignIn}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            GitHub
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setShowWalletConnect(true)}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#333',
+                background: 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Box>
+        <Divider sx={{ my: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            Or sign in with email
+          </Typography>
+        </Divider>
+        <Box sx={{ mb: 3 }}>
+          <Tabs 
+            value={signinMethod} 
+            onChange={(_, value) => setSigninMethod(value)}
+            variant="fullWidth"
+            sx={{ mb: 3 }}
+          >
+            <Tab label="Email/Password" value="email" />
+            <Tab label="Magic Link" value="magic" />
+            <Tab label="Email OTP" value="otp" />
+          </Tabs>
+        </Box>
+        {signinMethod === 'email' && (
+          <form onSubmit={handleSignIn}>
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={isLoading}
+              startIcon={<Email />}
+            >
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </form>
+        )}
+        {signinMethod === 'magic' && (
+          <form onSubmit={handleMagicLinkSignIn}>
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={magicLinkEmail}
+              onChange={(e) => setMagicLinkEmail(e.target.value)}
+              required
+              helperText="We'll send a sign-in link to this email"
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={isLoading}
+              startIcon={<LinkIcon />}
+            >
+              {isLoading ? 'Sending...' : 'Send Magic Link'}
+            </Button>
+          </form>
+        )}
+        {signinMethod === 'otp' && (
+          <EmailOTPForm redirectPath="/dashboard" />
+        )}
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Typography variant="body2">
+            Don't have an account? <Link href="/signup">Sign up</Link>
+          </Typography>
+        </Box>
+        {showWalletConnect && (
+          <Box 
+            sx={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 1000,
+              p: 2
+            }}
+          >
+            <Box 
+              sx={{ 
+                maxWidth: '450px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                position: 'relative'
+              }}
+            >
+              <Button
+                variant="text"
+                color="primary" 
+                onClick={handleCloseWalletConnect}
+                sx={{ 
+                  position: 'absolute', 
+                  right: 0, 
+                  top: 0, 
+                  zIndex: 10 
+                }}
+              >
+                Close
+              </Button>
+              <ConnectWallet key={`wallet-connect-${showWalletConnect}`} />
+            </Box>
+          </Box>
+        )}
+      </Paper>
+    </Box>
+  );
 }
