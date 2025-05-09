@@ -186,9 +186,12 @@ export default function HeroSection() {
                   boxShadow: theme.shadows[6]
                 }}
               >
-                <Typography color="text.secondary">
-                  [Engaging Visual/Animation Here]
-                </Typography>
+                <Image
+                  src="/earn.jpg"
+                  alt="Earn with Web3Lancer"
+                  layout="fill"
+                  style={{ objectFit: 'cover', borderRadius: '12px' }}
+                />
               </Box>
             </motion.div>
           </Grid>
