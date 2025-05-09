@@ -187,7 +187,7 @@ export default function HeroSection() {
                 }}
               >
                 <Image
-                  src="/earn.jpg"
+                  src="/images/earn.jpg"
                   alt="Earn with Web3Lancer"
                   layout="fill"
                   style={{ objectFit: 'cover', borderRadius: '12px' }}
