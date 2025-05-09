@@ -21,10 +21,12 @@ interface Job {
 
 export default function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState<boolean>(true); // Added loading state
   const theme = useTheme();
 
   useEffect(() => {
     async function init() {
+      setLoadingJobs(true); // Set loading true at the start
       // Ensure a session exists (anonymous or authenticated)
       await ensureSession().catch(console.error);
       
@@ -34,6 +36,9 @@ export default function HomePage() {
         setJobs(response.documents as unknown as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);
+        setJobs([]); // Set to empty array on error
+      } finally {
+        setLoadingJobs(false); // Set loading false after fetch attempt
       }
     }
     
@@ -59,7 +64,7 @@ export default function HomePage() {
         <FeaturedProjects />
         <TestimonialsSection />
         <DownloadSection />
-        <JobsSection jobs={jobs} />
+        <JobsSection jobs={jobs} isLoading={loadingJobs} /> {/* Passed isLoading prop */}
         <CommunitySection />
 
         <Fab
