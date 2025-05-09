@@ -1,0 +1,23 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# Copy only necessary files for signaling server
+COPY package.json package-lock.json* ./
+# Install dependencies - this installs all project deps.
+# For a highly optimized image, you might create a separate minimal package.json for the signaling server.
+RUN npm install --legacy-peer-deps socket.io typescript
+
+COPY signaling-server.ts ./
+COPY tsconfig.json ./ 
+# Assuming root tsconfig is suitable
+
+# Compile TypeScript
+# Ensure your tsconfig.json has appropriate settings like "esModuleInterop": true
+RUN npx tsc signaling-server.ts --outDir dist --esModuleInterop --resolveJsonModule --moduleResolution node --target es2020 --module commonjs --skipLibCheck true
+
+
+EXPOSE 4000
+
+ENV NODE_ENV=production
+
+CMD ["node", "dist/signaling-server.js"]

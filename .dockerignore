@@ -1,0 +1,17 @@
+node_modules
+.next
+dist
+npm-debug.log
+README.md
+.git
+.gitignore
+
+# Local environment files (should be handled by Docker Compose or runtime environment)
+envariables
+*.env
+*.env.local
+
+# IDE and OS files
+.vscode
+.idea
+*.DS_Store
