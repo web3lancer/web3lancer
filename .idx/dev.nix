@@ -6,6 +6,10 @@
     pkgs.nodejs_20
     pkgs.pnpm
     pkgs.gh
+    pkgs.podman
+    pkgs.kubectl
+    pkgs.podman-compose
+    pkgs.nginx
     
   ];
   idx.extensions = [
