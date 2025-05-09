@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button, Grid, Container, AppBar, Toolbar, useTheme } from '@mui/material';
+import { Box, Typography, Button, Grid, Container, AppBar, Toolbar, useTheme, Stack } from '@mui/material';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -58,7 +58,7 @@ export default function HeroSection() {
                 src="/logo/web3lancer.jpg"
                 alt="Web3Lancer"
                 fill
-                style={{ objectFit: 'contain' }}
+                style={{ objectFit: 'contain', borderRadius: '4px' }}
               />
             </Box>
             <Typography
@@ -75,26 +75,10 @@ export default function HeroSection() {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <Button 
-              variant="contained" 
-              component={Link} 
-              href="/signin"
-              sx={{
-                borderRadius: '8px',
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 2.5,
-                py: 0.8,
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                }
-              }}
-            >
-              Connect
+            <Button color="inherit" component={Link} href="/projects">Projects</Button>
+            <Button color="inherit" component={Link} href="/freelancers">Freelancers</Button>
+            <Button variant="contained" color="primary" component={Link} href="/signup">
+              Get Started
             </Button>
           </Box>
         </Toolbar>
@@ -106,7 +90,8 @@ export default function HeroSection() {
           position: 'relative', 
           zIndex: 1,
           px: { xs: 2, sm: 3, md: 4 },
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          textAlign: { xs: 'center', md: 'left' }
         }}
       >
         <Grid 
@@ -126,56 +111,59 @@ export default function HeroSection() {
               <Typography
                 variant="h1"
                 sx={{
-                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.75rem', lg: '4.25rem' },
-                  fontWeight: 700,
-                  lineHeight: 1.15,
+                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+                  fontWeight: 800,
+                  mb: 2,
+                  lineHeight: 1.2,
                   background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  mb: 3,
                 }}
               >
-                Revolutionizing
+                Find Your Next
                 <br />
-                Digital Work
+                Web3 Opportunity
               </Typography>
               <Typography
-                variant="h5"
+                variant="h6"
+                color="text.secondary"
                 sx={{
-                  color: 'text.secondary',
-                  fontWeight: 400,
-                  mb: 5,
-                  maxWidth: 550
+                  mb: 4,
+                  maxWidth: { md: 500 },
+                  mx: { xs: 'auto', md: 0 },
+                  fontSize: { xs: '1rem', md: '1.15rem' },
+                  lineHeight: 1.6
                 }}
               >
-                Connect with top Web3 talent and projects in a decentralized workspace with Web3lancer
+                Connect with top talent and innovative projects in the decentralized world.
+                Secure, transparent, and powered by blockchain.
               </Typography>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                <Link href="/dashboard" passHref>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    sx={{
-                      py: 1.5,
-                      px: 5,
-                      borderRadius: '12px',
-                      fontSize: '1.1rem',
-                      background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
-                      boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                      '&:hover': {
-                        transform: 'translateY(-3px)',
-                        boxShadow: '0 12px 30px rgba(59, 130, 246, 0.4)',
-                        background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
-                      },
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </Link>
-              </motion.div>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                justifyContent={{ xs: 'center', md: 'flex-start' }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  component={Link}
+                  href="/projects"
+                  sx={{ py: 1.5, px: 4, fontSize: '1rem' }}
+                >
+                  Browse Projects
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="large"
+                  component={Link}
+                  href="/jobs/post"
+                  sx={{ py: 1.5, px: 4, fontSize: '1rem' }}
+                >
+                  Post a Job
+                </Button>
+              </Stack>
             </motion.div>
           </Grid>
           <Grid item xs={12} md={6}>
@@ -183,25 +171,24 @@ export default function HeroSection() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
               <Box
                 sx={{
-                  position: 'relative',
-                  height: { xs: '350px', sm: '450px', md: '550px' },
-                  width: '100%',
-                  borderRadius: '24px',
-                  overflow: 'hidden',
-                  boxShadow: '0 15px 40px rgba(0, 0, 0, 0.1)',
+                  width: { xs: '80%', sm: '70%', md: '100%' },
+                  maxWidth: 500,
+                  height: { xs: 250, sm: 350, md: 450 },
+                  bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300',
+                  borderRadius: 3,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  boxShadow: theme.shadows[6]
                 }}
               >
-                <Image 
-                  src="/images/earn.jpg" 
-                  alt="Earn with Web3Lancer" 
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  quality={90}
-                  priority
-                />
+                <Typography color="text.secondary">
+                  [Engaging Visual/Animation Here]
+                </Typography>
               </Box>
             </motion.div>
           </Grid>

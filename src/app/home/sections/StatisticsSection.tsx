@@ -1,25 +1,28 @@
 import React from 'react';
-import { Box, Typography, Grid, Container, useTheme } from '@mui/material';
+import { Box, Typography, Grid, Container, useTheme, Paper } from '@mui/material';
 import { motion } from 'framer-motion';
-import CountUp from 'react-countup';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import GroupIcon from '@mui/icons-material/Group';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 
 const statistics = [
-  { value: 5000, label: 'Freelancers', icon: '👨‍💻' },
-  { value: 1200, label: 'Projects Completed', icon: '✅' },
-  { value: 3500, label: 'Happy Clients', icon: '🤝' },
-  { value: 98, label: 'Success Rate %', icon: '🚀' },
+  { value: '5K+', label: 'Freelancers', icon: <GroupIcon sx={{ fontSize: 40, color: 'primary.main' }} /> },
+  { value: '1.2K+', label: 'Projects Completed', icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: 'success.main' }} /> },
+  { value: '3.5K+', label: 'Happy Clients', icon: <EmojiEventsIcon sx={{ fontSize: 40, color: 'secondary.main' }} /> },
+  { value: '98%', label: 'Success Rate', icon: <RocketLaunchIcon sx={{ fontSize: 40, color: 'warning.main' }} /> },
 ];
 
 export default function StatisticsSection() {
   const theme = useTheme();
-  
+
   return (
-    <Box 
-      sx={{ 
-        py: 12, 
+    <Box
+      sx={{
+        py: { xs: 8, md: 12 },
         background: theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #111827 0%, #1F2937 100%)'
-          : 'linear-gradient(135deg, #EFF6FF 0%, #F3F4F6 100%)',
+          ? 'linear-gradient(135deg, #1F2937 0%, #111827 100%)'
+          : 'linear-gradient(135deg, #F3F4F6 0%, #EFF6FF 100%)',
         width: '100%',
         overflow: 'hidden'
       }}
@@ -27,57 +30,59 @@ export default function StatisticsSection() {
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
+      transition={{ duration: 0.7 }}
     >
-      <Container maxWidth={false} sx={{ width: '100%', px: { xs: 2, md: 4, lg: 6 } }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
         <Typography
           variant="h2"
           align="center"
           sx={{
-            mb: 8,
-            fontWeight: 800,
-            background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            mb: { xs: 6, md: 10 },
+            fontWeight: 700,
+            color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#111827',
           }}
         >
-          Growing Fast
+          Our Growing Community
         </Typography>
-        
-        <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center" sx={{ width: '100%', mx: 0 }}>
+
+        <Grid container spacing={{ xs: 3, sm: 4, md: 5 }} justifyContent="center">
           {statistics.map((stat, index) => (
-            <Grid item xs={6} md={3} key={index}>
+            <Grid item xs={12} sm={6} md={3} key={index}>
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
                 viewport={{ once: true }}
               >
-                <Box 
-                  sx={{ 
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: { xs: 2, sm: 3 },
                     textAlign: 'center',
-                    p: 3,
-                    borderRadius: 4,
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
+                    borderRadius: 3,
+                    background: theme.palette.background.paper,
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
-                  <Typography variant="h1" sx={{ fontSize: '3rem', mb: 1 }}>
-                    {stat.icon}
+                  <Box sx={{ mb: 2 }}>{stat.icon}</Box>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 700,
+                      color: 'primary.main',
+                      mb: 1
+                    }}
+                  >
+                    {stat.value}
                   </Typography>
-                  <Typography variant="h3" fontWeight="bold" color="primary">
-                    <CountUp end={stat.value} duration={2.5} />
-                    {stat.label === 'Success Rate %' ? '%' : ''}
-                  </Typography>
-                  <Typography variant="h6" color="text.secondary">
+                  <Typography variant="subtitle1" color="text.secondary">
                     {stat.label}
                   </Typography>
-                </Box>
+                </Paper>
               </motion.div>
             </Grid>
           ))}
