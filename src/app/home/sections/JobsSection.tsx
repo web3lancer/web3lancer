@@ -12,7 +12,7 @@ interface Job {
 
 interface JobsSectionProps {
   jobs: Job[];
-  isLoading: boolean;
+  isLoading: boolean; // Added isLoading prop
 }
 
 export default function JobsSection({ jobs, isLoading }: JobsSectionProps) {

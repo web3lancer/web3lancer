@@ -5,7 +5,7 @@ import TwitterIcon from '@mui/icons-material/Twitter';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TelegramIcon from '@mui/icons-material/Telegram';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'; // Corrected import
 
 const MotionBox = motion(Box);
 
@@ -68,7 +68,7 @@ export default function CommunitySection() {
               <Button
                 variant="contained"
                 size="large"
-                startIcon={<ChatBubbleOutlineIcon />}
+                startIcon={<ChatBubbleOutlineIcon />} // Corrected icon
                 sx={{
                   py: 1.5,
                   px: 5,
