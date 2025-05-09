@@ -71,14 +71,14 @@ export default function HomePage() {
           position: 'fixed',
           bottom: { xs: 72, md: 24 },
           right: 24,
-          background: 'linear-gradient(45deg, #3B82F6, #1E40AF)',
-          boxShadow: '0 6px 16px rgba(30, 64, 175, 0.3)',
+          background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+          boxShadow: `0 6px 16px ${theme.palette.primary.dark}4D`, // 0.3 opacity
           zIndex: 1100,
           opacity: 0.85,
           transition: 'opacity 0.3s ease, background 0.3s ease',
           '&:hover': {
             opacity: 1,
-            background: 'linear-gradient(45deg, #1E40AF, #3B82F6)',
+            background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
           },
         }}
       >

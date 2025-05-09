@@ -46,7 +46,7 @@ export default function CommunitySection() {
               sx={{
                 mb: 2,
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
+                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
@@ -67,21 +67,21 @@ export default function CommunitySection() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
               <Button
                 variant="contained"
+                color="discord" // Use the new theme color
                 size="large"
-                startIcon={<ChatBubbleOutlineIcon />} // Corrected icon
+                startIcon={<ChatBubbleOutlineIcon />}
                 sx={{
                   py: 1.5,
                   px: 5,
                   borderRadius: '12px',
                   fontSize: '1.1rem',
-                  background: '#5865F2',
-                  color: '#ffffff',
-                  boxShadow: '0 8px 25px rgba(88, 101, 242, 0.3)',
+                  // background and color are now handled by color="discord"
+                  boxShadow: `0 8px 25px ${theme.palette.discord.main}4D`, // 0.3 opacity
                   textTransform: 'none',
                   fontWeight: 600,
                   '&:hover': {
-                    background: '#4f5bda',
-                    boxShadow: '0 12px 30px rgba(88, 101, 242, 0.4)',
+                    // Hover background is handled by MUI for custom palette colors
+                    boxShadow: `0 12px 30px ${theme.palette.discord.main}66`, // 0.4 opacity
                   },
                 }}
                 component="a"

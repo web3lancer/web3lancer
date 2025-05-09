@@ -1,6 +1,23 @@
 import { createTheme, ThemeOptions } from '@mui/material/styles';
 import { PaletteMode } from '@mui/material';
 
+// Augment the Palette interface
+declare module '@mui/material/styles/createPalette' {
+  interface Palette {
+    discord: Palette['primary']; // Use PaletteColor type
+  }
+  interface PaletteOptions {
+    discord?: PaletteOptions['primary']; // Use PaletteColorOptions type
+  }
+}
+
+// Augment ButtonPropsColorOverrides
+declare module '@mui/material/Button' {
+  interface ButtonPropsColorOverrides {
+    discord: true;
+  }
+}
+
 // Create light theme options
 const lightTheme: ThemeOptions = {
   palette: {
@@ -38,6 +55,12 @@ const lightTheme: ThemeOptions = {
       main: '#10B981',
     },
     divider: 'rgba(0, 0, 0, 0.12)',
+    discord: {
+      main: '#5865F2',
+      light: '#7b85f5', // Lighter shade for hover/focus
+      dark: '#4f5bda',  // Darker shade for active/pressed
+      contrastText: '#FFFFFF',
+    },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
