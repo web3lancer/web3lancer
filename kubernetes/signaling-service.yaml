@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web3lancer-signaling-service
+  namespace: web3lancer-ns
+spec:
+  selector:
+    app: web3lancer-signaling
+  ports:
+    - protocol: TCP
+      port: 4000 # Port the service will be available on
+      targetPort: 4000 # Port on the pods
+  type: ClusterIP # Or LoadBalancer/NodePort depending on how you need to access it

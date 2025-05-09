@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web3lancer-app-deployment
+  namespace: web3lancer-ns
+  labels:
+    app: web3lancer-app
+spec:
+  replicas: 2 # Adjust as needed
+  selector:
+    matchLabels:
+      app: web3lancer-app
+  template:
+    metadata:
+      labels:
+        app: web3lancer-app
+    spec:
+      containers:
+        - name: web3lancer-app-container
+          image: your-registry/web3lancer-app:latest # <-- REPLACE THIS
+          ports:
+            - containerPort: 3000 # Port your app listens on (from server.ts)
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+          # Add readiness and liveness probes for robust deployments
+          readinessProbe:
+            httpGet:
+              path: / # Assuming your app serves on root
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10

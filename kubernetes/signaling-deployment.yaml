@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web3lancer-signaling-deployment
+  namespace: web3lancer-ns
+  labels:
+    app: web3lancer-signaling
+spec:
+  replicas: 1 # Adjust as needed
+  selector:
+    matchLabels:
+      app: web3lancer-signaling
+  template:
+    metadata:
+      labels:
+        app: web3lancer-signaling
+    spec:
+      containers:
+        - name: web3lancer-signaling-container
+          image: your-registry/web3lancer-signaling:latest # <-- REPLACE THIS
+          ports:
+            - containerPort: 4000 # Port your signaling server listens on
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT # If your signaling server respects this
+              value: "4000"
+          # Add readiness and liveness probes if applicable (e.g., a simple TCP socket probe)
+          readinessProbe:
+            tcpSocket:
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 4000
+            initialDelaySeconds: 20
+            periodSeconds: 10

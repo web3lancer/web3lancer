@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web3lancer-app-service
+  namespace: web3lancer-ns
+spec:
+  selector:
+    app: web3lancer-app
+  ports:
+    - protocol: TCP
+      port: 80 # Port the service will be available on within the cluster
+      targetPort: 3000 # Port on the pods (must match containerPort in deployment)
+  type: ClusterIP # Use LoadBalancer for external access if your cloud provider supports it, or set up Ingress
