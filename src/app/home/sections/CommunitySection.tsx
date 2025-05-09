@@ -132,7 +132,7 @@ function SocialButtons() {
   const theme = useTheme();
   const socialNetworks = [
     { icon: <TwitterIcon />, color: '#1DA1F2', name: 'Twitter', url: 'https://twitter.com/web3lancer' },
-    { icon: <GitHubIcon />, color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#333', name: 'GitHub', url: 'https://github.com/web3lancer' },
+    { icon: <GitHubIcon />, color: '#333', name: 'GitHub', url: 'https://github.com/web3lancer' }, // Changed GitHub icon color for better contrast
     { icon: <TelegramIcon />, color: '#0088cc', name: 'Telegram', url: 'https://t.me/web3lancer' },
     { icon: <LinkedInIcon />, color: '#0077B5', name: 'LinkedIn', url: 'https://linkedin.com/company/web3lancer' },
   ];

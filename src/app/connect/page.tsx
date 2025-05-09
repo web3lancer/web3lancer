@@ -200,18 +200,21 @@ export default function ConnectPage() {
   const handleSendFriendRequest = async (userId: string) => {
     if(!user) return;
     
-    const requestData = {
+    const newFriendRequestData = {
       senderId: user.$id,
       receiverId: userId,
-      status: 'pending',
+      status: 'pending' as const, // Ensure status is a literal type
       senderName: user.name || 'User' 
     };
 
     try {
-      console.log("Sending friend request via Appwrite:", requestData);
+      console.log("Sending friend request via Appwrite:", newFriendRequestData);
       const mockNewRequest: FriendRequest = {
         id: `fr${Date.now()}`,
-        ...requestData,
+        senderId: newFriendRequestData.senderId,
+        receiverId: newFriendRequestData.receiverId,
+        status: newFriendRequestData.status,
+        senderName: newFriendRequestData.senderName
       };
       setFriendRequests([...friendRequests, mockNewRequest]);
       
@@ -379,7 +382,6 @@ export default function ConnectPage() {
                           overflow: 'hidden', 
                           borderRadius: 3, 
                           border: `1px solid ${theme.palette.divider}`,
-                          display: 'flex',
                           flexDirection: 'column',
                           position: { xs: 'fixed', sm: 'static' },
                           zIndex: { xs: 1200, sm: 'auto' },
@@ -620,12 +622,13 @@ export default function ConnectPage() {
                                 disabled={!message.trim()}
                                 sx={{ 
                                   bgcolor: 'primary.main', 
-                                  color: 'white',
+                                  color: theme.palette.primary.contrastText, // Changed from 'white'
                                   '&:hover': { 
                                     bgcolor: 'primary.dark' 
                                   },
                                   '&.Mui-disabled': {
-                                    bgcolor: 'action.disabledBackground'
+                                    bgcolor: 'action.disabledBackground',
+                                    color: theme.palette.action.disabled, // Added for disabled icon color
                                   },
                                   width: 40,
                                   height: 40
@@ -697,8 +700,8 @@ export default function ConnectPage() {
                                           width: 48,
                                           height: 48, 
                                           mr: 1.5,
-                                          bgcolor: 'primary.light',
-                                          color: 'primary.dark'
+                                          bgcolor: theme.palette.primary.main, // Changed from primary.light
+                                          color: theme.palette.primary.contrastText // Added for contrast
                                         }}
                                       >
                                         {request.senderName[0]}
@@ -720,7 +723,7 @@ export default function ConnectPage() {
                                       <Button 
                                         variant="outlined" 
                                         size="small"
-                                        color="inherit"
+                                        color="error" // Changed from "inherit"
                                         sx={{ flexGrow: 1, borderRadius: 2, textTransform: 'none' }}
                                       >
                                         Decline
@@ -952,7 +955,7 @@ export default function ConnectPage() {
                                         width: 28, 
                                         height: 28, 
                                         ml: -1.2,
-                                        bgcolor: 'grey.300',
+                                        bgcolor: theme.palette.action.hover, // Changed from 'grey.300'
                                         color: 'text.secondary',
                                         border: `2px solid ${theme.palette.background.paper}`,
                                         fontSize: '0.7rem',
@@ -1042,7 +1045,7 @@ export default function ConnectPage() {
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ bgcolor: 'primary.light', width: 32, height: 32 }}>{activity.user[0]}</Avatar>
+                        <Avatar sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, width: 32, height: 32 }}>{activity.user[0]}</Avatar> {/* Changed from primary.light */}
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             <Box component="span" sx={{ fontWeight: 600 }}>{activity.user}</Box> {activity.type}

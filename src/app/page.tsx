@@ -12,6 +12,7 @@ import DownloadSection from './home/sections/DownloadSection';
 import JobsSection from './home/sections/JobsSection';
 import CommunitySection from './home/sections/CommunitySection';
 
+
 interface Job {
   $id: string;
   title: string;
