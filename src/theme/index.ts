@@ -64,6 +64,28 @@ const lightTheme: ThemeOptions = {
     borderRadius: 8,
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          scrollbarWidth: 'thin',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(0, 0, 0, 0.05)', // Light theme track
+            borderRadius: '5px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)', // Light theme thumb
+            borderRadius: '5px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)', // Darker for hover
+          },
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -106,7 +128,29 @@ const darkTheme: ThemeOptions = {
     divider: 'rgba(255, 255, 255, 0.12)',
   },
   components: {
-    ...lightTheme.components,
+    ...lightTheme.components, // Inherit common component styles
+    MuiCssBaseline: { // Override or add specific for dark theme
+      styleOverrides: {
+        body: {
+          scrollbarWidth: 'thin',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(255, 255, 255, 0.05)', // Dark theme track
+            borderRadius: '5px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)', // Dark theme thumb
+            borderRadius: '5px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)', // Lighter for hover
+          },
+        },
+      },
+    },
     MuiAppBar: {
       styleOverrides: {
         root: {

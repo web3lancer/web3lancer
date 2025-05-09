@@ -160,16 +160,14 @@ function SocialButtons() {
             sx={{
               width: { xs: 56, sm: 64 },
               height: { xs: 56, sm: 64 },
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.1)' 
-                : 'rgba(255, 255, 255, 0.8)',
+              backgroundColor: theme.palette.action.hover, // Changed to theme-aware background
               boxShadow: theme.shadows[2],
               color: social.color,
               border: (theme) => `1px solid ${theme.palette.divider}`,
               transition: 'all 0.3s ease',
               '&:hover': {
                 backgroundColor: social.color,
-                color: 'white',
+                color: theme.palette.getContrastText(social.color), // Changed to ensure contrast
                 boxShadow: `0 6px 20px ${social.color}33`,
               }
             }}

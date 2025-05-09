@@ -7,7 +7,6 @@ import '@burnt-labs/abstraxion/dist/index.css';
 import '@burnt-labs/ui/dist/index.css';
 import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
-import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
 import AppLayout from '@/components/layout/AppLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -31,7 +30,6 @@ export default function RootLayout({
         <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
             <ThemeProviderWrapper>
-              <CssBaseline />
               <Suspense fallback={<div>Loading...</div>}>
                 <AppLayout>{children}</AppLayout>
               </Suspense>
