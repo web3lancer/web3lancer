@@ -15,7 +15,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -308,7 +308,7 @@ export default function ConnectPage() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 1, md: 4 }, px: { xs: 0.5, md: 3 } }}>
+    <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2, md: 3 } }}>
       <motion.div>
         <motion.div variants={itemVariants}>
           <Typography variant="h4" sx={{ mb: { xs: 2, md: 3 }, fontWeight: 600, color: 'text.primary', fontSize: { xs: 24, md: 32 } }}>
@@ -488,12 +488,12 @@ export default function ConnectPage() {
                       >
                         {/* Add a back button for mobile to return to contacts */}
                         {selectedChat && (
-                          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', p: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                            <IconButton onClick={() => setSelectedChat(null)}>
-                              <FilterListIcon />
+                          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', p: 1.5, borderBottom: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+                            <IconButton onClick={() => setSelectedChat(null)} size="small">
+                              <ArrowBackIcon />
                             </IconButton>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1 }}>
-                              Back to Contacts
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1, color: 'text.primary' }}>
+                              Contacts
                             </Typography>
                           </Box>
                         )}
