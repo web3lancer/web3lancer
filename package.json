@@ -1,11 +1,15 @@
 {
   "name": "web3lancer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "build:next": "next build",
+    "build:custom-server": "tsc --outDir dist server.ts",
+    "build:signaling-server": "tsc --outDir dist signaling-server.ts",
+    "build": "npm run build:next && npm run build:custom-server && npm run build:signaling-server",
+    "start": "NODE_ENV=production node dist/server.js",
+    "start:signaling": "NODE_ENV=production node dist/signaling-server.js",
     "lint": "next lint"
   },
   "dependencies": {
