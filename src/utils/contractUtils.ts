@@ -85,3 +85,44 @@ export type SupportedChain = keyof typeof WEB3LANCER_CONTRACTS;
 export function isSupportedChain(chain: string): chain is SupportedChain {
   return chain in WEB3LANCER_CONTRACTS;
 }
+
+// Standard ERC20 ABI subset
+export const ERC20_ABI = [
+  // Read-Only Functions
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function totalSupply() view returns (uint256)",
+
+  // Authenticated Functions
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
+
+  // Events
+  "event Approval(address indexed owner, address indexed spender, uint256 value)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+];
+
+// Standard ERC721 ABI subset
+export const ERC721_ABI = [
+  // Read-Only Functions
+  "function balanceOf(address owner) view returns (uint256)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function symbol() view returns (string)",
+  "function name() view returns (string)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
+
+  // Authenticated Functions
+  "function approve(address to, uint256 tokenId)",
+  "function safeTransferFrom(address from, address to, uint256 tokenId)",
+  "function safeTransferFrom(address from, address to, uint256 tokenId, bytes data)",
+  "function setApprovalForAll(address operator, bool approved)",
+  "function transferFrom(address from, address to, uint256 tokenId)",
+  "function mint(uint256 tokenId)", // Common non-standard mint function
+
+  // Events
+  "event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)",
+  "event ApprovalForAll(address indexed owner, address indexed operator, bool approved)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+];
