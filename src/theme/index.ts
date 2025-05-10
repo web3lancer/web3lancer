@@ -1,13 +1,24 @@
 import { createTheme, ThemeOptions } from '@mui/material/styles';
 import { PaletteMode } from '@mui/material';
 
-// Augment the Palette interface
-declare module '@mui/material/styles/createPalette' {
+// Properly augment the theme types
+declare module '@mui/material/styles' {
   interface Palette {
-    discord: Palette['primary']; // Use PaletteColor type
+    discord: {
+      main: string;
+      light: string;
+      dark: string;
+      contrastText: string;
+    };
   }
+  
   interface PaletteOptions {
-    discord?: PaletteOptions['primary']; // Use PaletteColorOptions type
+    discord?: {
+      main: string;
+      light: string;
+      dark: string;
+      contrastText: string;
+    };
   }
 }
 
@@ -18,8 +29,57 @@ declare module '@mui/material/Button' {
   }
 }
 
+// Common theme options shared between light and dark themes
+const commonOptions: Partial<ThemeOptions> = {
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: { fontWeight: 800 },
+    h2: { fontWeight: 700 },
+    h3: { fontWeight: 700 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: {
+          scrollBehavior: 'smooth',
+        },
+        body: {
+          scrollbarWidth: 'thin',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+        },
+      },
+    },
+  },
+};
+
 // Create light theme options
 const lightTheme: ThemeOptions = {
+  ...commonOptions,
   palette: {
     mode: 'light',
     primary: {
@@ -62,31 +122,8 @@ const lightTheme: ThemeOptions = {
       contrastText: '#FFFFFF',
     },
   },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 800,
-    },
-    h2: {
-      fontWeight: 700,
-    },
-    h3: {
-      fontWeight: 700,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
   components: {
+    ...commonOptions.components,
     MuiCssBaseline: {
       styleOverrides: {
         body: {
@@ -109,36 +146,34 @@ const lightTheme: ThemeOptions = {
         },
       },
     },
-    MuiButton: {
+    MuiAppBar: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 600,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
         },
       },
     },
   },
 };
 
-// Create dark theme options by extending light theme
+// Create dark theme options by extending common options and overriding specific values
 const darkTheme: ThemeOptions = {
-  ...lightTheme,
+  ...commonOptions,
   palette: {
-    ...lightTheme.palette,
     mode: 'dark',
     primary: {
-      ...lightTheme.palette?.primary,
+      main: '#3B82F6',
+      light: '#60A5FA',
+      dark: '#1E40AF',
+      contrastText: '#FFFFFF',
     },
     secondary: {
-      ...lightTheme.palette?.secondary,
+      main: '#8B5CF6',
+      light: '#A78BFA',
+      dark: '#6D28D9',
+      contrastText: '#FFFFFF',
     },
     background: {
       default: '#111827',
@@ -148,11 +183,29 @@ const darkTheme: ThemeOptions = {
       primary: '#F9FAFB',
       secondary: '#D1D5DB',
     },
+    error: {
+      main: '#EF4444',
+    },
+    warning: {
+      main: '#F59E0B',
+    },
+    info: {
+      main: '#3B82F6',
+    },
+    success: {
+      main: '#10B981',
+    },
     divider: 'rgba(255, 255, 255, 0.12)',
+    discord: {
+      main: '#5865F2',
+      light: '#7b85f5',
+      dark: '#4f5bda',
+      contrastText: '#FFFFFF',
+    },
   },
   components: {
-    ...lightTheme.components, // Inherit common component styles
-    MuiCssBaseline: { // Override or add specific for dark theme
+    ...commonOptions.components,
+    MuiCssBaseline: {
       styleOverrides: {
         body: {
           scrollbarWidth: 'thin',
@@ -177,14 +230,31 @@ const darkTheme: ThemeOptions = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: 'rgba(31, 41, 55, 0.8)',
-          backdropFilter: 'blur(20px)',
+          background: 'rgba(31, 41, 55, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundImage: 'none',
+          backgroundColor: '#111827',
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
           backgroundImage: 'none',
         },
       },

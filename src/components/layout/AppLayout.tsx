@@ -52,7 +52,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
             md: showSidebar ? `calc(100% - ${drawerWidth}px)` : '100%' 
           },
           // Add padding bottom to account for bottom navigation on mobile
-          pb: { xs: showSidebar ? '70px' : 0, md: 0 }, 
+          pb: { xs: showSidebar ? '70px' : 0, md: 0 },
+          // Add transition for theme changes
+          transition: 'background-color 0.3s ease, color 0.3s ease',
         }}
       >
         {/* Add inner padding for content */}

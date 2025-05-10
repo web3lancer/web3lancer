@@ -6,6 +6,12 @@ html, body {
   min-height: 100vh;
   scroll-behavior: smooth;
   /* color: #212529; */ /* Removed to allow CssBaseline to control theme text color */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Add transition for smoother theme changes */
+}
+
+/* Apply transitions to common elements for smoother theme switching */
+button, a, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6 {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body {

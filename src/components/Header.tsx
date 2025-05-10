@@ -89,13 +89,14 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
 
   const appBarSx: SxProps<Theme> = {
     background: theme.palette.mode === 'dark' 
-      ? 'rgba(20, 20, 30, 0.75)' 
-      : 'rgba(255, 255, 255, 0.75)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)', // For Safari
+      ? 'rgba(17, 24, 39, 0.85)' 
+      : 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)', // For Safari
     borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
     width: '100%',
     zIndex: theme.zIndex.drawer + 1,
+    transition: 'background-color 0.3s ease, border-color 0.3s ease',
   };
 
   if (isPreAuthPage) {

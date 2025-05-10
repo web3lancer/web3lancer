@@ -159,6 +159,7 @@ export default function Sidebar() {
             position: 'fixed',
             height: '100%',
             zIndex: theme.zIndex.appBar - 1,
+            transition: 'background-color 0.3s ease',
           },
           width: drawerWidth,
           flexShrink: 0,
@@ -186,6 +187,7 @@ export default function Sidebar() {
           height: 'auto',
           minHeight: 56,
           pb: 'env(safe-area-inset-bottom)',
+          transition: 'background-color 0.3s ease, border-color 0.3s ease',
           '& .MuiBottomNavigationAction-root': {
              color: theme.palette.text.secondary,
              paddingTop: '8px',

@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className} style={{ margin: 0, padding: 0, overflowX: 'hidden' }}>
         <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
