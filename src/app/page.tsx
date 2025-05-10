@@ -15,13 +15,35 @@ import CommunitySection from './home/sections/CommunitySection';
 // Placeholder for HowItWorksSection
 const HowItWorksSection: React.FC = () => (
   <Box py={8} textAlign="center">
-    <Typography variant="h4" component="h2" gutterBottom>
-      How It Works
+    <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
+      How Web3Lancer Works
     </Typography>
-    <Typography variant="subtitle1">
-      Detailed explanation of how Web3Lancer works will be here.
-    </Typography>
-    {/* Add more detailed steps or graphics here */}
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, justifyContent: 'center', mb: 5 }}>
+      <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+          1. Post Your Project
+        </Typography>
+        <Typography variant="body1">
+          Describe your project requirements, set your budget, and specify the skills you need.
+        </Typography>
+      </Paper>
+      <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+          2. Connect with Talent
+        </Typography>
+        <Typography variant="body1">
+          Review proposals from skilled Web3 freelancers and choose the best match for your project.
+        </Typography>
+      </Paper>
+      <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+          3. Secure Payment
+        </Typography>
+        <Typography variant="body1">
+          Use our blockchain-based escrow system for secure, transparent payments when milestones are completed.
+        </Typography>
+      </Paper>
+    </Box>
   </Box>
 );
 
@@ -115,6 +137,7 @@ export default function HomePage() {
       boxSizing: 'border-box',
       bgcolor: theme.palette.background.default,
       color: theme.palette.text.primary,
+      position: 'relative',
     }}>
       <HeroSection />
 
@@ -123,6 +146,8 @@ export default function HomePage() {
         background: theme.palette.mode === 'dark' 
           ? theme.palette.grey[900] 
           : theme.palette.grey[50],
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <StatisticsSection />
@@ -134,6 +159,8 @@ export default function HomePage() {
         background: theme.palette.mode === 'dark' 
           ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)` 
           : `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 100%)`,
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <FeaturesSection />
@@ -144,7 +171,9 @@ export default function HomePage() {
         py: { xs: 4, md: 6 },
         background: theme.palette.mode === 'dark'
           ? theme.palette.background.paper // A slightly different shade for variety
-          : theme.palette.grey[200], 
+          : theme.palette.grey[200],
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <FeaturedProjects />
@@ -158,6 +187,8 @@ export default function HomePage() {
             : 'rgba(240, 248, 255, 0.75)', // Lighter acrylic
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)', 
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <HowItWorksSection />
@@ -169,13 +200,15 @@ export default function HomePage() {
         background: theme.palette.mode === 'dark' 
           ? theme.palette.grey[800] // Another distinct shade
           : theme.palette.grey[100],
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <TestimonialsSection />
         </Container>
       </Paper>
 
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <CTABanner 
           title="Ready to Start Your Next Web3 Project?"
           subtitle="Join Web3Lancer today and connect with top talent or find exciting new opportunities."
@@ -191,6 +224,8 @@ export default function HomePage() {
         background: theme.palette.mode === 'dark' 
           ? theme.palette.background.default // Subtle distinction
           : theme.palette.grey[50],
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <JobsSection jobs={jobs} isLoading={loadingJobs} /> 
@@ -202,6 +237,8 @@ export default function HomePage() {
         background: theme.palette.mode === 'dark' 
           ? `linear-gradient(to bottom, ${theme.palette.grey[900]}, ${theme.palette.background.paper})`
           : `linear-gradient(to bottom, ${theme.palette.grey[50]}, ${theme.palette.grey[200]})`,
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <DownloadSection />
@@ -211,7 +248,9 @@ export default function HomePage() {
       <Box sx={{ 
         py: { xs: 6, md: 8 },
         background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-        color: theme.palette.primary.contrastText
+        color: theme.palette.primary.contrastText,
+        position: 'relative',
+        zIndex: 1,
       }}>
         <Container maxWidth="lg">
           <CommunitySection />

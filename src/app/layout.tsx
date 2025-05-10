@@ -10,12 +10,12 @@ import { Suspense } from 'react';
 import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
 import AppLayout from '@/components/layout/AppLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { Box, CssBaseline } from '@mui/material'; // Import CssBaseline and Box
+import { Box, CssBaseline, CircularProgress } from '@mui/material';
 
 const inter = Inter({ subsets: ['latin'] });
 
 const xionConfig = {
-  treasury: WEB3LANCER_CONTRACTS.XION.TREASURY_CONTRACT_ID, // Corrected property name
+  treasury: WEB3LANCER_CONTRACTS.XION.TREASURY_CONTRACT_ID,
   rpcUrl: WEB3LANCER_CONTRACTS.XION.RPC_URL,
   restUrl: WEB3LANCER_CONTRACTS.XION.REST_URL
 };
@@ -27,12 +27,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={inter.className} style={{ margin: 0, padding: 0, overflowX: 'hidden' }}>
         <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
             <ThemeProviderWrapper>
-              <CssBaseline /> {/* Add CssBaseline for consistent styling */} 
-              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</Box>}> {/* Improved fallback UI */}
+              <CssBaseline />
+              <Suspense fallback={
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  height: '100vh',
+                  flexDirection: 'column',
+                  gap: 2
+                }}>
+                  <CircularProgress size={40} />
+                  <Box sx={{ mt: 2, fontSize: '1rem', color: 'text.secondary' }}>
+                    Loading Web3Lancer...
+                  </Box>
+                </Box>
+              }>
                 <AppLayout>{children}</AppLayout>
               </Suspense>
             </ThemeProviderWrapper>
