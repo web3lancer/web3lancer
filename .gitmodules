@@ -1,0 +1,3 @@
+[submodule "contracts/polkadot-contract"]
+	path = contracts/polkadot-contract
+	url = https://github.com/web3lancer/polkadot-contract
