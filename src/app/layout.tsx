@@ -15,6 +15,7 @@ import { Box, CssBaseline } from '@mui/material'; // Import CssBaseline and Box
 const inter = Inter({ subsets: ['latin'] });
 
 const xionConfig = {
+  treasury: WEB3LANCER_CONTRACTS.XION.TREASURY_CONTRACT_ID, // Corrected property name
   rpcUrl: WEB3LANCER_CONTRACTS.XION.RPC_URL,
   restUrl: WEB3LANCER_CONTRACTS.XION.REST_URL
 };
@@ -30,7 +31,8 @@ export default function RootLayout({
         <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
             <ThemeProviderWrapper>
-              <Suspense fallback={<div>Loading...</div>}>
+              <CssBaseline /> {/* Add CssBaseline for consistent styling */} 
+              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</Box>}> {/* Improved fallback UI */}
                 <AppLayout>{children}</AppLayout>
               </Suspense>
             </ThemeProviderWrapper>

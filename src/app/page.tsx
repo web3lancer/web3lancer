@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Box, Fab, useTheme, Paper, Typography, Grid, Container } from '@mui/material';
+import { Box, Fab, useTheme, Paper, Typography, Container } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { databases, ensureSession } from '../utils/api';
 import HeroSection from './home/sections/HeroSection';
@@ -11,16 +11,62 @@ import TestimonialsSection from './home/sections/TestimonialsSection';
 import DownloadSection from './home/sections/DownloadSection';
 import JobsSection from './home/sections/JobsSection';
 import CommunitySection from './home/sections/CommunitySection';
-import HowItWorksSection from './home/sections/HowItWorksSection'; // Assuming you will create this
-import CTABanner from './home/components/CTABanner'; // Assuming you will create this
+
+// Placeholder for HowItWorksSection
+const HowItWorksSection: React.FC = () => (
+  <Box py={8} textAlign="center">
+    <Typography variant="h4" component="h2" gutterBottom>
+      How It Works
+    </Typography>
+    <Typography variant="subtitle1">
+      Detailed explanation of how Web3Lancer works will be here.
+    </Typography>
+    {/* Add more detailed steps or graphics here */}
+  </Box>
+);
+
+// Placeholder for CTABanner
+interface CTABannerProps {
+  title: string;
+  subtitle: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+}
+const CTABanner: React.FC<CTABannerProps> = ({ title, subtitle, primaryButtonText, primaryButtonLink, secondaryButtonText, secondaryButtonLink }) => (
+  <Paper elevation={3} sx={{ 
+    py: { xs: 4, md: 6 }, 
+    px: { xs: 2, md: 4 }, 
+    my: 6, 
+    textAlign: 'center', 
+    background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)', // Example gradient
+    color: 'white' 
+  }}>
+    <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+      {title}
+    </Typography>
+    <Typography variant="subtitle1" gutterBottom sx={{ mb: 3 }}>
+      {subtitle}
+    </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <Fab variant="extended" color="inherit" href={primaryButtonLink} sx={{ bgcolor: 'white', color: '#1e3a8a', '&:hover': { bgcolor: 'grey.200'} }}>
+        {primaryButtonText}
+      </Fab>
+      <Fab variant="extended" href={secondaryButtonLink} sx={{ borderColor: 'white', color: 'white', borderWidth: 1, borderStyle: 'solid', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)'} }}>
+        {secondaryButtonText}
+      </Fab>
+    </Box>
+  </Paper>
+);
 
 interface Job {
   $id: string;
   title: string;
   description: string;
-  budget?: number;      // Optional: Add budget
-  skills?: string[];    // Optional: Add skills array
-  createdAt?: string;   // Optional: Add creation date
+  budget?: number;
+  skills?: string[];
+  createdAt?: string;
 }
 
 export default function HomePage() {
@@ -33,12 +79,10 @@ export default function HomePage() {
       setLoadingJobs(true);
       await ensureSession().catch(error => {
         console.error("Error ensuring session:", error);
-        // Potentially handle session error, e.g., redirect to login or show a message
       });
       
       try {
         const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
-        // Add more robust type checking or mapping if document structure is complex
         const fetchedJobs = response.documents.map((doc: any) => ({
           $id: doc.$id,
           title: doc.title || 'Untitled Job',
@@ -67,18 +111,26 @@ export default function HomePage() {
     <Box sx={{ 
       overflowX: 'hidden',
       width: '100%',
-      maxWidth: '100vw', // Ensure it uses viewport width to prevent overflow issues
+      maxWidth: '100vw',
       boxSizing: 'border-box',
       bgcolor: theme.palette.background.default,
-      color: theme.palette.text.primary, // Ensure text color contrasts with background
+      color: theme.palette.text.primary,
     }}>
       <HeroSection />
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <StatisticsSection />
-      </Container>
+
+      <Paper elevation={0} sx={{
+        py: { xs: 4, md: 6 },
+        background: theme.palette.mode === 'dark' 
+          ? theme.palette.grey[900] 
+          : theme.palette.grey[50],
+      }}>
+        <Container maxWidth="lg">
+          <StatisticsSection />
+        </Container>
+      </Paper>
       
       <Paper elevation={0} sx={{
-        py: 6, 
+        py: { xs: 4, md: 6 }, 
         background: theme.palette.mode === 'dark' 
           ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)` 
           : `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 100%)`,
@@ -88,42 +140,56 @@ export default function HomePage() {
         </Container>
       </Paper>
 
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <FeaturedProjects />
-      </Container>
+      <Paper elevation={0} sx={{
+        py: { xs: 4, md: 6 },
+        background: theme.palette.mode === 'dark'
+          ? theme.palette.background.paper // A slightly different shade for variety
+          : theme.palette.grey[200], 
+      }}>
+        <Container maxWidth="lg">
+          <FeaturedProjects />
+        </Container>
+      </Paper>
 
-      {/* Assuming HowItWorksSection will be created */}
       <Box sx={{ 
-        py: 8,
+        py: { xs: 6, md: 8 },
         background: theme.palette.mode === 'dark' 
-            ? 'rgba(10, 25, 41, 0.5)' // Dark, slightly transparent acrylic
-            : 'rgba(240, 248, 255, 0.7)', // Light, slightly transparent acrylic (AliceBlue based)
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)', // Safari
+            ? 'rgba(10, 25, 41, 0.6)' // Darker acrylic
+            : 'rgba(240, 248, 255, 0.75)', // Lighter acrylic
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)', 
       }}>
         <Container maxWidth="lg">
           <HowItWorksSection />
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <TestimonialsSection />
+      <Paper elevation={0} sx={{
+        py: { xs: 4, md: 6 },
+        background: theme.palette.mode === 'dark' 
+          ? theme.palette.grey[800] // Another distinct shade
+          : theme.palette.grey[100],
+      }}>
+        <Container maxWidth="lg">
+          <TestimonialsSection />
+        </Container>
+      </Paper>
+
+      <Container maxWidth="lg">
+        <CTABanner 
+          title="Ready to Start Your Next Web3 Project?"
+          subtitle="Join Web3Lancer today and connect with top talent or find exciting new opportunities."
+          primaryButtonText="Find Talent"
+          primaryButtonLink="/projects/post"
+          secondaryButtonText="Browse Projects"
+          secondaryButtonLink="/projects"
+        />
       </Container>
 
-      {/* Assuming CTABanner will be created */}
-      <CTABanner 
-        title="Ready to Start Your Next Web3 Project?"
-        subtitle="Join Web3Lancer today and connect with top talent or find exciting new opportunities."
-        primaryButtonText="Find Talent"
-        primaryButtonLink="/projects/post"
-        secondaryButtonText="Browse Projects"
-        secondaryButtonLink="/projects"
-      />
-
       <Paper elevation={0} sx={{
-        py: 6, 
+        py: { xs: 4, md: 6 }, 
         background: theme.palette.mode === 'dark' 
-          ? theme.palette.background.paper // Or a subtle gradient
+          ? theme.palette.background.default // Subtle distinction
           : theme.palette.grey[50],
       }}>
         <Container maxWidth="lg">
@@ -131,10 +197,19 @@ export default function HomePage() {
         </Container>
       </Paper>
       
-      <DownloadSection /> {/* Consider integrating this more thematically or removing if redundant */}
+      <Paper elevation={0} sx={{
+        py: { xs: 4, md: 6 },
+        background: theme.palette.mode === 'dark' 
+          ? `linear-gradient(to bottom, ${theme.palette.grey[900]}, ${theme.palette.background.paper})`
+          : `linear-gradient(to bottom, ${theme.palette.grey[50]}, ${theme.palette.grey[200]})`,
+      }}>
+        <Container maxWidth="lg">
+          <DownloadSection />
+        </Container>
+      </Paper>
       
       <Box sx={{ 
-        py: 8,
+        py: { xs: 6, md: 8 },
         background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
         color: theme.palette.primary.contrastText
       }}>
@@ -149,10 +224,10 @@ export default function HomePage() {
         onClick={scrollToTop}
         sx={{
           position: 'fixed',
-          bottom: { xs: 72, md: 32 }, // Adjusted bottom margin
-          right: 32, // Adjusted right margin
+          bottom: { xs: 72, md: 32 },
+          right: 32,
           background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main || theme.palette.primary.dark})`,
-          boxShadow: `0 8px 20px ${theme.palette.primary.dark}59`, // Adjusted shadow, 0.35 opacity
+          boxShadow: `0 8px 20px ${theme.palette.primary.dark}59`,
           zIndex: 1100,
           opacity: 0.9,
           transition: 'opacity 0.3s ease, background 0.3s ease, transform 0.3s ease',
