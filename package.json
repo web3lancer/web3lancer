@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build:next": "next build",
+    "build": "next build",
     "build:custom-server": "tsc --outDir dist server.ts",
     "build:signaling-server": "tsc --outDir dist signaling-server.ts",
-    "build": "npm run build:next && npm run build:custom-server && npm run build:signaling-server",
+    "build:full": "npm run build:next && npm run build:custom-server && npm run build:signaling-server",
     "start": "NODE_ENV=production node dist/server.js",
     "start:signaling": "NODE_ENV=production node dist/signaling-server.js",
     "lint": "next lint"
