@@ -1,0 +1,17 @@
+flutter_app: 
+  command: web3lancer
+  arch: x64
+  parent: /usr/local/lib
+  nonInteractive: false
+
+control:
+  Package: web3lancer
+  Version: 1.0.0
+  Architecture: amd64
+  Priority: optional
+  Depends:
+  Maintainer:
+  Description: first decentralized web3 freelancing platform
+  
+#options:
+#  exec_out_dir: debian/packages

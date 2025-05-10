@@ -91,16 +91,15 @@ export default function HeroSection() {
           zIndex: 1,
           px: { xs: 2, sm: 3, md: 4 },
           boxSizing: 'border-box',
-          textAlign: { xs: 'center', md: 'left' }
+          pt: { xs: 14, md: 16 }, // Add top padding to clear AppBar
+          pb: { xs: 6, md: 8 },
         }}
       >
         <Grid 
           container 
           spacing={{ xs: 4, md: 6 }}
           alignItems="center" 
-          sx={{ 
-            minHeight: { md: 'calc(100vh - 64px)' },
-          }}
+          justifyContent="center"
         >
           <Grid item xs={12} md={6}>
             <motion.div
@@ -142,6 +141,7 @@ export default function HeroSection() {
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2}
                 justifyContent={{ xs: 'center', md: 'flex-start' }}
+                alignItems={{ xs: 'center', md: 'flex-start' }}
               >
                 <Button
                   variant="contained"
@@ -149,7 +149,13 @@ export default function HeroSection() {
                   size="large"
                   component={Link}
                   href="/projects"
-                  sx={{ py: 1.5, px: 4, fontSize: '1rem' }}
+                  sx={{
+                    py: 1.5,
+                    px: 4,
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 16px 0 rgba(30,64,175,0.12)',
+                    borderRadius: 2,
+                  }}
                 >
                   Browse Projects
                 </Button>
@@ -159,38 +165,53 @@ export default function HeroSection() {
                   size="large"
                   component={Link}
                   href="/jobs/post"
-                  sx={{ py: 1.5, px: 4, fontSize: '1rem' }}
+                  sx={{
+                    py: 1.5,
+                    px: 4,
+                    fontSize: '1rem',
+                    borderRadius: 2,
+                    borderWidth: 2,
+                    borderColor: theme.palette.primary.main,
+                    background: theme.palette.mode === 'dark' ? 'rgba(30,64,175,0.05)' : 'rgba(30,64,175,0.03)',
+                    '&:hover': {
+                      background: theme.palette.mode === 'dark' ? 'rgba(30,64,175,0.12)' : 'rgba(30,64,175,0.08)',
+                    },
+                  }}
                 >
                   Post a Job
                 </Button>
               </Stack>
             </motion.div>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}
             >
               <Box
                 sx={{
-                  width: { xs: '80%', sm: '70%', md: '100%' },
-                  maxWidth: 500,
-                  height: { xs: 250, sm: 350, md: 450 },
-                  bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300',
-                  borderRadius: 3,
+                  width: { xs: '90%', sm: '70%', md: '80%' },
+                  maxWidth: 420,
+                  height: { xs: 220, sm: 320, md: 380 },
+                  bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.200',
+                  borderRadius: 4,
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  boxShadow: theme.shadows[6]
+                  boxShadow: theme.shadows[8],
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
               >
                 <Image
                   src="/images/earn.jpg"
                   alt="Earn with Web3Lancer"
-                  layout="fill"
-                  style={{ objectFit: 'cover', borderRadius: '12px' }}
+                  fill
+                  style={{ objectFit: 'cover', borderRadius: '16px' }}
+                  sizes="(max-width: 600px) 90vw, (max-width: 900px) 70vw, 420px"
+                  priority
                 />
               </Box>
             </motion.div>
