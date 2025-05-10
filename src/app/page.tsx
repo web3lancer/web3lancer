@@ -102,7 +102,7 @@ export default function HomePage() {
 
     // mark theme as ready after component mounts
     setThemeReady(true);
-    
+
     async function init() {
       setLoadingJobs(true);
       await ensureSession().catch(error => {
@@ -131,6 +131,14 @@ export default function HomePage() {
     init();
   }, []);
 
+
+  // Only render full content when theme is ready
+  if (!themeReady) {
+    return <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Typography>Loading...</Typography>
+    </Box>;
+  }
+  
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
