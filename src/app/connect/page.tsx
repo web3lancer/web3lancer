@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { 
-  Typography, Grid, Card, CardContent, Avatar, Button, Alert, CircularProgress,
-  TextField, IconButton, Tabs, Tab, Badge, List, ListItem, ListItemAvatar, ListItemText, Divider,
+  Typography, Grid, Avatar, Button, Alert, CircularProgress,
+  TextField, IconButton, Tabs, Tab, Badge, List, ListItem, ListItemAvatar, ListItemText, 
   Box, Container, Paper, Chip, InputAdornment, useTheme, ListItemButton
 } from "@mui/material";
 import { useAuth } from '@/contexts/AuthContext';

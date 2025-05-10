@@ -96,7 +96,13 @@ export default function HomePage() {
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const theme = useTheme();
 
+  const [themeReady, setThemeReady] = useState(false);
+
   useEffect(() => {
+
+    // mark theme as ready after component mounts
+    setThemeReady(true);
+    
     async function init() {
       setLoadingJobs(true);
       await ensureSession().catch(error => {
