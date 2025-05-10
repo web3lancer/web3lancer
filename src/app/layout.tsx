@@ -10,11 +10,11 @@ import { Suspense } from 'react';
 import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
 import AppLayout from '@/components/layout/AppLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { Box, CssBaseline } from '@mui/material'; // Import CssBaseline and Box
 
 const inter = Inter({ subsets: ['latin'] });
 
 const xionConfig = {
-  treasury: WEB3LANCER_CONTRACTS.XION.TREASURY_ID,
   rpcUrl: WEB3LANCER_CONTRACTS.XION.RPC_URL,
   restUrl: WEB3LANCER_CONTRACTS.XION.REST_URL
 };
