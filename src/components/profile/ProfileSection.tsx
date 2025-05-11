@@ -51,9 +51,30 @@ export default function ProfileSection() {
         setSkills([]);
         setImagePreview(null);
       }
-    } catch (error) {
+    } catch (error: any) { // Type error for better handling
       console.error('Error loading profile:', error);
-      setProfileError('Failed to load profile information. We will create one when you save your details.');
+      // Default error message
+      let specificMessage = 'Failed to load profile information. We will create one when you save your details.';
+      
+      // Refined error message extraction
+      let rawErrorMessage = '';
+      if (typeof error === 'string') {
+        rawErrorMessage = error;
+      } else if (error && error.message && typeof error.message === 'string') {
+        rawErrorMessage = error.message;
+      } else if (error && typeof error.toString === 'function') { // Added this fallback
+        const errorString = error.toString();
+        if (typeof errorString === 'string') {
+          rawErrorMessage = errorString;
+        }
+      }
+
+      // Check if the error is related to MetaMask using the extracted message
+      if (rawErrorMessage.includes('MetaMask') || rawErrorMessage.includes('eth_requestAccounts')) {
+        specificMessage = 'A wallet-related issue occurred while loading your profile. If you use MetaMask or another Ethereum wallet with this site, please ensure it is connected and configured correctly. Some profile features might be unavailable otherwise.';
+      }
+      
+      setProfileError(specificMessage);
     } finally {
       setLoading(false);
     }
