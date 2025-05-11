@@ -72,6 +72,7 @@ export default function ProfileSection() {
       // Check if the error is related to MetaMask using the extracted message
       if (rawErrorMessage.includes('MetaMask') || rawErrorMessage.includes('eth_requestAccounts')) {
         specificMessage = 'A wallet-related issue occurred while loading your profile. If you use MetaMask or another Ethereum wallet with this site, please ensure it is connected and configured correctly. Some profile features might be unavailable otherwise.';
+        console.warn('MetaMask related error caught while loading profile:', rawErrorMessage);
       }
       
       setProfileError(specificMessage);

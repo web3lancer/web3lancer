@@ -7,11 +7,10 @@ const MotionPaper = motion(Paper);
 
 interface ProfileCardProps {
   user: any;
-  // imagePreview?: string | null;
+  imagePreview?: string | null;
 }
 
-// export default function ProfileCard({ user, imagePreview: initialImagePreview }: ProfileCardProps) {
-export default function ProfileCard({ user }: ProfileCardProps) {
+export default function ProfileCard({ user, imagePreview: initialImagePreview }: ProfileCardProps) {
 
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(initialImagePreview || null);

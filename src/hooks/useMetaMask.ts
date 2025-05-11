@@ -49,9 +49,8 @@ export function useMetaMask() {
     if (!metamaskSDK) return;
     
     try {
-      // Get the provider
       const provider = metamaskSDK.getProvider();
-      setEthereum(provider);
+      setEthereum(provider || null); // Ensure null if provider is undefined
     } catch (error) {
       console.error('Error initializing MetaMask SDK:', error);
       setState(prev => ({ ...prev, error: 'Failed to initialize MetaMask' }));
@@ -60,54 +59,64 @@ export function useMetaMask() {
 
   // Handle account changes
   useEffect(() => {
-    if (!ethereum) return;
+    let isMounted = true;
 
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (accounts.length === 0) {
-        // No accounts - user is disconnected
-        setState(prev => ({
-          ...prev,
-          account: null,
-          isConnected: false,
-        }));
+    if (!ethereum || typeof ethereum.request !== 'function' || typeof ethereum.on !== 'function') {
+      return;
+    }
+
+    const handleAccountsChanged = (payload: unknown) => {
+      if (!isMounted) return;
+      const accounts = Array.isArray(payload) && payload.every(item => typeof item === 'string') ? payload as string[] : null;
+
+      if (accounts && accounts.length === 0) {
+        setState(prev => ({ ...prev, account: null, isConnected: false }));
+      } else if (accounts && accounts.length > 0) {
+        setState(prev => ({ ...prev, account: accounts[0], isConnected: true, isConnecting: false, error: null }));
       } else {
-        // User is connected with at least one account
-        setState(prev => ({
-          ...prev,
-          account: accounts[0],
-          isConnected: true,
-          isConnecting: false,
-          error: null,
-        }));
+        if (isMounted) {
+            console.warn('accountsChanged received non-array or invalid payload:', payload);
+            setState(prev => ({ ...prev, account: null, isConnected: false }));
+        }
       }
     };
 
-    const handleChainChanged = (chainId: string) => {
-      setState(prev => ({ ...prev, chainId }));
+    const handleChainChanged = (payload: unknown) => {
+      if (!isMounted) return;
+      const chainId = typeof payload === 'string' ? payload : null;
+      if (chainId) {
+        setState(prev => ({ ...prev, chainId }));
+      } else {
+        if (isMounted) {
+            console.warn('chainChanged received non-string payload:', payload);
+        }
+      }
     };
 
     const handleConnect = () => {
-      // Check if we have accounts after connection
+      if (!isMounted || !ethereum || typeof ethereum.request !== 'function') return;
+      
       ethereum.request({ method: 'eth_accounts' })
-        .then((accounts: string[]) => {
-          handleAccountsChanged(accounts);
+        .then((connectResponse: unknown) => {
+          if (!isMounted) return;
+          handleAccountsChanged(connectResponse);
         })
         .catch((err: Error) => {
-          console.error('Error on connect:', err);
+          if (!isMounted) return;
+          console.error('Error on connect event handling eth_accounts:', err);
         });
     };
 
-    const handleDisconnect = (error: { code: number; message: string }) => {
-      console.log('MetaMask disconnected', error);
-      setState(prev => ({
-        ...prev,
-        account: null,
-        isConnected: false,
-        error: error?.message || 'Disconnected from MetaMask',
-      }));
+    const handleDisconnect = (errorPayload: unknown) => {
+      if (!isMounted) return;
+      console.log('MetaMask disconnected', errorPayload);
+      let message = 'Disconnected from MetaMask';
+      if (errorPayload && typeof (errorPayload as any).message === 'string') {
+        message = (errorPayload as any).message;
+      }
+      setState(prev => ({ ...prev, account: null, isConnected: false, error: message }));
     };
 
-    // Set up listeners
     ethereum.on('accountsChanged', handleAccountsChanged);
     ethereum.on('chainChanged', handleChainChanged);
     ethereum.on('connect', handleConnect);
@@ -115,25 +124,40 @@ export function useMetaMask() {
 
     // Check initial connection state
     ethereum.request({ method: 'eth_accounts' })
-      .then((accounts: string[]) => {
-        handleAccountsChanged(accounts);
+      .then((accountsResponse: unknown) => {
+        if (!isMounted) return;
+        handleAccountsChanged(accountsResponse);
         
-        // Also get the current chain ID
-        return ethereum.request({ method: 'eth_chainId' });
+        if (isMounted && ethereum && typeof ethereum.request === 'function') { // Re-check ethereum before nested request
+            return ethereum.request({ method: 'eth_chainId' });
+        }
+        return Promise.resolve(null); 
       })
-      .then((chainId: string) => {
-        setState(prev => ({ ...prev, chainId }));
+      .then((chainIdResponse: unknown) => {
+        if (!isMounted) return;
+        const chainId = typeof chainIdResponse === 'string' ? chainIdResponse : null;
+        if (chainId) {
+          setState(prev => ({ ...prev, chainId }));
+        }
       })
-      .catch((err: Error) => {
-        console.error('Error checking initial connection:', err);
+      .catch((err: any) => {
+        if (!isMounted) return;
+        const msg = typeof err?.message === 'string' ? err.message : String(err);
+        if (msg.includes('MetaMask is not connected/installed') || msg.includes('eth_requestAccounts')) {
+          setState(prev => ({ ...prev, error: 'MetaMask is not connected. Please open MetaMask and connect your wallet.' }));
+        } else {
+          console.error('Error checking initial connection:', err);
+        }
       });
 
-    // Clean up listeners
     return () => {
-      ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      ethereum.removeListener('chainChanged', handleChainChanged);
-      ethereum.removeListener('connect', handleConnect);
-      ethereum.removeListener('disconnect', handleDisconnect);
+      isMounted = false;
+      if (ethereum && typeof ethereum.removeListener === 'function') {
+        ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        ethereum.removeListener('chainChanged', handleChainChanged);
+        ethereum.removeListener('connect', handleConnect);
+        ethereum.removeListener('disconnect', handleDisconnect);
+      }
     };
   }, [ethereum]);
 
