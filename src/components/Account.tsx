@@ -1,16 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Avatar, Box, Button, Menu, MenuItem, ListItemIcon, ListItemText, Divider, Tooltip, Typography } from '@mui/material';
 import { Person, Logout, Login, Settings, AccountBalanceWallet, KeyboardArrowDown, PersonAdd } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
-import { signOut as apiSignOut } from '@/utils/api'; // Import signOut from api
+import { signOut as apiSignOut, getUserProfile, getProfilePictureUrl } from '@/utils/api'; // Import signOut from api
 
 export function Account() {
-  const { user, profilePicture, isAnonymous } = useAuth();
+  const { user, isAnonymous } = useAuth(); // Removed profilePicture from here
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [headerProfilePicture, setHeaderProfilePicture] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      if (user && user.$id) {
+        try {
+          const profile = await getUserProfile(user.$id);
+          if (profile && profile.profilePicture) {
+            setHeaderProfilePicture(getProfilePictureUrl(profile.profilePicture));
+          } else {
+            setHeaderProfilePicture(null);
+          }
+        } catch (error) {
+          console.error("Error fetching profile picture for header:", error);
+          setHeaderProfilePicture(null);
+        }
+      }
+    };
+
+    fetchProfilePicture();
+  }, [user]);
   
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -20,13 +41,6 @@ export function Account() {
     setAnchorEl(null);
   };
   
-  // const handleLogout = async () => {
-  //   handleClose();
-  //   await logout();
-  //   router.push('/');
-  // };
-
-
   const handleLogout = async () => {
     handleClose();
     try {
@@ -151,30 +165,23 @@ export function Account() {
         >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Avatar
-              src={profilePicture || undefined}
+              src={headerProfilePicture || undefined} // Use fetched profile picture
               sx={{
                 background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                 cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
               }}
             >
-              {user?.name ? user.name[0]?.toUpperCase() : '?'}
+              {/* Fallback to initials if no picture */}
+              {!headerProfilePicture && user?.name ? user.name[0]?.toUpperCase() : !headerProfilePicture ? '?' : null}
             </Avatar>
           </motion.div>
-          <Box sx={{ ml: 1.5, display: { xs: 'none', sm: 'block' } }}>
-            <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
-              {displayName || 'User'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {user.email ? user.email : 'guest'}
-            </Typography>
-          </Box>
           <KeyboardArrowDown
             fontSize="small"
             sx={{
               color: 'text.secondary',
-              display: { xs: 'none', sm: 'block' },
-              ml: 0.5
+              // Ensure this is always visible or adjust based on design for the icon-only look
+              ml: 0.5 
             }}
           />
         </Box>
