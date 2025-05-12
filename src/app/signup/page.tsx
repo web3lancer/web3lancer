@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Container, Paper, Alert, Button, Divider, IconButton, Tabs, Tab } from '@mui/material';
-import { GitHub, Email, Link as LinkIcon, Google as GoogleIcon } from '@mui/icons-material';
+import { Box, Typography, Paper, Alert, Button, Divider, Tabs, Tab, 
+  useMediaQuery, Stack, Card, CardContent, Fade, useTheme } from '@mui/material';
+import { GitHub, Email, Link as LinkIcon, Google as GoogleIcon, Login } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { signUp, createMagicURLToken } from '@/utils/api';
@@ -10,6 +11,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
+import { motion } from 'framer-motion';
 
 // Define a type for window.ethereum if it exists
 interface EthereumWindow extends Window {
@@ -24,8 +26,15 @@ interface EthereumWindow extends Window {
 
 declare const window: EthereumWindow;
 
+// Motion components for animations
+const MotionBox = motion(Box);
+const MotionPaper = motion(Paper);
+const MotionCard = motion(Card);
+
 export default function SignUpPage() {
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAnonymous, setIsAnonymous, initiateGitHubLogin, initiateGoogleLogin, convertSession, refreshUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -124,6 +133,12 @@ export default function SignUpPage() {
     };
   }, []);
 
+  // Animation variants
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
     <Box sx={{ 
       display: 'flex',
@@ -136,171 +151,156 @@ export default function SignUpPage() {
       background: theme => theme.palette.mode === 'dark' 
         ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' 
         : 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+      backgroundSize: 'cover',
+      backgroundAttachment: 'fixed',
     }}>
-      <Paper sx={{ 
-        maxWidth: 480,
-        width: '100%',
-        p: { xs: 3, sm: 4 },
-        borderRadius: 2,
-        boxShadow: theme => theme.palette.mode === 'dark'
-          ? '0 8px 40px rgba(0, 0, 0, 0.4)'
-          : '0 8px 40px rgba(0, 0, 0, 0.12)',
-        background: theme => theme.palette.mode === 'dark'
-          ? 'rgba(26, 32, 44, 0.9)'
-          : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
-        color: theme => theme.palette.text.primary,
-      }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
-          Create Account
-        </Typography>
-        
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Sign up to get started with Web3Lancer
-        </Typography>
+      <MotionPaper 
+        initial="initial"
+        animate="animate"
+        variants={fadeInUp}
+        sx={{ 
+          maxWidth: { xs: '100%', sm: 580 },
+          width: '100%',
+          p: { xs: 3, sm: 5 },
+          borderRadius: 3,
+          boxShadow: theme => theme.palette.mode === 'dark'
+            ? '0 8px 40px rgba(0, 0, 0, 0.4)'
+            : '0 8px 40px rgba(0, 0, 0, 0.12)',
+          background: theme => theme.palette.mode === 'dark'
+            ? 'rgba(26, 32, 44, 0.9)'
+            : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          color: theme => theme.palette.text.primary,
+          overflow: 'hidden'
+        }}
+      >
+        <MotionBox variants={fadeInUp}>
+          <Typography variant="h4" gutterBottom sx={{ 
+            fontWeight: 800, 
+            textAlign: 'center',
+            background: theme => theme.palette.mode === 'dark' 
+              ? 'linear-gradient(90deg, #4776E6 0%, #8E54E9 100%)' 
+              : 'linear-gradient(90deg, #0072ff 0%, #00c6ff 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 1
+          }}>
+            Create Account
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4, textAlign: 'center' }}>
+            Sign up to get started with Web3Lancer
+          </Typography>
+        </MotionBox>
         
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
+          <Fade in={!!error}>
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          </Fade>
         )}
         
         {success && (
-          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
-            {success}
-          </Alert>
+          <Fade in={!!success}>
+            <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setSuccess(null)}>
+              {success}
+            </Alert>
+          </Fade>
         )}
         
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
-          <Button
-            variant="outlined"
-            startIcon={<GitHub />}
-            onClick={handleGitHubSignUp}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.2)' 
-                : 'rgba(0, 0, 0, 0.2)',
-              color: theme => theme.palette.mode === 'dark' 
-                ? theme.palette.common.white 
-                : '#333',
-              '&:hover': {
-                borderColor: theme => theme.palette.mode === 'dark' 
-                  ? theme.palette.common.white 
-                  : '#333',
-                background: theme => theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.05)' 
-                  : 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            GitHub
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<GoogleIcon />}
-            onClick={handleGoogleSignUp}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.2)' 
-                : 'rgba(0, 0, 0, 0.2)',
-              color: theme => theme.palette.mode === 'dark' 
-                ? theme.palette.common.white 
-                : '#333',
-              '&:hover': {
-                borderColor: theme => theme.palette.mode === 'dark' 
-                  ? theme.palette.common.white 
-                  : '#333',
-                background: theme => theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.05)' 
-                  : 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            Google
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => setShowWalletConnect(true)}
-            disabled={isLoading}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.2)' 
-                : 'rgba(0, 0, 0, 0.2)',
-              color: theme => theme.palette.mode === 'dark' 
-                ? theme.palette.common.white 
-                : '#333',
-              '&:hover': {
-                borderColor: theme => theme.palette.mode === 'dark' 
-                  ? theme.palette.common.white 
-                  : '#333',
-                background: theme => theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.05)' 
-                  : 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            Connect Wallet
-          </Button>
-        </Box>
-        
-        <Divider sx={{ my: 4 }}>
-          <Typography variant="body2" color="text.secondary">
-            Or sign up with email
+        <MotionBox variants={fadeInUp} sx={{ mb: 4 }}>
+          <Typography variant="subtitle2" textAlign="center" sx={{ mb: 2, opacity: 0.8 }}>
+            Sign up with
           </Typography>
-        </Divider>
-        
-        <Box sx={{ mb: 3 }}>
-          <Tabs 
-            value={signupMethod} 
-            onChange={(_, value) => setSignupMethod(value)}
-            variant="fullWidth"
-            sx={{ 
-              mb: 3,
-              '& .MuiTab-root': {
-                color: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : undefined
-              },
-              '& .Mui-selected': {
-                color: theme => theme.palette.mode === 'dark' ? '#fff' : undefined
-              },
-              '& .MuiTabs-indicator': {
-                backgroundColor: 'primary.main'
-              }
-            }}
+          
+          <Stack 
+            direction={isMobile ? "column" : "row"} 
+            spacing={2} 
+            sx={{ width: '100%', justifyContent: 'center' }}
           >
-            <Tab label="Email/Password" value="email" />
-            <Tab label="Magic Link" value="magic" />
-            <Tab label="Email OTP" value="otp" />
-          </Tabs>
-        </Box>
-        
-        {signupMethod === 'email' && (
-          <form onSubmit={handleSignUp}>
-            <ThemeAwareTextField
-              label="Name"
-              name="name"
-              fullWidth
-              margin="normal"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-            <ThemeAwareTextField
-              label="Email"
-              name="email"
-              type="email"
-              fullWidth
-              margin="normal"
-              value={formData.email}
-              onChange={handleChange}
-              required
+            <Button
+              variant="outlined"
+              startIcon={<GitHub />}
+              onClick={handleGitHubSignUp}
+              fullWidth={isMobile}
+              disabled={isLoading}
+              sx={{
+                py: 1.5,
+                px: isMobile ? 2 : 4,
+                borderRadius: '12px',
+                borderWidth: '2px',
+                borderColor: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.2)' 
+                  : 'rgba(0, 0, 0, 0.1)',
+                color: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : theme.palette.grey[900],
+                backgroundColor: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.02)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: theme => theme.palette.mode === 'dark' 
+                    ? '0 8px 16px rgba(0,0,0,0.4)' 
+                    : '0 8px 16px rgba(0,0,0,0.1)',
+                  borderColor: theme => theme.palette.mode === 'dark' 
+                    ? theme.palette.primary.main 
+                    : theme.palette.primary.main,
+                },
+                flex: isMobile ? 'auto' : 1
+              }}
+            >
+              GitHub
+            </Button>
+            
+            <Button
+              variant="outlined"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleSignUp}
+              fullWidth={isMobile}
+              disabled={isLoading}
+              sx={{
+                py: 1.5,
+                px: isMobile ? 2 : 4,
+                borderRadius: '12px',
+                borderWidth: '2px',
+                borderColor: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.2)' 
+                  : 'rgba(0, 0, 0, 0.1)',
+                color: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : theme.palette.grey[900],
+                backgroundColor: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.02)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: theme => theme.palette.mode === 'dark' 
+                    ? '0 8px 16px rgba(0,0,0,0.4)' 
+                    : '0 8px 16px rgba(0,0,0,0.1)',
+                  borderColor: theme => theme.palette.mode === 'dark' 
+                    ? theme.palette.primary.main 
+                    : theme.palette.primary.main,
+                },
+                flex: isMobile ? 'auto' : 1
+              }}
+            >
+              Google
+            </Button>
+            
+            <Button
+              variant="outlined"
+              onClick={() => setShowWalletConnect(true)}
+              fullWidth={isMobile}
+              disabled={isLoading}
+              sx={{
+                py: 1.5,
+                px: isMobile ? 2 : 4,
+                borderRadius: '12px',
+                borderWidth: '2px',
+                borderColor: theme => theme.palette.mode === 'dark' 
             />
             <ThemeAwareTextField
               label="Password"

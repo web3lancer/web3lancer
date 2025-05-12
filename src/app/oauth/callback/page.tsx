@@ -4,110 +4,96 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Box, CircularProgress, Typography, Paper, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
-import { getUserProfile, createUserProfile, account } from '@/utils/api';
+import { getUserProfile, account } from '@/utils/api';
 
 const MotionPaper = motion(Paper);
 
 export default function OAuthCallback() {
   const router = useRouter();
-  const { handleGitHubOAuth, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
-  const [attempts, setAttempts] = useState(0);
   const [processingStep, setProcessingStep] = useState<string>('Authenticating...');
 
   useEffect(() => {
     async function processOAuth() {
       try {
         console.log('Processing OAuth callback...');
-        setProcessingStep('Authenticating with GitHub');
+        setProcessingStep('Authenticating your account');
         
-        // First try using the automatic session that Appwrite creates
-        const user = await refreshUser();
-        
-        if (user) {
-          console.log('User session refreshed successfully:', user);
-          setProcessingStep('Creating user profile');
+        // Try using the automatic session that Appwrite creates
+        let user;
+        try {
+          user = await account.get();
+          console.log('User session already exists:', user);
+        } catch (sessionError) {
+          console.log('No existing session found, will check for URL parameters');
           
-          try {
-            // Ensure user has a profile
-            const profile = await getUserProfile(user.$id);
-            console.log('User profile after refresh:', profile);
-          } catch (profileError) {
-            console.error('Error creating profile during callback:', profileError);
-            // Still redirect to dashboard even if profile creation fails
+          // If no session exists, check URL parameters to handle the OAuth callback manually
+          const urlParams = new URLSearchParams(window.location.search);
+          const userId = urlParams.get('userId');
+          const secret = urlParams.get('secret');
+          
+          if (userId && secret) {
+            console.log('Found userId and secret in URL, creating session manually');
+            try {
+              await account.createSession(userId, secret);
+              user = await account.get();
+              console.log('Session created manually:', user);
+            } catch (createSessionError) {
+              console.error('Error creating session manually:', createSessionError);
+              throw new Error(`Failed to create session: ${createSessionError instanceof Error ? createSessionError.message : 'Unknown error'}`);
+            }
+          } else {
+            // If Appwrite redirects without userId and secret, it might have created the session already.
+            // Attempt to refreshUser which internally calls account.get()
+            console.log('No userId/secret in URL, attempting refreshUser to get session.');
+            const refreshedUser = await refreshUser();
+            if (refreshedUser) {
+              user = refreshedUser;
+              console.log('Session obtained via refreshUser:', user);
+            } else {
+              throw new Error('No authentication parameters found in URL and refreshUser failed to find a session.');
+            }
           }
-          
-          router.push('/dashboard');
-          return;
         }
         
-        console.log('No user found after refresh, checking for code parameter...');
-        setProcessingStep('Processing authentication response');
-        
-        // Fallback to manual handling if needed
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const provider = urlParams.get('provider');
-
-        if (code) {
-          console.log('OAuth code found, attempting to handle callback with code');
-          const oauthUser = await handleGitHubOAuth(code);
-          
-          if (oauthUser) {
-            setProcessingStep('Setting up your account');
-            try {
-              // Ensure user has a profile
-              const profile = await getUserProfile(oauthUser.$id);
-              console.log('User profile after code handling:', profile);
-            } catch (profileError) {
-              console.error('Error creating profile during code handling:', profileError);
-            }
-            
-            // Force a session refresh to ensure all state is updated correctly
-            await refreshUser();
-            router.push('/dashboard');
-          } else {
-            setError("Failed to authenticate with GitHub. Please try again.");
-            setTimeout(() => router.push('/signin'), 3000);
-          }
-        } else if (provider === 'github') {
-          // If we have a provider but no code, try refreshing one more time
-          console.log('Provider found but no code, attempting to refresh session again');
-          setProcessingStep('Finalizing authentication');
-          const retryUser = await refreshUser();
-          if (retryUser) {
-            try {
-              const profile = await getUserProfile(retryUser.$id);
-              console.log('User profile during retry:', profile);
-            } catch (profileError) {
-              console.error('Error creating profile during retry:', profileError);
-            }
-            router.push('/dashboard');
-            return;
+        // If we have a user, ensure the profile exists
+        if (user) {
+          setProcessingStep('Setting up your profile');
+          try {
+            // Attempt to get user profile. If it fails, it might mean it needs to be created.
+            // The AuthContext or another part of the app might handle profile creation if missing.
+            // For now, we just log whether it's found or not.
+            await getUserProfile(user.$id);
+            console.log('User profile verified or already exists');
+          } catch (profileError) {
+            console.warn('Error verifying user profile (it might be created elsewhere or on first actual need):', profileError);
+            // Decide if this is a critical error. For now, proceed.
           }
           
-          setError("Authentication incomplete - no session or code found");
-          setTimeout(() => router.push('/signin'), 3000);
+          // Final refresh to ensure all context is updated
+          await refreshUser();
+          
+          // Redirect to dashboard
+          router.push('/dashboard');
         } else {
-          setError("Authentication failed - no session or code found");
-          setTimeout(() => router.push('/signin'), 3000);
+          throw new Error('Failed to authenticate user after all attempts.');
         }
       } catch (error) {
-        console.error("Error handling OAuth callback:", error);
+        console.error('Error in OAuth callback:', error);
         setError(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        
+        // Redirect to sign-in after a delay
         setTimeout(() => router.push('/signin'), 3000);
       } finally {
         setIsProcessing(false);
       }
     }
-
-    if (attempts < 3) {
-      processOAuth();
-      // Increment attempts to avoid infinite loops
-      setAttempts(prev => prev + 1);
-    }
-  }, [handleGitHubOAuth, refreshUser, router, attempts]);
+    
+    // Process the OAuth callback once when the component mounts
+    processOAuth();
+  }, [refreshUser, router]);
 
   return (
     <Box sx={{ 
@@ -120,25 +106,24 @@ export default function OAuthCallback() {
       <MotionPaper
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        sx={{ 
-          p: 4, 
-          borderRadius: 4,
+        transition={{ duration: 0.5 }}
+        elevation={3}
+        sx={{
+          p: 4,
+          width: '100%',
+          maxWidth: 500,
+          textAlign: 'center',
+          borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 3,
-          width: '100%',
-          maxWidth: 400,
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          gap: 3
         }}
       >
         {isProcessing ? (
           <>
-            <CircularProgress size={60} thickness={4} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <CircularProgress />
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: 600 }}>
               {processingStep}
             </Typography>
             <Typography variant="body2" color="text.secondary">
