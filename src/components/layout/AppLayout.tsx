@@ -1,14 +1,16 @@
 "use client";
 
-import React, { ReactNode } from 'react'; // Removed useState
+import React, { ReactNode, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Box } from '@mui/material';
-import Sidebar from '@/components/Sidebar'; // Import Sidebar
-import Header from '@/components/Header';   // Import Header
-import { shouldShowSidebar } from '@/utils/navigation'; // Import the utility
+import { Box, useMediaQuery, useTheme } from '@mui/material';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
+import SecondarySidebar from '@/components/SecondarySidebar';
+import { shouldShowSidebar } from '@/utils/navigation';
 
-// Define sidebar width (consider making this a constant or theme value)
-const drawerWidth = 240;
+// Define sidebar widths
+const primaryDrawerWidth = 240;
+const secondaryDrawerWidth = 320;
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -16,49 +18,82 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
-  // Removed mobileOpen state and handleDrawerToggle function
-
-  // Determine if the sidebar should be shown
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));
+  
+  // State for secondary sidebar visibility
+  const [secondarySidebarWidth, setSecondarySidebarWidth] = useState(secondaryDrawerWidth);
+  
+  // Determine if the sidebars should be shown
   const showSidebar = shouldShowSidebar(pathname);
+  const showSecondarySidebar = showSidebar && isLargeScreen;
 
-  // Determine if the page is a pre-auth page (like signin/signup)
-  // Adjust this logic based on your actual pre-auth routes if different from sidebar hidden paths
+  // Determine if the page is a pre-auth page or home page
   const isPreAuthPage = ['/signin', '/signup'].includes(pathname);
   const isHomePage = pathname === '/';
 
+  // Handle resizing of the secondary sidebar
+  const handleResizeSecondarySidebar = (newWidth: number) => {
+    // Ensure width stays within reasonable bounds
+    const boundedWidth = Math.max(200, Math.min(450, newWidth));
+    setSecondarySidebarWidth(boundedWidth);
+  };
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
       <Header 
         isHomePage={isHomePage} 
         isPreAuthPage={isPreAuthPage} 
-        // Removed onToggleDrawer prop
       />
       
-      {/* Conditionally render Sidebar - Removed mobileOpen and handleDrawerToggle props */}
+      {/* Primary Sidebar */}
       {showSidebar && <Sidebar />}
+
+      {/* Secondary Sidebar - Only shown on large screens and when primary sidebar is also shown */}
+      {showSecondarySidebar && <SecondarySidebar drawerWidth={primaryDrawerWidth} />}
 
       {/* Main content area */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          // Apply margin only on md+ screens when sidebar is shown
-          ml: { md: showSidebar ? `${drawerWidth}px` : 0 }, 
-          // Add padding top to account for the fixed Header height (adjust value as needed)
-          pt: { xs: '56px', sm: '64px' }, 
-          width: { 
-            xs: '100%', 
-            // Adjust width calculation for md+ screens when sidebar is shown
-            md: showSidebar ? `calc(100% - ${drawerWidth}px)` : '100%' 
-          },
-          // Add padding bottom to account for bottom navigation on mobile
-          pb: { xs: showSidebar ? '70px' : 0, md: 0 },
-          // Add transition for theme changes
-          transition: 'background-color 0.3s ease, color 0.3s ease',
+          // Position relative to the sidebars without margin
+          position: 'absolute',
+          left: { xs: 0, md: showSidebar ? `${primaryDrawerWidth}px` : 0 },
+          right: { xs: 0, lg: showSecondarySidebar ? `${secondaryDrawerWidth}px` : 0 },
+          // Account for fixed Header height
+          top: { xs: '56px', sm: '64px' },
+          bottom: 0,
+          // No need for width calculation - it's based on left/right positioning
+          // Account for bottom navigation on mobile
+          paddingBottom: { xs: showSidebar ? '70px' : 0, md: 0 },
+          // Smooth transitions
+          transition: theme.transitions.create(
+            ['left', 'right', 'background-color', 'color'], 
+            {
+              easing: theme.transitions.easing.easeOut,
+              duration: theme.transitions.duration.standard,
+            }
+          ),
+          // Ensure content doesn't overflow and shows scrollbars when needed
+          overflow: 'auto',
+          // Prevent content from being obscured by fixed elements
+          boxSizing: 'border-box',
         }}
       >
-        {/* Add inner padding for content */}
-        <Box sx={{ p: 3 }}> 
+        {/* Inner padding for content */}
+        <Box sx={{ 
+          p: 3, 
+          height: '100%',
+          minHeight: '100vh', 
+          display: 'flex',
+          flexDirection: 'column' 
+        }}> 
           {children}
         </Box>
       </Box>

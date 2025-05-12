@@ -18,28 +18,82 @@ const HowItWorksSection: React.FC = () => (
     <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
       How Web3Lancer Works
     </Typography>
-    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, justifyContent: 'center', mb: 5 }}>
-      <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: { xs: 'column', md: 'row' }, 
+      gap: 4, 
+      justifyContent: 'space-between', 
+      alignItems: 'stretch',
+      mb: 5,
+      width: '100%',
+      mx: 'auto'
+    }}>
+      <Paper 
+        elevation={1} 
+        sx={{ 
+          p: 4, 
+          borderRadius: 3, 
+          flex: { xs: 'auto', md: 1 }, 
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+            boxShadow: 4
+          }
+        }}
+      >
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
           1. Post Your Project
         </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{ flexGrow: 1 }}>
           Describe your project requirements, set your budget, and specify the skills you need.
         </Typography>
       </Paper>
-      <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>
+      <Paper 
+        elevation={1} 
+        sx={{ 
+          p: 4, 
+          borderRadius: 3, 
+          flex: { xs: 'auto', md: 1 }, 
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+            boxShadow: 4
+          }
+        }}
+      >
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
           2. Connect with Talent
         </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{ flexGrow: 1 }}>
           Review proposals from skilled Web3lancers and choose the best match for your project.
         </Typography>
       </Paper>
-      <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>
+      <Paper 
+        elevation={1} 
+        sx={{ 
+          p: 4, 
+          borderRadius: 3, 
+          flex: { xs: 'auto', md: 1 }, 
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+            boxShadow: 4
+          }
+        }}
+      >
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
           3. Secure Payment
         </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{ flexGrow: 1 }}>
           Use our blockchain-based escrow system for secure, transparent payments when milestones are completed.
         </Typography>
       </Paper>
@@ -59,25 +113,88 @@ interface CTABannerProps {
 const CTABanner: React.FC<CTABannerProps> = ({ title, subtitle, primaryButtonText, primaryButtonLink, secondaryButtonText, secondaryButtonLink }) => (
   <Paper elevation={3} sx={{ 
     py: { xs: 4, md: 6 }, 
-    px: { xs: 2, md: 4 }, 
-    my: 6, 
+    px: { xs: 2, md: 6 }, 
+    my: { xs: 6, md: 8 }, 
     textAlign: 'center', 
-    background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)', // Example gradient
-    color: 'white' 
+    background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+    color: 'white',
+    borderRadius: { xs: 2, md: 3 },
   }}>
-    <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-      {title}
-    </Typography>
-    <Typography variant="subtitle1" gutterBottom sx={{ mb: 3 }}>
-      {subtitle}
-    </Typography>
-    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-      <Fab variant="extended" color="inherit" href={primaryButtonLink} sx={{ bgcolor: 'white', color: '#1e3a8a', '&:hover': { bgcolor: 'grey.200'} }}>
-        {primaryButtonText}
-      </Fab>
-      <Fab variant="extended" href={secondaryButtonLink} sx={{ borderColor: 'white', color: 'white', borderWidth: 1, borderStyle: 'solid', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)'} }}>
-        {secondaryButtonText}
-      </Fab>
+    <Box sx={{ 
+      maxWidth: { xs: '100%', md: '80%' }, 
+      mx: 'auto'
+    }}>
+      <Typography variant="h4" component="h2" gutterBottom sx={{ 
+        fontWeight: 'bold',
+        fontSize: { xs: '1.75rem', md: '2.25rem' }
+      }}>
+        {title}
+      </Typography>
+      <Typography variant="subtitle1" gutterBottom sx={{ 
+        mb: 4,
+        maxWidth: { xs: '100%', md: '80%' },
+        mx: 'auto',
+        fontSize: { xs: '1rem', md: '1.1rem' }
+      }}>
+        {subtitle}
+      </Typography>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: { xs: 2, md: 4 }, 
+        flexWrap: 'wrap',
+        flexDirection: { xs: 'column', sm: 'row' },
+        maxWidth: { xs: '100%', sm: '80%', md: '60%' },
+        mx: 'auto'
+      }}>
+        <Fab 
+          variant="extended" 
+          color="inherit" 
+          href={primaryButtonLink} 
+          sx={{ 
+            bgcolor: 'white', 
+            color: '#1e3a8a',
+            px: { xs: 3, md: 4 },
+            py: { xs: 1.5, md: 2 },
+            fontWeight: 600,
+            fontSize: { xs: '0.9rem', md: '1rem' },
+            flex: { xs: '1 1 auto', sm: '0 1 auto' },
+            minWidth: { sm: '180px' },
+            '&:hover': { 
+              bgcolor: 'grey.200',
+              transform: 'translateY(-3px)',
+              boxShadow: 4
+            },
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+          }}
+        >
+          {primaryButtonText}
+        </Fab>
+        <Fab 
+          variant="extended" 
+          href={secondaryButtonLink} 
+          sx={{ 
+            borderColor: 'white', 
+            color: 'white', 
+            borderWidth: 1, 
+            borderStyle: 'solid',
+            px: { xs: 3, md: 4 },
+            py: { xs: 1.5, md: 2 },
+            fontWeight: 600,
+            fontSize: { xs: '0.9rem', md: '1rem' },
+            flex: { xs: '1 1 auto', sm: '0 1 auto' },
+            minWidth: { sm: '180px' },
+            '&:hover': { 
+              bgcolor: 'rgba(255,255,255,0.1)',
+              transform: 'translateY(-3px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+            },
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+          }}
+        >
+          {secondaryButtonText}
+        </Fab>
+      </Box>
     </Box>
   </Paper>
 );
@@ -163,7 +280,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <StatisticsSection />
         </Container>
       </Paper>
@@ -176,7 +293,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <FeaturesSection />
         </Container>
       </Paper>
@@ -189,7 +306,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <FeaturedProjects />
         </Container>
       </Paper>
@@ -204,7 +321,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <HowItWorksSection />
         </Container>
       </Box>
@@ -217,12 +334,12 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <TestimonialsSection />
         </Container>
       </Paper>
 
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, width: '100%' }}>
         <CTABanner 
           title="Ready to Start Your Next Web3 Project?"
           subtitle="Join Web3Lancer today and connect with top talent or find exciting new opportunities."
@@ -241,7 +358,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <JobsSection jobs={jobs} isLoading={loadingJobs} /> 
         </Container>
       </Paper>
@@ -254,7 +371,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <DownloadSection />
         </Container>
       </Paper>
@@ -266,7 +383,7 @@ export default function HomePage() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ width: '100%' }}>
           <CommunitySection />
         </Container>
       </Box>
