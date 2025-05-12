@@ -141,7 +141,18 @@ export default function NotificationsSection() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
-            sx={{ p: 3, height: '100%' }}
+            sx={{ 
+              p: 3, 
+              height: '100%',
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+              background: 'linear-gradient(135deg, rgba(32,151,255,0.02) 0%, rgba(120,87,255,0.02) 100%)',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)'
+              }
+            }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Email color="primary" sx={{ mr: 1 }} />
@@ -150,7 +161,12 @@ export default function NotificationsSection() {
                 size="small" 
                 label={`${countEnabledNotifications(emailNotifications)}/5`} 
                 color="primary" 
-                sx={{ ml: 'auto' }} 
+                sx={{ 
+                  ml: 'auto',
+                  background: 'linear-gradient(90deg, #2097ff 0%, #7857ff 100%)',
+                  color: 'white',
+                  fontWeight: 'medium'
+                }} 
               />
             </Box>
             
@@ -162,6 +178,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={emailNotifications.projectUpdates} 
                     onChange={() => handleEmailToggle('projectUpdates')}
+                    color="primary"
                   />
                 }
                 label={
@@ -179,6 +196,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={emailNotifications.messages} 
                     onChange={() => handleEmailToggle('messages')}
+                    color="primary"
                   />
                 }
                 label={
@@ -196,6 +214,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={emailNotifications.payments} 
                     onChange={() => handleEmailToggle('payments')}
+                    color="primary"
                   />
                 }
                 label={
@@ -213,6 +232,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={emailNotifications.systemUpdates} 
                     onChange={() => handleEmailToggle('systemUpdates')}
+                    color="primary"
                   />
                 }
                 label={
@@ -230,6 +250,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={emailNotifications.marketing} 
                     onChange={() => handleEmailToggle('marketing')}
+                    color="primary"
                   />
                 }
                 label={
@@ -252,7 +273,18 @@ export default function NotificationsSection() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            sx={{ p: 3, height: '100%' }}
+            sx={{ 
+              p: 3, 
+              height: '100%',
+              borderRadius: 2, 
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+              background: 'linear-gradient(135deg, rgba(32,151,255,0.02) 0%, rgba(120,87,255,0.02) 100%)',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)'
+              }
+            }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Web color="primary" sx={{ mr: 1 }} />
@@ -261,7 +293,12 @@ export default function NotificationsSection() {
                 size="small" 
                 label={`${countEnabledNotifications(pushNotifications)}/5`} 
                 color="primary" 
-                sx={{ ml: 'auto' }} 
+                sx={{ 
+                  ml: 'auto',
+                  background: 'linear-gradient(90deg, #2097ff 0%, #7857ff 100%)',
+                  color: 'white',
+                  fontWeight: 'medium'
+                }} 
               />
             </Box>
             
@@ -273,6 +310,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={pushNotifications.projectUpdates} 
                     onChange={() => handlePushToggle('projectUpdates')}
+                    color="primary"
                   />
                 }
                 label={
@@ -290,6 +328,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={pushNotifications.messages} 
                     onChange={() => handlePushToggle('messages')}
+                    color="primary"
                   />
                 }
                 label={
@@ -307,6 +346,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={pushNotifications.payments} 
                     onChange={() => handlePushToggle('payments')}
+                    color="primary"
                   />
                 }
                 label={
@@ -324,6 +364,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={pushNotifications.systemUpdates} 
                     onChange={() => handlePushToggle('systemUpdates')}
+                    color="primary"
                   />
                 }
                 label={
@@ -341,6 +382,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={pushNotifications.marketing} 
                     onChange={() => handlePushToggle('marketing')}
+                    color="primary"
                   />
                 }
                 label={
@@ -363,7 +405,18 @@ export default function NotificationsSection() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            sx={{ p: 3, height: '100%' }}
+            sx={{ 
+              p: 3, 
+              height: '100%',
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)', 
+              background: 'linear-gradient(135deg, rgba(32,151,255,0.02) 0%, rgba(120,87,255,0.02) 100%)',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)'
+              }
+            }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <PhoneAndroid color="primary" sx={{ mr: 1 }} />
@@ -372,7 +425,12 @@ export default function NotificationsSection() {
                 size="small" 
                 label={`${countEnabledNotifications(smsNotifications)}/5`} 
                 color="primary" 
-                sx={{ ml: 'auto' }} 
+                sx={{ 
+                  ml: 'auto',
+                  background: 'linear-gradient(90deg, #2097ff 0%, #7857ff 100%)',
+                  color: 'white',
+                  fontWeight: 'medium'
+                }}
               />
             </Box>
             
@@ -384,6 +442,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={smsNotifications.projectUpdates} 
                     onChange={() => handleSmsToggle('projectUpdates')}
+                    color="primary"
                   />
                 }
                 label={
@@ -401,6 +460,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={smsNotifications.messages} 
                     onChange={() => handleSmsToggle('messages')}
+                    color="primary"
                   />
                 }
                 label={
@@ -418,6 +478,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={smsNotifications.payments} 
                     onChange={() => handleSmsToggle('payments')}
+                    color="primary"
                   />
                 }
                 label={
@@ -435,6 +496,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={smsNotifications.systemUpdates} 
                     onChange={() => handleSmsToggle('systemUpdates')}
+                    color="primary"
                   />
                 }
                 label={
@@ -452,6 +514,7 @@ export default function NotificationsSection() {
                   <Switch 
                     checked={smsNotifications.marketing} 
                     onChange={() => handleSmsToggle('marketing')}
+                    color="primary"
                   />
                 }
                 label={
@@ -475,6 +538,18 @@ export default function NotificationsSection() {
           startIcon={<Save />}
           onClick={handleSaveSettings}
           disabled={loading}
+          sx={{ 
+            borderRadius: 2, 
+            py: 1,
+            px: 3,
+            background: 'linear-gradient(90deg, #2097ff 0%, #7857ff 100%)',
+            boxShadow: '0 4px 12px rgba(32, 151, 255, 0.2)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 6px 16px rgba(32, 151, 255, 0.25)',
+              transform: 'translateY(-2px)'
+            }
+          }}
         >
           {loading ? 'Saving...' : 'Save Notification Preferences'}
         </Button>
@@ -484,11 +559,23 @@ export default function NotificationsSection() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert 
           onClose={handleCloseSnackbar} 
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            background: snackbar.severity === 'success' 
+              ? 'linear-gradient(135deg, rgba(46, 213, 115, 0.95) 0%, rgba(37, 187, 112, 0.95) 100%)' 
+              : 'linear-gradient(135deg, rgba(255, 71, 87, 0.95) 0%, rgba(231, 61, 77, 0.95) 100%)',
+            color: 'white',
+            '& .MuiAlert-icon': {
+              color: 'white'
+            }
+          }}
         >
           {snackbar.message}
         </Alert>

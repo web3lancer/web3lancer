@@ -133,7 +133,7 @@ export default function SecuritySection({ section }: SecuritySectionProps) {
           </Alert>
         )}
         
-        <Paper sx={{ p: 3, maxWidth: 500, mb: 4 }}>
+        <Paper sx={{ p: 3, maxWidth: 500, mb: 4, borderRadius: 2, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)' }}>
           <form onSubmit={handlePasswordChange}>
             <TextField
               label="Current Password"
@@ -144,6 +144,14 @@ export default function SecuritySection({ section }: SecuritySectionProps) {
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
               disabled={loading}
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1.5,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
             />
             
             <TextField
@@ -156,6 +164,14 @@ export default function SecuritySection({ section }: SecuritySectionProps) {
               required
               disabled={loading}
               helperText="Password must be at least 8 characters"
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1.5,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
             />
             
             <TextField
@@ -169,6 +185,14 @@ export default function SecuritySection({ section }: SecuritySectionProps) {
               disabled={loading}
               error={newPassword !== confirmPassword && confirmPassword !== ''}
               helperText={newPassword !== confirmPassword && confirmPassword !== '' ? 'Passwords do not match' : ''}
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1.5,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
             />
             
             <Box sx={{ mt: 3 }}>
@@ -177,6 +201,17 @@ export default function SecuritySection({ section }: SecuritySectionProps) {
                 variant="contained"
                 disabled={loading || !currentPassword || !newPassword || !confirmPassword}
                 startIcon={loading ? <CircularProgress size={20} /> : <Key />}
+                sx={{ 
+                  borderRadius: 2, 
+                  py: 1,
+                  background: 'linear-gradient(90deg, #2097ff 0%, #7857ff 100%)',
+                  boxShadow: '0 4px 12px rgba(32, 151, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    boxShadow: '0 6px 16px rgba(32, 151, 255, 0.25)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
               >
                 {loading ? 'Updating...' : 'Update Password'}
               </Button>
@@ -184,7 +219,17 @@ export default function SecuritySection({ section }: SecuritySectionProps) {
           </form>
         </Paper>
         
-        <Alert severity="info" sx={{ mt: 2 }}>
+        <Alert 
+          severity="info" 
+          sx={{ 
+            mt: 2, 
+            borderRadius: 2, 
+            background: 'linear-gradient(135deg, rgba(32, 151, 255, 0.08) 0%, rgba(120, 87, 255, 0.08) 100%)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: '1px solid',
+            borderColor: 'info.light'
+          }}
+        >
           <Typography variant="body2">
             <strong>Password Tip:</strong> Use a combination of uppercase letters, lowercase letters, numbers, and special characters to create a strong password.
           </Typography>

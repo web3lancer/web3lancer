@@ -6,6 +6,7 @@ import ProfileForm from './ProfileForm';
 import CalendarSection from './CalendarSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile, updateUserProfile, getProfilePictureUrl } from '@/utils/api';
+import { motion } from 'framer-motion';
 
 export default function ProfileSection() {
   const { user } = useAuth();
@@ -123,53 +124,113 @@ export default function ProfileSection() {
     <Box>
       {loading && (
         <Box display="flex" justifyContent="center" my={4}>
-          <CircularProgress />
+          <CircularProgress
+            sx={{
+              color: 'primary.main',
+              '& .MuiCircularProgress-circle': {
+                strokeLinecap: 'round',
+              }
+            }}
+          />
         </Box>
       )}
       
       {profileError && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
+        <Alert 
+          severity="warning" 
+          sx={{ 
+            mb: 3, 
+            borderRadius: 2,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+            background: 'linear-gradient(135deg, rgba(255, 190, 83, 0.1) 0%, rgba(255, 143, 0, 0.1) 100%)',
+            border: '1px solid',
+            borderColor: 'warning.light',
+            '& .MuiAlert-icon': {
+              color: 'warning.main'
+            }
+          }}
+        >
           {profileError}
         </Alert>
       )}
       
       {!loading && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <ProfileCard 
-              user={user}
-              imagePreview={imagePreview}
-            />
-          </Grid>
-          
-          <Grid item xs={12} md={8}>
-            <ProfileForm 
-              profileData={{
-                skills,
-                setSkills,
-                bio,
-                setBio
-              }}
-              onSave={handleSaveProfile}
-              loading={loading}
-            />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.4 }}
+              >
+                <ProfileCard 
+                  user={user}
+                  imagePreview={imagePreview}
+                />
+              </motion.div>
+            </Grid>
             
-            <Box sx={{ mt: 3 }}>
-              <CalendarSection />
-            </Box>
+            <Grid item xs={12} md={8}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+              >
+                <ProfileForm 
+                  profileData={{
+                    skills,
+                    setSkills,
+                    bio,
+                    setBio
+                  }}
+                  onSave={handleSaveProfile}
+                  loading={loading}
+                />
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                style={{ marginTop: '24px' }}
+              >
+                <CalendarSection />
+              </motion.div>
+            </Grid>
           </Grid>
-        </Grid>
+        </motion.div>
       )}
       
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        sx={{ 
+          '& .MuiAlert-root': {
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(8px)'
+          }
+        }}
       >
         <Alert 
           onClose={handleCloseSnackbar} 
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            background: snackbar.severity === 'success' 
+              ? 'linear-gradient(135deg, rgba(46, 213, 115, 0.95) 0%, rgba(37, 187, 112, 0.95) 100%)' 
+              : 'linear-gradient(135deg, rgba(255, 71, 87, 0.95) 0%, rgba(231, 61, 77, 0.95) 100%)',
+            color: 'white',
+            '& .MuiAlert-icon': {
+              color: 'white'
+            }
+          }}
         >
           {snackbar.message}
         </Alert>
