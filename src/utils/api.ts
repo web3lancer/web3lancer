@@ -66,7 +66,8 @@ async function signUp(email: string, password: string, name: string) {
 
     // Send email verification after successful signup
     try {
-      const baseURL = APP_CONFIG.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+          const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
       const verificationURL = `${baseURL}/verify-email`;
       await account.createVerification(verificationURL);
       console.log('Verification email sent');
@@ -946,7 +947,7 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
   try {
     // Ensure base URL is correctly determined
     const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
-                   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
     const successUrl = `${baseURL}/auth/callback`; // Redirect to a dedicated callback page
     const failureUrl = `${baseURL}/signin?error=github_oauth_failed`; // Redirect back to signin on failure
 
