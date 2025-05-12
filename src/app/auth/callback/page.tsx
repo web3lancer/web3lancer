@@ -1,72 +1,75 @@
-"use client";
+'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { account } from '@/utils/api'; // Direct import for Appwrite account instance
+import { account } from '@/utils/api'; // For potential deleteSession on critical error
 import { Box, CircularProgress, Typography } from '@mui/material';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  // Get setUser and setIsLoading to update auth state directly from here
-  const { setUser, setIsLoading: setAuthContextIsLoading } = useAuth();
+  const { setIsLoading: setAuthContextIsLoading, refreshUser, setUser } = useAuth();
 
   useEffect(() => {
     const finalizeSession = async () => {
-      // Ensure context functions are available before calling them
       if (typeof setAuthContextIsLoading === 'function') {
         setAuthContextIsLoading(true);
       }
 
       try {
-        console.log("AuthCallbackPage: Attempting to finalize OAuth session with account.get()...");
-        const userSession = await account.get(); // This should be Models.User<Models.Preferences>
-        console.log("AuthCallbackPage: account.get() successful", userSession);
+        console.log("AuthCallbackPage: Attempting to finalize OAuth session by calling refreshUser()...");
+        // refreshUser should call account.get() internally, which finalizes OAuth from URL parameters,
+        // and then updates the AuthContext comprehensively.
+        const refreshedUser = await refreshUser(); // refreshUser is from AuthContext
 
-        if (userSession && userSession.$id) { // Check if a valid session is returned
-          if (typeof setUser === 'function') {
-            setUser(userSession); // Update context with the new session
-          }
-          console.log("AuthCallbackPage: Session finalized. Redirecting to dashboard.");
+        if (refreshedUser && refreshedUser.$id) {
+          console.log("AuthCallbackPage: refreshUser() successful, user:", refreshedUser);
+          // setUser and setIsLoading(false) should be handled within refreshUser upon success.
+          console.log("AuthCallbackPage: Session finalized by refreshUser. Redirecting to dashboard.");
           router.replace('/dashboard');
         } else {
-          console.error("AuthCallbackPage: No valid user session returned from account.get().");
-          if (typeof setUser === 'function') {
-            setUser(null);
-          }
-          router.replace('/signin?error=oauth_session_invalid');
+          // This case means refreshUser completed but didn't find/return a user.
+          // refreshUser should have set user to null and isLoading to false in context.
+          console.error("AuthCallbackPage: refreshUser() did not return a valid user session.");
+          router.replace('/signin?error=oauth_refresh_failed');
         }
       } catch (error) {
-        console.error("AuthCallbackPage: Error finalizing OAuth session:", error);
+        // This catches errors if refreshUser() itself throws an unhandled exception,
+        // or if there's an issue calling refreshUser (e.g., if it's undefined).
+        console.error("AuthCallbackPage: Critical error during refreshUser() call:", error);
         if (typeof setUser === 'function') {
-          setUser(null); // Clear user in context
+          setUser(null); // Ensure user is cleared in context
         }
-        // Attempt to delete any potentially broken session that might have been created
         try {
           await account.deleteSession('current');
-          console.log("AuthCallbackPage: Attempted to delete potentially broken session.");
+          console.log("AuthCallbackPage: Attempted to delete potentially broken session after critical error.");
         } catch (deleteError) {
-          console.warn("AuthCallbackPage: Could not delete potentially broken session", deleteError);
+          console.warn("AuthCallbackPage: Could not delete potentially broken session:", deleteError);
         }
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error during OAuth finalization';
-        router.replace(`/signin?error=oauth_finalize_failed&message=${encodeURIComponent(errorMessage)}`);
-      } finally {
-        // Ensure loading is set to false if not already done by a redirect path
-        // However, redirects should happen before this, so direct setIsLoading(false) might be tricky here
-        // It's better handled within the try/catch blocks before router.replace()
-        // For safety, if setAuthContextIsLoading is still true, set it to false.
-        // This part might be redundant if all paths above set it and redirect.
+        // Ensure loading is set to false before redirecting from a critical error path.
         if (typeof setAuthContextIsLoading === 'function') {
-           // Check current loading state if possible, or just set to false if redirect hasn't happened.
-           // This is tricky because router.replace is async in some Next.js versions regarding page state.
-           // For now, we assume redirection makes this less critical.
+          setAuthContextIsLoading(false);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown OAuth finalization error';
+        router.replace(`/signin?error=oauth_critical_finalize_failed&message=${encodeURIComponent(errorMessage)}`);
       }
+      // Note: refreshUser() is expected to have its own finally block to set isLoading to false.
+      // If refreshUser completes (even if it returns null), its finally block should run.
+      // The explicit setIsLoading(false) in the catch block here is for when refreshUser itself fails critically.
     };
 
-    finalizeSession();
+    // Ensure refreshUser is actually a function from the context before calling.
+    if (typeof refreshUser === 'function') {
+      finalizeSession();
+    } else {
+      console.error("AuthCallbackPage: refreshUser function is not available from AuthContext. This indicates a problem with AuthProvider or context linkage.");
+      if (typeof setAuthContextIsLoading === 'function') {
+        setAuthContextIsLoading(false); // Stop loading indicator if possible
+      }
+      router.replace('/signin?error=auth_context_setup_error');
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, setUser, setAuthContextIsLoading]); // Dependencies for useEffect
+  }, [router, setAuthContextIsLoading, refreshUser, setUser]); // Dependencies for useEffect
 
   return (
     <Box
