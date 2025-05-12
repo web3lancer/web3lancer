@@ -32,7 +32,7 @@ const HowItWorksSection: React.FC = () => (
           2. Connect with Talent
         </Typography>
         <Typography variant="body1">
-          Review proposals from skilled Web3 freelancers and choose the best match for your project.
+          Review proposals from skilled Web3lancers and choose the best match for your project.
         </Typography>
       </Paper>
       <Paper elevation={1} sx={{ p: 4, borderRadius: 3, flex: 1, maxWidth: { xs: '100%', md: '30%' } }}>

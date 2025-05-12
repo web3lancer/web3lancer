@@ -102,6 +102,7 @@ export default function HeroSection() {
                 href="/projects"
                 sx={{ 
                   fontWeight: 500,
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#222',
                   '&:hover': {
                     background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
                   } 
@@ -112,9 +113,10 @@ export default function HeroSection() {
               <Button 
                 color="inherit" 
                 component={Link} 
-                href="/freelancers"
+                href="/web3lancers"
                 sx={{ 
                   fontWeight: 500,
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#222',
                   '&:hover': {
                     background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
                   } 
