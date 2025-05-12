@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "web3lancer.website"
+        }
+      ],
+      "destination": "www.web3lancer.website",
+      "permanent": true
+    }
+  ]
+}
