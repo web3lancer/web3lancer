@@ -5,8 +5,8 @@ import { APPWRITE_CONFIG, APP_CONFIG } from '@/lib/env';
 // Initialize client according to Appwrite docs
 const client = new Client();
 client
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1') // Use env var or default
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '67aed8360001b6dd8cb3'); // Use env var or default
+  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!); 
 
 const account = new Account(client);
 const databases = new Databases(client);
@@ -138,7 +138,7 @@ async function listSessions() {
  */
 async function createEmailVerification() {
   try {
-    const baseURL = APP_CONFIG.APP_URL;
+    const baseURL = APP_CONFIG.APP_URL; // Use APP_CONFIG
     const verificationURL = `${baseURL}/verify-email`;
     const response = await account.createVerification(verificationURL);
     console.log('Verification email sent successfully');
@@ -165,7 +165,7 @@ async function completeEmailVerification(userId: string, secret: string) {
  */
 async function createPasswordRecovery(email: string) {
   try {
-    const baseURL = APP_CONFIG.APP_URL;
+    const baseURL = APP_CONFIG.APP_URL; // Use APP_CONFIG
     const recoveryURL = `${baseURL}/reset-password`;
     const response = await account.createRecovery(email, recoveryURL);
     console.log('Password recovery email sent successfully');
@@ -192,9 +192,7 @@ async function completePasswordRecovery(userId: string, secret: string, newPassw
  */
 async function createMagicURLToken(email: string) {
   try {
-    // Get the base URL from environment variables
-    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
-                   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    const baseURL = APP_CONFIG.APP_URL; // Use APP_CONFIG
     
     // Create a unique user ID for new users or fetch existing ID
     let userId = ID.unique();
