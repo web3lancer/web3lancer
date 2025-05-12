@@ -12,7 +12,7 @@ class ApiService {
         .setEndpoint(
           'https://cloud.appwrite.io/v1',
         ) // Replace with your endpoint
-        .setProject('67aed8360001b6dd8cb3') // Replace with your project ID
+        .setProject('') // Replace with your project ID
         .setSelfSigned(status: true); // Remove in production
 
     databases = Databases(client);
@@ -32,7 +32,7 @@ class ApiService {
       // Create user profile document
       final userId = response.$id;
       await databases.createDocument(
-        databaseId: '67aed8360001b6dd8cb3',
+        databaseId: '',
         collectionId: 'users',
         documentId: userId,
         data: {
@@ -85,7 +85,7 @@ class ApiService {
   Future<User?> getUserProfile(String userId) async {
     try {
       final document = await databases.getDocument(
-        databaseId: '67aed8360001b6dd8cb3',
+        databaseId: '',
         collectionId: 'users',
         documentId: userId,
       );
@@ -124,7 +124,7 @@ class ApiService {
   ) async {
     try {
       final response = await databases.createDocument(
-        databaseId: '67aed8360001b6dd8cb3',
+        databaseId: '',
         collectionId: collectionId,
         documentId: 'unique()',
         data: data,
@@ -138,7 +138,7 @@ class ApiService {
   Future<void> getDocument(String collectionId, String documentId) async {
     try {
       final response = await databases.getDocument(
-        databaseId: '67aed8360001b6dd8cb3',
+        databaseId: '',
         collectionId: collectionId,
         documentId: documentId,
       );
@@ -155,7 +155,7 @@ class ApiService {
   ) async {
     try {
       final response = await databases.updateDocument(
-        databaseId: '67aed8360001b6dd8cb3',
+        databaseId: '',
         collectionId: collectionId,
         documentId: documentId,
         data: data,
@@ -169,7 +169,7 @@ class ApiService {
   Future<void> deleteDocument(String collectionId, String documentId) async {
     try {
       final response = await databases.deleteDocument(
-        databaseId: '67aed8360001b6dd8cb3',
+        databaseId: '',
         collectionId: collectionId,
         documentId: documentId,
       );
@@ -182,7 +182,7 @@ class ApiService {
   Future<void> uploadFile(String path) async {
     try {
       final response = await storage.createFile(
-        bucketId: '67aed8360001b6dd8cb3',
+        bucketId: '',
         fileId: 'unique()',
         file: InputFile(path: path),
       );
@@ -194,10 +194,7 @@ class ApiService {
 
   Future<void> getFile(String fileId) async {
     try {
-      final response = await storage.getFile(
-        bucketId: '67aed8360001b6dd8cb3',
-        fileId: fileId,
-      );
+      final response = await storage.getFile(bucketId: '', fileId: fileId);
       print('File retrieved successfully: $response');
     } catch (e) {
       print('Error retrieving file: $e');
