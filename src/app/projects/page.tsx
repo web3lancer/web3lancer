@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Box, Typography, Alert, CircularProgress, Tabs, Tab } from "@mui/material";
 import { databases } from "@/utils/api";
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,6 +39,7 @@ function TabPanel(props: TabPanelProps) {
 
 export default function ProjectsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [jobs, setJobs] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
@@ -47,15 +49,31 @@ export default function ProjectsPage() {
   useEffect(() => {
     fetchJobs();
     fetchProjects();
-  }, []);
+
+    // Handle initial tab based on URL hash
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash) {
+        if (hash === '#post-a-job') {
+          setActiveTab(1);
+        } else if (hash === '#create-project') {
+          setActiveTab(2);
+        } else if (hash === '#my-listings') {
+          setActiveTab(3);
+        } else if (hash === '#browse') { 
+          setActiveTab(0); 
+        }
+      }
+    }
+  }, []); // Removed router from dependencies
 
   const fetchJobs = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await databases.listDocuments(
-        APPWRITE_CONFIG.DATABASES.JOBS,
-        APPWRITE_CONFIG.COLLECTIONS.JOBS
+        APPWRITE_CONFIG.DATABASES.JOBS!,
+        APPWRITE_CONFIG.COLLECTIONS.JOBS!
       );
       setJobs(response.documents);
     } catch (error) {
@@ -71,8 +89,8 @@ export default function ProjectsPage() {
     setError(null);
     try {
       const response = await databases.listDocuments(
-        APPWRITE_CONFIG.DATABASES.PROJECTS,
-        APPWRITE_CONFIG.COLLECTIONS.PROJECTS
+        APPWRITE_CONFIG.DATABASES.PROJECTS!,
+        APPWRITE_CONFIG.COLLECTIONS.PROJECTS!
       );
       setProjects(response.documents);
     } catch (error) {
@@ -85,9 +103,20 @@ export default function ProjectsPage() {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    let newHash = '';
+    if (newValue === 1) {
+      newHash = '#post-a-job';
+    } else if (newValue === 2) {
+      newHash = '#create-project';
+    } else if (newValue === 3) {
+      newHash = '#my-listings';
+    } else if (newValue === 0) {
+      newHash = '#browse'; 
+    }
+    router.replace(`/projects${newHash}`, { scroll: false }); 
   };
 
-  if (loading && activeTab === 0) {
+  if (loading && activeTab === 0 && (typeof window !== 'undefined' && !window.location.hash)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
         <CircularProgress />
@@ -108,10 +137,10 @@ export default function ProjectsPage() {
       )}
       
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
-        <Tab label="Browse" />
-        <Tab label="Post a Job" />
-        <Tab label="Create Project" />
-        <Tab label="My Listings" />
+        <Tab label="Browse" id="projects-tab-0" aria-controls="projects-tabpanel-0"/>
+        <Tab label="Post a Job" id="projects-tab-1" aria-controls="projects-tabpanel-1"/>
+        <Tab label="Create Project" id="projects-tab-2" aria-controls="projects-tabpanel-2"/>
+        <Tab label="My Listings" id="projects-tab-3" aria-controls="projects-tabpanel-3"/>
       </Tabs>
       
       <TabPanel value={activeTab} index={0}>
