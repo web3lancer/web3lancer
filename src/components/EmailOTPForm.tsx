@@ -16,6 +16,7 @@ import { Email, VpnKey } from '@mui/icons-material';
 import { createEmailOTP, verifyEmailOTP, signOut } from '@/utils/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { getThemeAwareTextFieldStyles } from '@/utils/themeUtils';
 
 interface EmailOTPFormProps {
   redirectPath?: string;
@@ -125,27 +126,7 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
               ),
             }}
             sx={{
-              '& .MuiInputBase-input': {
-                color: theme => theme.palette.text.primary,
-              },
-              '& .MuiInputLabel-root': {
-                color: theme => theme.palette.text.secondary,
-              },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: theme => theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.23)' 
-                    : 'rgba(0, 0, 0, 0.23)',
-                },
-                '&:hover fieldset': {
-                  borderColor: theme => theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.5)' 
-                    : 'rgba(0, 0, 0, 0.5)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'primary.main',
-                },
-              },
+              ...getThemeAwareTextFieldStyles()
             }}
           />
           
@@ -240,27 +221,7 @@ export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFo
               ),
             }}
             sx={{
-              '& .MuiInputBase-input': {
-                color: theme => theme.palette.text.primary,
-              },
-              '& .MuiInputLabel-root': {
-                color: theme => theme.palette.text.secondary,
-              },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: theme => theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.23)' 
-                    : 'rgba(0, 0, 0, 0.23)',
-                },
-                '&:hover fieldset': {
-                  borderColor: theme => theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.5)' 
-                    : 'rgba(0, 0, 0, 0.5)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'primary.main',
-                },
-              },
+              ...getThemeAwareTextFieldStyles()
             }}
           />
           

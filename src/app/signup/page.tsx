@@ -10,7 +10,6 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
-import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
 
 // Define a type for window.ethereum if it exists
 interface EthereumWindow extends Window {
@@ -303,7 +302,7 @@ export default function SignUpPage() {
 
         {signupMethod === 'magic' && (
           <form onSubmit={handleMagicLinkSignUp}>
-            <TextField
+            <ThemeAwareTextField
               label="Email"
               type="email"
               fullWidth
@@ -312,32 +311,6 @@ export default function SignUpPage() {
               onChange={(e) => setMagicLinkEmail(e.target.value)}
               required
               helperText="We'll send a sign-up link to this email"
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiFormHelperText-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
             <Button
               type="submit"
