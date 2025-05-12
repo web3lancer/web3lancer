@@ -41,7 +41,8 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import Link from 'next/link';
-import { databases } from '@/utils/api';
+// Import getUserProfile and getProfilePictureUrl
+import { databases, getUserProfile, getProfilePictureUrl } from '@/utils/api'; 
 import { APPWRITE_CONFIG } from '@/lib/env';
 
 // Animation variants for staggered children animations
@@ -119,6 +120,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  // State for profile image
+  const [dashboardUserImage, setDashboardUserImage] = useState<string | null>(null); 
   const [sortOption, setSortOption] = useState('newest');
   const [activeTab, setActiveTab] = useState(0);
   const [quickPicks, setQuickPicks] = useState<QuickPickItem[]>([]);
@@ -137,6 +140,7 @@ export default function DashboardPage() {
         fetchUserActivities();
         fetchJobs();
         fetchProjects();
+        fetchDashboardProfilePicture(); // Call to fetch profile picture
         generateQuickPicks();
         findMatchingJobs();
         setIsLoading(false);
@@ -147,6 +151,23 @@ export default function DashboardPage() {
       setIsLoading(false); 
     }
   }, [user]);
+
+  // Function to fetch profile picture for dashboard
+  const fetchDashboardProfilePicture = async () => {
+    if (user && user.$id) {
+      try {
+        const profile = await getUserProfile(user.$id);
+        if (profile && profile.profilePicture) {
+          setDashboardUserImage(getProfilePictureUrl(profile.profilePicture));
+        } else {
+          setDashboardUserImage(null);
+        }
+      } catch (error) {
+        console.error("Error fetching profile picture for dashboard:", error);
+        setDashboardUserImage(null);
+      }
+    }
+  };
 
   const fetchUserStats = async () => {
     console.log("Fetching user stats from Appwrite..."); 
@@ -463,7 +484,8 @@ export default function DashboardPage() {
               <Grid item xs={12} md={7} component="div">
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 3 } }}>
                   <Avatar 
-                    src={user?.photoURL || "/assets/default-avatar.png"} 
+                    // Use dashboardUserImage, fallback to user.photoURL, then to default
+                    src={dashboardUserImage || user?.photoURL || "/assets/default-avatar.png"} 
                     sx={{ 
                       width: { xs: 56, md: 64 }, 
                       height: { xs: 56, md: 64 }, 
@@ -474,7 +496,7 @@ export default function DashboardPage() {
                   />
                   <Box>
                     <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                      Welcome back, {user?.name || 'Developer'}!
+                      Welcome back, {user?.name || 'web3lancer'}!
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
                       Here's your dashboard overview.
@@ -771,26 +793,8 @@ export default function DashboardPage() {
                             </Typography>
                           </Box>
                         )}
-                        
-                        {job.skills && job.skills.length > 0 && (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                            {job.skills.slice(0, 3).map((skill, idx) => (
-                              <Chip
-                                key={idx}
-                                label={skill}
-                                size="small"
-                                sx={{
-                                  bgcolor: 'background.default',
-                                  fontSize: '0.7rem'
-                                }}
-                              />
-                            ))}
-                          </Box>
-                        )}
-                        
                         <Button
                           variant="outlined"
-                          fullWidth
                           component={Link}
                           href={`/jobs/${job.$id}`}
                           endIcon={<ArrowForwardIcon />}
