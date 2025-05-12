@@ -301,72 +301,303 @@ export default function SignUpPage() {
                 borderRadius: '12px',
                 borderWidth: '2px',
                 borderColor: theme => theme.palette.mode === 'dark' 
-            />
-            <ThemeAwareTextField
-              label="Password"
-              name="password"
-              type="password"
-              fullWidth
-              margin="normal"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{ 
-                mt: 2,
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
+                  ? 'rgba(255, 255, 255, 0.2)' 
+                  : 'rgba(0, 0, 0, 0.1)',
+                color: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : theme.palette.grey[900],
+                backgroundColor: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.02)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: theme => theme.palette.mode === 'dark' 
+                    ? '0 8px 16px rgba(0,0,0,0.4)' 
+                    : '0 8px 16px rgba(0,0,0,0.1)',
+                  borderColor: theme => theme.palette.mode === 'dark' 
+                    ? theme.palette.primary.main 
+                    : theme.palette.primary.main,
+                },
+                flex: isMobile ? 'auto' : 1
               }}
-              disabled={isLoading}
-              startIcon={<Email />}
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              Connect Wallet
             </Button>
-          </form>
-        )}
-
-        {signupMethod === 'magic' && (
-          <form onSubmit={handleMagicLinkSignUp}>
-            <ThemeAwareTextField
-              label="Email"
-              type="email"
-              fullWidth
-              margin="normal"
-              value={magicLinkEmail}
-              onChange={(e) => setMagicLinkEmail(e.target.value)}
-              required
-              helperText="We'll send a sign-up link to this email"
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{ 
-                mt: 2,
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
-              }}
-              disabled={isLoading}
-              startIcon={<LinkIcon />}
-            >
-              {isLoading ? 'Sending...' : 'Send Magic Link'}
-            </Button>
-          </form>
-        )}
+          </Stack>
+        </MotionBox>
         
-        {signupMethod === 'otp' && (
-          <EmailOTPForm redirectPath="/dashboard" />
-        )}
-        
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Typography variant="body2">
-            Already have an account? <Link href="/signin" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>Sign in</Link>
+        <Divider sx={{ 
+          my: 3,
+          '&::before, &::after': {
+            borderColor: theme => theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.1)' 
+              : 'rgba(0, 0, 0, 0.1)',
+          }
+        }}>
+          <Typography variant="body2" color="text.secondary" sx={{ px: 1 }}>
+            or continue with
           </Typography>
-        </Box>
+        </Divider>
+        
+        <MotionBox variants={fadeInUp} sx={{ mb: 4 }}>
+          <Tabs 
+            value={signupMethod} 
+            onChange={(_, value) => setSignupMethod(value)}
+            variant="fullWidth"
+            orientation={isMobile ? "vertical" : "horizontal"}
+            sx={{ 
+              mb: 3,
+              '& .MuiTab-root': {
+                color: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.7)' 
+                  : 'rgba(0, 0, 0, 0.7)',
+                fontWeight: 600,
+                textTransform: 'none',
+                borderRadius: isMobile ? 2 : 0,
+                my: isMobile ? 0.5 : 0,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: theme => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'rgba(0, 0, 0, 0.05)',
+                }
+              },
+              '& .Mui-selected': {
+                color: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.primary.light 
+                  : theme.palette.primary.main,
+                fontWeight: 700,
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'primary.main',
+                height: isMobile ? 0 : 3,
+                borderRadius: 2
+              },
+              border: isMobile ? 'none' : theme => `1px solid ${theme.palette.divider}`,
+              borderRadius: isMobile ? 0 : 2,
+              p: isMobile ? 0 : 0.5,
+            }}
+          >
+            <Tab 
+              label="Email Password" 
+              value="email" 
+              icon={<Email fontSize="small" />} 
+              iconPosition="start"
+            />
+            <Tab 
+              label="Magic Link" 
+              value="magic" 
+              icon={<LinkIcon fontSize="small" />} 
+              iconPosition="start"
+            />
+            <Tab 
+              label="Email OTP" 
+              value="otp" 
+              icon={<Login fontSize="small" />} 
+              iconPosition="start"
+            />
+          </Tabs>
+          
+          <Card 
+            elevation={0} 
+            sx={{ 
+              p: 0, 
+              backgroundColor: 'transparent',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+              {signupMethod === 'email' && (
+                <Fade in={signupMethod === 'email'}>
+                  <form onSubmit={handleSignUp}>
+                    <ThemeAwareTextField
+                      label="Full Name"
+                      name="name"
+                      type="text"
+                      fullWidth
+                      margin="normal"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    />
+                    <ThemeAwareTextField
+                      label="Email"
+                      name="email"
+                      type="email"
+                      fullWidth
+                      margin="normal"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    />
+                    <ThemeAwareTextField
+                      label="Password"
+                      name="password"
+                      type="password"
+                      fullWidth
+                      margin="normal"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    />
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth
+                      sx={{ 
+                        mt: 3,
+                        py: 1.5,
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+                        },
+                      }}
+                      disabled={isLoading}
+                      startIcon={<Email />}
+                    >
+                      {isLoading ? 'Creating Account...' : 'Create Account'}
+                    </Button>
+                  </form>
+                </Fade>
+              )}
+              
+              {signupMethod === 'magic' && (
+                <Fade in={signupMethod === 'magic'}>
+                  <form onSubmit={handleMagicLinkSignUp}>
+                    <ThemeAwareTextField
+                      label="Email"
+                      type="email"
+                      fullWidth
+                      margin="normal"
+                      value={magicLinkEmail}
+                      onChange={(e) => setMagicLinkEmail(e.target.value)}
+                      required
+                      helperText="We'll send a sign-up link to this email"
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    />
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth
+                      sx={{ 
+                        mt: 3,
+                        py: 1.5,
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+                        },
+                      }}
+                      disabled={isLoading}
+                      startIcon={<LinkIcon />}
+                    >
+                      {isLoading ? 'Sending...' : 'Send Magic Link'}
+                    </Button>
+                  </form>
+                </Fade>
+              )}
+              
+              {signupMethod === 'otp' && (
+                <Fade in={signupMethod === 'otp'}>
+                  <Box>
+                    <EmailOTPForm redirectPath="/dashboard" />
+                  </Box>
+                </Fade>
+              )}
+            </CardContent>
+          </Card>
+        </MotionBox>
+        
+        <MotionBox variants={fadeInUp} sx={{ 
+          mt: 4, 
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Already have an account?{' '}
+            <Link href="/signin" style={{ 
+              color: theme.palette.primary.main, 
+              textDecoration: 'none',
+              fontWeight: 600,
+              position: 'relative'
+            }}>
+              Sign in
+            </Link>
+          </Typography>
+        </MotionBox>
         
         {showWalletConnect && (
           <Box 
@@ -380,40 +611,49 @@ export default function SignUpPage() {
               alignItems: 'center',
               justifyContent: 'center',
               bgcolor: theme => theme.palette.mode === 'dark'
-                ? 'rgba(0, 0, 0, 0.7)'
-                : 'rgba(255, 255, 255, 0.7)',
+                ? 'rgba(0, 0, 0, 0.8)'
+                : 'rgba(255, 255, 255, 0.8)',
               backdropFilter: 'blur(8px)',
               zIndex: 1000,
               p: 2
             }}
           >
-            <Box 
+            <Box
               sx={{ 
                 maxWidth: '450px',
                 width: '100%',
                 maxHeight: '90vh',
                 overflowY: 'auto',
-                position: 'relative'
+                position: 'relative',
+                borderRadius: 3,
+                boxShadow: theme => theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.5)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1)',
               }}
             >
               <Button
-                variant="text"
+                variant="contained"
                 color="primary" 
                 onClick={handleCloseWalletConnect}
                 sx={{ 
                   position: 'absolute', 
-                  right: 0, 
-                  top: 0, 
-                  zIndex: 10 
+                  right: 16, 
+                  top: 16, 
+                  zIndex: 10,
+                  minWidth: 'auto',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  p: 0
                 }}
               >
-                Close
+                &times;
               </Button>
               <ConnectWallet key={`wallet-connect-${showWalletConnect}`} />
             </Box>
           </Box>
         )}
-      </Paper>
+      </MotionPaper>
     </Box>
   );
 }
