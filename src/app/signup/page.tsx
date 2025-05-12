@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Container, Paper, Alert, Button, Divider, TextField, IconButton, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Container, Paper, Alert, Button, Divider, IconButton, Tabs, Tab } from '@mui/material';
 import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ConnectWallet } from '@/components/ConnectWallet';
@@ -9,6 +9,8 @@ import { signUp, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
+import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
+import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
 
 // Define a type for window.ethereum if it exists
 interface EthereumWindow extends Window {
@@ -253,7 +255,7 @@ export default function SignUpPage() {
         
         {signupMethod === 'email' && (
           <form onSubmit={handleSignUp}>
-            <TextField
+            <ThemeAwareTextField
               label="Name"
               name="name"
               fullWidth
@@ -261,31 +263,8 @@ export default function SignUpPage() {
               value={formData.name}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
-            <TextField
+            <ThemeAwareTextField
               label="Email"
               name="email"
               type="email"
@@ -294,31 +273,8 @@ export default function SignUpPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
-            <TextField
+            <ThemeAwareTextField
               label="Password"
               name="password"
               type="password"
@@ -327,29 +283,6 @@ export default function SignUpPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
             <Button
               type="submit"

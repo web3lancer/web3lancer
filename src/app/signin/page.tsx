@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Alert, Button, Divider, TextField, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Paper, Alert, Button, Divider, Tabs, Tab } from '@mui/material';
 import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ConnectWallet } from '@/components/ConnectWallet';
@@ -9,6 +9,7 @@ import { signIn, createMagicURLToken } from '@/utils/api';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
+import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
 
 // Define a type for window.ethereum if it exists
 interface EthereumWindow extends Window {
@@ -226,7 +227,7 @@ export default function SignInPage() {
         </Box>
         {signinMethod === 'email' && (
           <form onSubmit={handleSignIn}>
-            <TextField
+            <ThemeAwareTextField
               label="Email"
               name="email"
               type="email"
@@ -235,31 +236,8 @@ export default function SignInPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
-            <TextField
+            <ThemeAwareTextField
               label="Password"
               name="password"
               type="password"
@@ -268,29 +246,6 @@ export default function SignInPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
             <Button
               type="submit"
@@ -310,7 +265,7 @@ export default function SignInPage() {
         )}
         {signinMethod === 'magic' && (
           <form onSubmit={handleMagicLinkSignIn}>
-            <TextField
+            <ThemeAwareTextField
               label="Email"
               type="email"
               fullWidth
@@ -319,32 +274,6 @@ export default function SignInPage() {
               onChange={(e) => setMagicLinkEmail(e.target.value)}
               required
               helperText="We'll send a sign-in link to this email"
-              sx={{
-                '& .MuiInputBase-input': {
-                  color: theme => theme.palette.text.primary,
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiFormHelperText-root': {
-                  color: theme => theme.palette.text.secondary,
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.23)' 
-                      : 'rgba(0, 0, 0, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.5)' 
-                      : 'rgba(0, 0, 0, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
             />
             <Button
               type="submit"

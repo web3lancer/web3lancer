@@ -75,14 +75,14 @@ export function ConnectWallet() {
           {isConnected || user?.walletId ? (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Connected Wallet</Typography>
+                <Typography variant="h6" sx={{ color: theme => theme.palette.text.primary }}>Connected Wallet</Typography>
                 <NetworkStatus />
               </Box>
               <Account address={address} disconnect={disconnect} />
             </>
           ) : (
             <>
-              <Typography variant="h6" sx={{ mb: 2 }}>Connect Wallet</Typography>
+              <Typography variant="h6" sx={{ mb: 2, color: theme => theme.palette.text.primary }}>Connect Wallet</Typography>
               <WalletOptions connectors={connectors} connect={connect} />
             </>
           )}
