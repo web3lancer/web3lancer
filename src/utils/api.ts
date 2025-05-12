@@ -90,7 +90,7 @@ async function signIn(email: string, password: string) {
       await signOut();
     } catch (error) {
       // Ignore errors from signOut, we just want to make sure we clean up before signing in
-      console.log('No active session to clear before signing in');
+      console.log('No active session to clear before signing in, or signOut failed (which is handled)');
     }
     
     // Create session according to Appwrite docs pattern
@@ -108,19 +108,14 @@ async function signIn(email: string, password: string) {
 
 async function signOut() {
   try {
-    try {
-      const session = await account.getSession('current');
-      if (session) {
-        await account.deleteSession('current');
-        return true;
-      }
-    } catch (e) {
-      // No active session
-    }
+    // Attempt to delete the current session
+    await account.deleteSession('current');
+    console.log('Session deleted successfully.');
     return true;
   } catch (error) {
-    console.error('Error signing out:', error);
+    console.error('Error signing out or no session to delete:', error);
     // Don't throw on error, as we want to clear local state even if server fails
+    // or if there was no session to begin with.
     return false;
   }
 }
@@ -139,7 +134,8 @@ async function listSessions() {
  */
 async function createEmailVerification() {
   try {
-    const baseURL = APP_CONFIG.APP_URL; // Use APP_CONFIG
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
     const verificationURL = `${baseURL}/verify-email`;
     const response = await account.createVerification(verificationURL);
     console.log('Verification email sent successfully');
@@ -166,7 +162,8 @@ async function completeEmailVerification(userId: string, secret: string) {
  */
 async function createPasswordRecovery(email: string) {
   try {
-    const baseURL = APP_CONFIG.APP_URL; // Use APP_CONFIG
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
     const recoveryURL = `${baseURL}/reset-password`;
     const response = await account.createRecovery(email, recoveryURL);
     console.log('Password recovery email sent successfully');
@@ -193,7 +190,8 @@ async function completePasswordRecovery(userId: string, secret: string, newPassw
  */
 async function createMagicURLToken(email: string) {
   try {
-    const baseURL = APP_CONFIG.APP_URL; // Use APP_CONFIG
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
     
     // Create a unique user ID for new users or fetch existing ID
     let userId = ID.unique();
@@ -494,7 +492,8 @@ async function updateMfaChallenge(challengeId: string, otp: string) {
 // Verify the user's email before enabling MFA
 async function createMfaEmailVerification() {
   try {
-    const baseURL = APP_CONFIG.APP_URL;
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
     const verificationURL = `${baseURL}/verify-email`;
     const response = await account.createVerification(verificationURL);
     console.log('Email verification sent for MFA setup');
