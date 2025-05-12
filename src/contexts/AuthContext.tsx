@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { account, validateSession, createGitHubOAuthSession, handleGitHubOAuthCallback, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; // Renamed convertAnonymousSession to avoid conflict
+import { account, validateSession, createGitHubOAuthSession, createGoogleOAuthSession, handleGitHubOAuthCallback, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; // Renamed convertAnonymousSession to avoid conflict
 import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
 import { Models } from 'appwrite';
 
@@ -26,6 +26,7 @@ interface AuthContextType {
   refreshUser: () => Promise<Models.User<Models.Preferences> | null>;
   signOut: () => Promise<boolean>;
   initiateGitHubLogin: () => Promise<void>;
+  initiateGoogleLogin: () => Promise<void>; // Add this line
   ensureSession: () => Promise<Models.User<Models.Preferences> | null>;
   convertSession: (email: string, password: string, name?: string) => Promise<Models.User<Models.Preferences>>;
 }
@@ -42,6 +43,7 @@ const AuthContext = createContext<AuthContextType>({
   refreshUser: async () => null,
   signOut: async () => false,
   initiateGitHubLogin: async () => {},
+  initiateGoogleLogin: async () => {}, // Add this line
   ensureSession: async () => null,
   // Provide a default implementation that matches the type, e.g., throw an error
   convertSession: async () => { throw new Error('convertSession not implemented in default context'); },
@@ -162,6 +164,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw error; // Re-throw to allow handling by the calling component
     }
   }, []);
+
+  const initiateGoogleLogin = useCallback(async () => { // Add this function
+    try {
+      console.log('Initiating Google login from AuthContext...');
+      await createGoogleOAuthSession(['email', 'profile']);
+      // The page will redirect to Google login
+    } catch (error) {
+      console.error('Error starting Google login:', error);
+      throw error; // Re-throw to allow handling by the calling component
+    }
+  }, []);
   
   // Effect to check for existing session on mount
   useEffect(() => {
@@ -204,6 +217,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     refreshUser,
     signOut: handleSignOut,
     initiateGitHubLogin,
+    initiateGoogleLogin, // Add this line
     ensureSession,
     convertSession
   };

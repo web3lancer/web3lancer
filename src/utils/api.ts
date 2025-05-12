@@ -947,15 +947,12 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
     // Ensure base URL is correctly determined
     const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
                    (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
-    const successUrl = `${baseURL}/auth/callback`; // Redirect to a dedicated callback page
-    const failureUrl = `${baseURL}/signin?error=github_oauth_failed`; // Redirect back to signin on failure
-
+    const successUrl = `${baseURL}/auth/callback`;    const failureUrl = `${baseURL}/signin?error=github_oauth_failed`;
     console.log(`Initiating GitHub OAuth: Success URL: ${successUrl}, Failure URL: ${failureUrl}`);
     
     // Use Appwrite's built-in OAuth method
     await account.createOAuth2Session(
-      OAuthProvider.Github, // Use the correct provider enum
-      successUrl,
+      OAuthProvider.Github,      successUrl,
       failureUrl,
       scopes
     );
@@ -963,6 +960,28 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
   } catch (error) {
     console.error('Error initiating GitHub OAuth session:', error);
     throw new Error(`Failed to initiate GitHub OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function createGoogleOAuthSession(scopes: string[] = ['email', 'profile']) {
+  try {
+    // Ensure base URL is correctly determined
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
+    const successUrl = `${baseURL}/auth/callback`; // Appwrite will handle distinguishing providers
+    const failureUrl = `${baseURL}/signin?error=google_oauth_failed`;
+    console.log(`Initiating Google OAuth: Success URL: ${successUrl}, Failure URL: ${failureUrl}`);
+    
+    await account.createOAuth2Session(
+      OAuthProvider.Google,      // Provider
+      successUrl,                // Redirect on success
+      failureUrl,                // Redirect on failure
+      scopes                     // Scopes
+    );
+    // No return needed, Appwrite handles the redirect
+  } catch (error) {
+    console.error('Error initiating Google OAuth session:', error);
+    throw new Error(`Failed to initiate Google OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -1187,6 +1206,7 @@ export {
   fetchJobs,
   fetchJob,
   createGitHubOAuthSession,
+  createGoogleOAuthSession, // Added Google OAuth function
   getCurrentSession,
   refreshOAuthSession,
   ensureValidOAuthToken,

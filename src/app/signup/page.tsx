@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Paper, Alert, Button, Divider, IconButton, Tabs, Tab } from '@mui/material';
-import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
+import { GitHub, Email, Link as LinkIcon, Google as GoogleIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { signUp, createMagicURLToken } from '@/utils/api';
@@ -26,7 +26,7 @@ declare const window: EthereumWindow;
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { isAnonymous, setIsAnonymous, initiateGitHubLogin, convertSession, refreshUser } = useAuth();
+  const { isAnonymous, setIsAnonymous, initiateGitHubLogin, initiateGoogleLogin, convertSession, refreshUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -103,6 +103,10 @@ export default function SignUpPage() {
 
   const handleGitHubSignUp = () => {
     initiateGitHubLogin();
+  };
+
+  const handleGoogleSignUp = () => {
+    initiateGoogleLogin();
   };
 
   const handleCloseWalletConnect = () => {
@@ -193,6 +197,32 @@ export default function SignUpPage() {
             }}
           >
             GitHub
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleSignUp}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: theme => theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.2)' 
+                : 'rgba(0, 0, 0, 0.2)',
+              color: theme => theme.palette.mode === 'dark' 
+                ? theme.palette.common.white 
+                : '#333',
+              '&:hover': {
+                borderColor: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : '#333',
+                background: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Google
           </Button>
           
           <Button

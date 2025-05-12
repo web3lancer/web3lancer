@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Alert, Button, Divider, Tabs, Tab } from '@mui/material';
-import { GitHub, Email, Link as LinkIcon } from '@mui/icons-material';
+import { GitHub, Email, Link as LinkIcon, Google as GoogleIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { signIn, createMagicURLToken } from '@/utils/api';
@@ -25,7 +25,7 @@ declare const window: EthereumWindow;
 
 export default function SignInPage() {
   const router = useRouter();
-  const { initiateGitHubLogin, refreshUser } = useAuth();
+  const { initiateGitHubLogin, initiateGoogleLogin, refreshUser } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -84,6 +84,10 @@ export default function SignInPage() {
 
   const handleGitHubSignIn = () => {
     initiateGitHubLogin();
+  };
+
+  const handleGoogleSignIn = () => {
+    initiateGoogleLogin();
   };
 
   const handleCloseWalletConnect = () => {
@@ -170,6 +174,32 @@ export default function SignInPage() {
             }}
           >
             GitHub
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: theme => theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.2)' 
+                : 'rgba(0, 0, 0, 0.2)',
+              color: theme => theme.palette.mode === 'dark' 
+                ? theme.palette.common.white 
+                : '#333',
+              '&:hover': {
+                borderColor: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : '#333',
+                background: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
+          >
+            Google
           </Button>
           <Button
             variant="outlined"
