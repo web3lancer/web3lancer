@@ -1,10 +1,20 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { Models } from 'appwrite'; // Ensure Models is imported for User type
-import { account, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession, signOut as apiSignOut, getCurrentSession, createGitHubOAuthSession, createGoogleOAuthSession } from '@/utils/api';
-// Assuming ensureGuestSession and checkIsAnonymous are correctly defined elsewhere
-// import { ensureGuestSession, checkIsAnonymous } from '../utils/guestSession';
+// Remove handleGitHubOAuthCallback from this import as it does not exist in api.ts
+import { account, validateSession, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
+import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
+import { Models } from 'appwrite';
+
+interface User {
+  $id: string;
+  name?: string;
+  email?: string;
+  emailVerification?: boolean;
+  provider?: string;
+  providerUid?: string;
+  [key: string]: any;
+}
 
 interface AuthContextType {
   user: Models.User<Models.Preferences> | null;
@@ -12,7 +22,6 @@ interface AuthContextType {
   isAnonymous: boolean;
   profilePicture: string | null;
   setUser: (user: Models.User<Models.Preferences> | null) => void;
-  setIsLoading: (isLoading: boolean) => void;
   setIsAnonymous: (isAnonymous: boolean) => void;
   setProfilePicture: (url: string | null) => void;
   refreshUser: () => Promise<Models.User<Models.Preferences> | null>;
@@ -23,8 +32,25 @@ interface AuthContextType {
   convertSession: (email: string, password: string, name?: string) => Promise<Models.User<Models.Preferences>>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a context with a default value
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  isAnonymous: false,
+  profilePicture: null,
+  setUser: () => {},
+  setIsAnonymous: () => {},
+  setProfilePicture: () => {},
+  refreshUser: async () => null,
+  signOut: async () => false,
+  initiateGitHubLogin: async () => {},
+  initiateGoogleLogin: async () => {},
+  ensureSession: async () => null,
+  // Provide a default implementation that matches the type, e.g., throw an error
+  convertSession: async () => { throw new Error('convertSession not implemented in default context'); },
+});
 
+// Provider component that wraps the app
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,53 +61,66 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("AuthContext: refreshUser called");
     setIsLoading(true);
     try {
-      // account.get() fetches the current logged-in user's data.
-      // If no session exists, it throws an error.
-      const currentUser = await account.get(); 
-      console.log("AuthContext: account.get() successful", currentUser);
+      const currentUser = await account.get();
+      console.log("AuthContext: account.get() successful. Raw currentUser:", JSON.stringify(currentUser, null, 2));
+      
       setUser(currentUser);
       setIsAnonymous(false);
-      // Example: Extract profile picture from preferences if stored there
+      
+      console.log(`AuthContext: User Name from currentUser: ${currentUser.name}`);
+      console.log(`AuthContext: User Email from currentUser: ${currentUser.email}`);
+      console.log("AuthContext: User Preferences from currentUser:", currentUser.prefs);
+
+      try {
+        const currentSession = await account.getSession('current');
+        console.log("AuthContext: account.getSession('current') successful. Raw currentSession:", JSON.stringify(currentSession, null, 2));
+        if (currentSession.provider) {
+          console.log(`AuthContext: OAuth session detected. Provider: ${currentSession.provider}, Provider UID: ${currentSession.providerUid}`);
+          console.log(`AuthContext: Provider Access Token (first 15 chars): ${currentSession.providerAccessToken?.substring(0, 15)}...`);
+          console.log(`AuthContext: Provider Access Token Expiry: ${currentSession.providerAccessTokenExpiry ? new Date(currentSession.providerAccessTokenExpiry) : 'N/A'}`);
+          if (!currentUser.name && currentSession.provider) {
+            console.warn("AuthContext: OAuth user has no name. Check scopes and Appwrite provider attribute settings.");
+          }
+          if (!currentUser.email && currentSession.provider) {
+            console.warn("AuthContext: OAuth user has no email. Check scopes and Appwrite provider attribute settings.");
+          }
+        }
+      } catch (sessionError) {
+        console.warn("AuthContext: Could not retrieve current session details:", sessionError);
+      }
+
       if (currentUser.prefs && currentUser.prefs.profilePictureUrl) {
         setProfilePicture(currentUser.prefs.profilePictureUrl as string);
+        console.log("AuthContext: Profile picture URL found in prefs:", currentUser.prefs.profilePictureUrl);
       } else {
-        // Potentially fetch avatar using avatars.getInitials() or similar if no custom pic
-        setProfilePicture(null); // Or a default avatar
+        setProfilePicture(null);
+        console.log("AuthContext: No profile picture URL in prefs.");
       }
       return currentUser;
     } catch (error) {
-      // This error typically means no active session (401)
-      console.warn('AuthContext: Error refreshing user session (likely no session or expired):', error);
+      console.warn('AuthContext: Error in refreshUser (likely no active session or session expired):', error);
       setUser(null);
       setProfilePicture(null);
-      // Check if it should be an anonymous session
-      // const anonymousState = await checkIsAnonymous();
-      // setIsAnonymous(anonymousState);
-      // if (anonymousState) {
-      //   await ensureGuestSession(); // Ensure guest session is active if user is anonymous
-      // }
-      setIsAnonymous(true); // Default to anonymous on error for now
+      setIsAnonymous(true); 
       return null;
     } finally {
       setIsLoading(false);
-      console.log("AuthContext: refreshUser finished, isLoading:", false);
+      console.log("AuthContext: refreshUser finished. Current isLoading state:", false);
     }
-  }, []); // Removed dependencies that might cause issues, will be stable due to definition order
+  }, [setIsLoading, setUser, setIsAnonymous, setProfilePicture]); // Added setters to dependency array
 
-  const handleSignOut = useCallback(async () => {
+  const handleSignOut = useCallback(async (): Promise<boolean> => {
     console.log("AuthContext: handleSignOut called");
     setIsLoading(true);
     try {
-      await apiSignOut();
+      await account.deleteSession('current');
       setUser(null);
       setProfilePicture(null);
-      setIsAnonymous(true); // After sign out, user becomes anonymous
-      // await ensureGuestSession(); // Establish a new guest session
+      setIsAnonymous(true);
       console.log("AuthContext: User signed out.");
       return true;
     } catch (error) {
       console.error('AuthContext: Error signing out:', error);
-      // Even on error, try to clear local state
       setUser(null);
       setProfilePicture(null);
       setIsAnonymous(true);
@@ -89,22 +128,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setIsLoading, setUser, setIsAnonymous, setProfilePicture]);
 
   const ensureSession = useCallback(async () => {
-    console.log("AuthContext: ensureSession called");
-    if (!user && !isLoading) { // Only refresh if no user and not already loading
-      console.log("AuthContext: No user and not loading, calling refreshUser from ensureSession");
+    console.log("AuthContext: ensureSession called. Current user:", user, "isLoading:", isLoading);
+    if (!user && !isLoading) {
       return await refreshUser();
     }
-    console.log("AuthContext: User exists or already loading, skipping refreshUser from ensureSession. User:", user, "Loading:", isLoading);
     return user;
   }, [user, isLoading, refreshUser]);
   
   useEffect(() => {
-    console.log("AuthContext: Initial session check on mount (calling refreshUser)");
+    console.log("AuthContext: Initial session check on mount");
     refreshUser();
-  }, [refreshUser]); // refreshUser is stable due to its own useCallback with empty deps
+  }, [refreshUser]);
 
   const initiateGitHubLogin = useCallback(async () => {
     try {
@@ -127,26 +164,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const convertSession = useCallback(async (email: string, password: string, name?: string) => {
     setIsLoading(true);
     try {
-      // apiConvertAnonymousSession expects name to be string, provide empty if undefined
-      const session = await apiConvertAnonymousSession(email, password, name ?? '');
-      await refreshUser(); // Refresh user data after conversion
-      return session;
+      const sessionUser = await apiConvertAnonymousSession(email, password, name ?? '');
+      await refreshUser();
+      return sessionUser;
     } catch (error) {
       console.error("Error converting anonymous session:", error);
-      await refreshUser(); // Also refresh user on error to reset state if needed
+      await refreshUser();
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [refreshUser]);
+  }, [refreshUser, setIsLoading]); // Added setIsLoading
 
   const contextValue: AuthContextType = {
     user,
     isLoading,
     isAnonymous,
     profilePicture,
-    setUser, // Exposing setUser for direct manipulation by callback page
-    setIsLoading, // Exposing setIsLoading for direct manipulation by callback page
+    setUser, 
     setIsAnonymous,
     setProfilePicture,
     refreshUser,
@@ -164,10 +199,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);

@@ -224,7 +224,6 @@ export default function SignUpPage() {
           >
             Google
           </Button>
-          
           <Button
             variant="outlined"
             onClick={() => setShowWalletConnect(true)}
