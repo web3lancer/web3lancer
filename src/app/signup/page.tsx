@@ -128,16 +128,23 @@ export default function SignUpPage() {
       width: '100%',
       p: { xs: 2, sm: 4 },
       pt: { xs: '80px', sm: '100px' },
-      background: 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
+      background: theme => theme.palette.mode === 'dark' 
+        ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' 
+        : 'linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%)',
     }}>
       <Paper sx={{ 
         maxWidth: 480,
         width: '100%',
         p: { xs: 3, sm: 4 },
         borderRadius: 2,
-        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
-        background: 'rgba(255, 255, 255, 0.9)',
+        boxShadow: theme => theme.palette.mode === 'dark'
+          ? '0 8px 40px rgba(0, 0, 0, 0.4)'
+          : '0 8px 40px rgba(0, 0, 0, 0.12)',
+        background: theme => theme.palette.mode === 'dark'
+          ? 'rgba(26, 32, 44, 0.9)'
+          : 'rgba(255, 255, 255, 0.9)',
         backdropFilter: 'blur(20px)',
+        color: theme => theme.palette.text.primary,
       }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
           Create Account
@@ -168,11 +175,19 @@ export default function SignUpPage() {
             sx={{
               py: 1.5,
               borderRadius: '12px',
-              borderColor: 'rgba(0, 0, 0, 0.2)',
-              color: '#333',
+              borderColor: theme => theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.2)' 
+                : 'rgba(0, 0, 0, 0.2)',
+              color: theme => theme.palette.mode === 'dark' 
+                ? theme.palette.common.white 
+                : '#333',
               '&:hover': {
-                borderColor: '#333',
-                background: 'rgba(0, 0, 0, 0.05)',
+                borderColor: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : '#333',
+                background: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.05)',
               }
             }}
           >
@@ -186,11 +201,19 @@ export default function SignUpPage() {
             sx={{
               py: 1.5,
               borderRadius: '12px',
-              borderColor: 'rgba(0, 0, 0, 0.2)',
-              color: '#333',
+              borderColor: theme => theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.2)' 
+                : 'rgba(0, 0, 0, 0.2)',
+              color: theme => theme.palette.mode === 'dark' 
+                ? theme.palette.common.white 
+                : '#333',
               '&:hover': {
-                borderColor: '#333',
-                background: 'rgba(0, 0, 0, 0.05)',
+                borderColor: theme => theme.palette.mode === 'dark' 
+                  ? theme.palette.common.white 
+                  : '#333',
+                background: theme => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.05)',
               }
             }}
           >
@@ -209,7 +232,18 @@ export default function SignUpPage() {
             value={signupMethod} 
             onChange={(_, value) => setSignupMethod(value)}
             variant="fullWidth"
-            sx={{ mb: 3 }}
+            sx={{ 
+              mb: 3,
+              '& .MuiTab-root': {
+                color: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : undefined
+              },
+              '& .Mui-selected': {
+                color: theme => theme.palette.mode === 'dark' ? '#fff' : undefined
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'primary.main'
+              }
+            }}
           >
             <Tab label="Email/Password" value="email" />
             <Tab label="Magic Link" value="magic" />
@@ -227,6 +261,29 @@ export default function SignUpPage() {
               value={formData.name}
               onChange={handleChange}
               required
+              sx={{
+                '& .MuiInputBase-input': {
+                  color: theme => theme.palette.text.primary,
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme => theme.palette.text.secondary,
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.23)' 
+                      : 'rgba(0, 0, 0, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.5)' 
+                      : 'rgba(0, 0, 0, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+              }}
             />
             <TextField
               label="Email"
@@ -237,6 +294,29 @@ export default function SignUpPage() {
               value={formData.email}
               onChange={handleChange}
               required
+              sx={{
+                '& .MuiInputBase-input': {
+                  color: theme => theme.palette.text.primary,
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme => theme.palette.text.secondary,
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.23)' 
+                      : 'rgba(0, 0, 0, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.5)' 
+                      : 'rgba(0, 0, 0, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+              }}
             />
             <TextField
               label="Password"
@@ -247,12 +327,39 @@ export default function SignUpPage() {
               value={formData.password}
               onChange={handleChange}
               required
+              sx={{
+                '& .MuiInputBase-input': {
+                  color: theme => theme.palette.text.primary,
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme => theme.palette.text.secondary,
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.23)' 
+                      : 'rgba(0, 0, 0, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.5)' 
+                      : 'rgba(0, 0, 0, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+              }}
             />
             <Button
               type="submit"
               variant="contained"
               fullWidth
-              sx={{ mt: 2 }}
+              sx={{ 
+                mt: 2,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+              }}
               disabled={isLoading}
               startIcon={<Email />}
             >
@@ -272,12 +379,42 @@ export default function SignUpPage() {
               onChange={(e) => setMagicLinkEmail(e.target.value)}
               required
               helperText="We'll send a sign-up link to this email"
+              sx={{
+                '& .MuiInputBase-input': {
+                  color: theme => theme.palette.text.primary,
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme => theme.palette.text.secondary,
+                },
+                '& .MuiFormHelperText-root': {
+                  color: theme => theme.palette.text.secondary,
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.23)' 
+                      : 'rgba(0, 0, 0, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.5)' 
+                      : 'rgba(0, 0, 0, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+              }}
             />
             <Button
               type="submit"
               variant="contained"
               fullWidth
-              sx={{ mt: 2 }}
+              sx={{ 
+                mt: 2,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+              }}
               disabled={isLoading}
               startIcon={<LinkIcon />}
             >
@@ -292,7 +429,7 @@ export default function SignUpPage() {
         
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Typography variant="body2">
-            Already have an account? <Link href="/signin">Sign in</Link>
+            Already have an account? <Link href="/signin" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>Sign in</Link>
           </Typography>
         </Box>
         
@@ -307,7 +444,9 @@ export default function SignUpPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: 'rgba(255, 255, 255, 0.7)',
+              bgcolor: theme => theme.palette.mode === 'dark'
+                ? 'rgba(0, 0, 0, 0.7)'
+                : 'rgba(255, 255, 255, 0.7)',
               backdropFilter: 'blur(8px)',
               zIndex: 1000,
               p: 2
