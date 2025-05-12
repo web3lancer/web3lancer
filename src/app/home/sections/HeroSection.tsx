@@ -340,7 +340,7 @@ export default function HeroSection() {
                   color="primary"
                   size="large"
                   component={Link}
-                  href="/jobs/post"
+                  href="/projects#post-a-job"
                   sx={{
                     py: 1.5,
                     px: 4,
