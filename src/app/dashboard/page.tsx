@@ -133,13 +133,6 @@ export default function DashboardPage() {
     { tag: '#DeFi', count: '1.7K' }
   ];
 
-  // Mock who to follow suggestions
-  const whoToFollow = [
-    { id: '1', name: 'Sarah DeFi', handle: '@sarahdefi', avatar: '/assets/avatar1.jpg' },
-    { id: '2', name: 'Blockchain Mike', handle: '@mikeonchain', avatar: '/assets/avatar2.jpg' },
-    { id: '3', name: 'Web3 Designer', handle: '@web3designer', avatar: '/assets/avatar3.jpg' }
-  ];
-
   const visibilityOptions: VisibilityOption[] = [
     { value: 'public', label: 'Everyone', icon: PublicIcon },
     { value: 'private', label: 'Only me', icon: LockIcon },
@@ -416,104 +409,12 @@ export default function DashboardPage() {
   const VisibilityIcon = visibilityOptions.find(option => option.value === selectedVisibility)?.icon || PublicIcon;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 3, mb: 6 }}>
+    <Container maxWidth="lg" sx={{ mb: 6 }}>
       <Grid container spacing={3}>
         {/* Left sidebar - only on desktop */}
         {!isMobile && (
           <Grid item={true} xs={12} md={3} lg={2.5} sx={{ display: { xs: 'none', md: 'block' } }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                border: `1px solid ${theme.palette.divider}`,
-                position: 'sticky',
-                top: 80,
-              }}
-            >
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  My Profile
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar 
-                    src={userProfilePic || undefined} 
-                    sx={{ width: 50, height: 50, mr: 1.5 }} 
-                  />
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                      {user?.name || 'Anonymous User'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      @{user?.$id?.substring(0, 8) || 'anonymous'}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Box>
-                    <Typography variant="subtitle2">Followers</Typography>
-                    <Typography variant="body1" fontWeight="bold">128</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2">Following</Typography>
-                    <Typography variant="body1" fontWeight="bold">91</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2">Lances</Typography>
-                    <Typography variant="body1" fontWeight="bold">42</Typography>
-                  </Box>
-                </Box>
-                {user ? (
-                  <Button 
-                    component={Link} 
-                    href={`/u/${user.$id}`} 
-                    variant="outlined" 
-                    fullWidth
-                    sx={{ borderRadius: 2 }}
-                  >
-                    View Profile
-                  </Button>
-                ) : (
-                  <Button 
-                    component={Link} 
-                    href="/login" 
-                    variant="outlined" 
-                    fullWidth
-                    sx={{ borderRadius: 2 }}
-                  >
-                    Sign In
-                  </Button>
-                )}
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Trending Topics
-                </Typography>
-                {trendingTopics.map((topic, index) => (
-                  <Box key={index} sx={{ mb: 1.5 }}>
-                    <Typography 
-                      component={Link} 
-                      href={`/search?q=${encodeURIComponent(topic.tag)}`}
-                      variant="subtitle2" 
-                      color="primary"
-                      sx={{ 
-                        textDecoration: 'none', 
-                        '&:hover': { textDecoration: 'underline' },
-                        display: 'block' 
-                      }}
-                    >
-                      {topic.tag}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {topic.count} lances
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Paper>
+            {/* Left sidebar is now empty or can be removed entirely if desired */}
           </Grid>
         )}
 
@@ -937,77 +838,26 @@ export default function DashboardPage() {
             }}
           >
             <Typography variant="h6" gutterBottom>
-              Who to Follow
+              Tag Filters
             </Typography>
-            {whoToFollow.map((person) => (
-              <Box
-                key={person.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  py: 1.5,
-                  borderBottom: person.id !== whoToFollow[whoToFollow.length - 1].id ? `1px solid ${theme.palette.divider}` : 'none',
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar
-                    src={person.avatar}
-                    sx={{ width: 40, height: 40, mr: 1.5 }}
-                    component={Link}
-                    href={`/u/${person.id}`}
-                  />
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      component={Link}
-                      href={`/u/${person.id}`}
-                      sx={{
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        color: 'text.primary',
-                        '&:hover': { textDecoration: 'underline' },
-                      }}
-                    >
-                      {person.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {person.handle}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  sx={{ borderRadius: 6, minWidth: 80 }}
-                >
-                  Follow
-                </Button>
-              </Box>
-            ))}
-            <Button
-              fullWidth
-              sx={{ mt: 1.5, textTransform: 'none' }}
-              component={Link}
-              href="/explore/people"
-            >
-              Show more
-            </Button>
-          </Paper>
-
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              border: `1px solid ${theme.palette.divider}`,
-              position: 'sticky',
-              top: 350,
-            }}
-          >
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              © 2023 Web3Lancer · Privacy · Terms · Cookies · About · Help
-            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+              {trendingTopics.map((topic, index) => (
+                <Chip
+                  key={index}
+                  label={topic.tag}
+                  component={Link}
+                  href={`/search?q=${encodeURIComponent(topic.tag)}`}
+                  clickable
+                  sx={{ 
+                    borderRadius: 2,
+                    bgcolor: `${theme.palette.primary.main}15`,
+                    color: theme.palette.primary.main,
+                    '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
+                    mb: 1
+                  }}
+                />
+              ))}
+            </Box>
           </Paper>
         </Grid>
       </Grid>
