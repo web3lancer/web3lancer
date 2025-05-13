@@ -35,19 +35,38 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
   
   // Add variables for sidebar calculations
   const drawerWidth = 240; // Match the primaryDrawerWidth from AppLayout
-  const showSidebar = !isHomePage && !isPreAuthPage && 
-    !['/signin', '/signup', '/'].includes(pathname ?? ''); // Simple check for sidebar visibility
+  // const showSidebar = !isHomePage && !isPreAuthPage && 
+  //   !['/signin', '/signup', '/'].includes(pathname ?? ''); // Simple check for sidebar visibility
 
   const [walletMenuAnchor, setWalletMenuAnchor] = useState<null | HTMLElement>(null);
   
   const handleWalletMenuClose = () => {
     setWalletMenuAnchor(null);
   };
+
+  const handleConnectWallet = async () => {
+    if (window.ethereum && typeof window.ethereum.request === 'function') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        }
+        // If accounts.length is 0, user may have cancelled.
+        // The catch block handles rejections (e.g., user denies connection).
+      } catch (error) {
+        console.error("Failed to connect wallet:", error);
+        window.location.href = '/signin'; // Maintain original redirect behavior
+      }
+    } else {
+      console.log("MetaMask or other Ethereum wallet not found. Redirecting to signin.");
+      window.location.href = '/signin'; // Maintain original redirect behavior
+    }
+  };
   
   const handleDisconnectWallet = () => {
     // Disconnect wallet logic
     if (window.ethereum && typeof window.ethereum.request === 'function') {
-      // This is more of a UI disconnect, actual implementation depends on wallet
+      // This is more of a UI disconnect, actual implementation depends on wallet provider
       setWalletAddress(undefined);
     }
     handleWalletMenuClose();
@@ -181,35 +200,43 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
           </motion.div>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2, md: 3 } }}>
-            {!user && (
-              <>
+            {/* Account component - always visible on homepage */}
+            {/* The Account component itself should handle its internal state for user logged in/out */}
+            {/* and include a "Wallet" item in its dropdown that calls handleConnectWallet */}
+            <Account />
+
+            {/* Connect Wallet Button - Desktop only on homepage */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              {!walletAddress ? (
                 <Button
-                  href="/signin"
-                  variant="outlined"
-                  sx={{
-                    borderRadius: '12px',
-                    borderColor: theme.palette.primary.main,
-                    color: theme.palette.primary.main,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    '&:hover': {
-                      borderColor: theme.palette.primary.dark,
-                      backgroundColor: 'rgba(59, 130, 246, 0.04)',
-                    }
-                  }}
-                >
-                  Sign In
-                </Button>
-                <Button
-                  href="/signup"
+                  onClick={handleConnectWallet}
                   variant="contained"
                   sx={connectWalletButtonSx}
                 >
-                  Sign Up
+                  Connect Wallet
                 </Button>
-              </>
-            )}
-            {user && <Account />}
+              ) : (
+                <Button
+                  variant="outlined"
+                  onClick={(e) => setWalletMenuAnchor(e.currentTarget)}
+                  sx={{
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
+                    color: theme.palette.text.primary,
+                    padding: { xs: '6px 12px', sm: '8px 20px' }, // Ensure padding is consistent
+                    fontWeight: 600, // Ensure font weight is consistent
+                    '&:hover': {
+                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.3)',
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                    }
+                  }}
+                >
+                  {formatWalletAddress(walletAddress)}
+                </Button>
+              )}
+            </Box>
+            {/* Original Sign In/Sign Up buttons are removed, assuming Account component handles this */}
           </Box>
         </Toolbar>
       </AppBar>
@@ -331,65 +358,50 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
             </IconButton>
           </Box>
 
-          {/* Mobile: Show Account, Desktop: Show Wallet Connect Button */}
-          {walletAddress || user ? (
-            <>
-              {/* Account on mobile only */}
-              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-                <Account />
-              </Box>
-              
-              {/* Wallet button on desktop only */}
-              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                <Button
-                  variant="outlined"
-                  onClick={(e) => {
-                    setWalletMenuAnchor(e.currentTarget);
-                  }}
-                  sx={{
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
-                    color: theme.palette.text.primary,
-                    '&:hover': {
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.3)',
-                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    }
-                  }}
-                >
-                  {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Connect'}
-                </Button>
-              </Box>
-            </>
-          ) : (
-            <Button
-              onClick={async () => {
-                if (window.ethereum && typeof window.ethereum.request === 'function') {
-                  try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    if (accounts.length > 0) {
-                      setWalletAddress(accounts[0]);
-                    }
-                  } catch (error) {
-                    console.error("Failed to connect wallet:", error);
-                    window.location.href = '/signin';
+          {/* Account Component - always shown on mobile and desktop */}
+          {/* The Account component itself should handle its internal state for user logged in/out */}
+          {/* and include a "Wallet" item in its dropdown that calls handleConnectWallet */}
+          <Account />
+          
+          {/* Connect Wallet Button - Desktop only */}
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+            {!walletAddress ? (
+              <Button
+                onClick={handleConnectWallet}
+                variant="contained"
+                sx={connectWalletButtonSx}
+              >
+                Connect Wallet
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                onClick={(e) => {
+                  setWalletMenuAnchor(e.currentTarget);
+                }}
+                sx={{
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
+                  color: theme.palette.text.primary,
+                  padding: { xs: '6px 12px', sm: '8px 20px' }, // Ensure padding
+                  fontWeight: 600, // Ensure font weight
+                  '&:hover': {
+                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.3)',
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                   }
-                } else {
-                  window.location.href = '/signin';
-                }
-              }}
-              variant="contained"
-              sx={connectWalletButtonSx}
-            >
-              Connect
-            </Button>
-          )}
+                }}
+              >
+                {formatWalletAddress(walletAddress)}
+              </Button>
+            )}
+          </Box>
         </Box>
       </Toolbar>
-      {/* Wallet Menu */}
+      {/* Wallet Menu for the standalone Connect Wallet button (when connected) */}
       <Menu
         anchorEl={walletMenuAnchor}
-        open={Boolean(walletMenuAnchor)}
+        open={Boolean(walletMenuAnchor) && !!walletAddress} // Only open if wallet is connected and anchor is set
         onClose={handleWalletMenuClose}
         PaperProps={{
           elevation: 3,
@@ -415,7 +427,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleWalletMenuClose}>Wallet</MenuItem>
+        {/* Per prompt: "drop down item 'disconnect' only" for this menu */}
         <MenuItem onClick={handleDisconnectWallet}>Disconnect</MenuItem>
       </Menu>
     </AppBar>
