@@ -185,20 +185,18 @@ export default function UserProfilePage() {
       } else {
         // Profile not found after trying both methods
         // Check if it's the current user trying to access their own profile by ID, and it's missing
-        if (user && user.$id === usernameOrId) {
+        if (user && user.$id === usernameOrId) { 
           console.log(`Profile document not found for current user (ID: ${usernameOrId}). Initializing for creation.`);
           const newProfileShell = {
-            $id: user.$id, // Document ID will be user's ID
-            userId: user.$id, // Owner of the profile
-            name: user.name || '', // From auth user
-            email: user.email || '', // From auth user
-            username: '', // To be filled by user
-            bio: '', // To be filled by user
-            skills: [], // To be filled by user
-            profilePicture: null, // No picture yet
-            // No $createdAt, $updatedAt from DB, indicates it's a shell
-            _isNewShell: true, // Client-side flag
-            // Default other fields the UI might expect
+            $id: user.$id, 
+            userId: user.$id, 
+            name: user.name || '', 
+            email: user.email || '', 
+            username: '', 
+            bio: '', 
+            skills: [], 
+            profilePicture: null, 
+            _isNewShell: true, // Client-side flag to indicate this is a temporary shell
             followersCount: 0,
             followingCount: 0,
             connectionsCount: 0,
@@ -207,7 +205,7 @@ export default function UserProfilePage() {
             projects: [],
             reviews: [],
             activities: [],
-          } as unknown as Models.Document; // Cast needed for state type
+          } as unknown as Models.Document; 
 
           setProfile(newProfileShell);
           setIsCurrentUser(true);
@@ -218,7 +216,7 @@ export default function UserProfilePage() {
           setFollowersCount(0);
           setFollowingCount(0);
           setConnectionsCount(0);
-          setError(null); // Clear any fetch error
+          setError(null); 
           setIsEditMode(true); // Go straight to edit mode to complete profile
         } else {
           console.log(`Profile definitively not found for '${usernameOrId}'.`);
@@ -256,17 +254,18 @@ export default function UserProfilePage() {
   };
 
   const handleSaveProfile = async () => {
-    if (!user || !profile) return; // Profile should exist (either fetched or shell)
+    if (!user || !profile) return; 
     
     setIsSaving(true);
     setUsernameError(null);
     
-    const isNewProfileCreation = !!(profile as any)._isNewShell;
+    const isNewProfileCreation = !!(profile as any)._isNewShell; 
 
     try {
-      const ownerUserId = user.$id; // For new profile, or existing profile being edited by owner.
+      const ownerUserId = user.$id; 
       
-      if (editUsername && editUsername !== profile.username) {
+      // Check username availability only if a username is provided and it's different from the current one (or if it's a new profile)
+      if (editUsername && (isNewProfileCreation || editUsername !== profile.username)) {
         const isAvailable = await checkUsernameAvailability(editUsername);
         if (!isAvailable) {
           setUsernameError('Username is already taken');
@@ -275,14 +274,14 @@ export default function UserProfilePage() {
         }
       }
       
-      if (isNewProfileCreation) {
+      if (isNewProfileCreation) { 
         console.log(`Creating new profile for ${ownerUserId} with username ${editUsername}`);
-        // Step 1: Create the basic profile document using Appwrite user data and new username
-        // createUserProfile(userId, userData, username) - userData is Models.User<Models.Preferences>
-        await createUserProfile(ownerUserId, user, editUsername);
+        // Ensure user object is not null before passing to createUserProfile
+        if (!user) {
+            throw new Error("User data is not available for profile creation.");
+        }
+        await createUserProfile(ownerUserId, user, editUsername); 
         
-        // Step 2: Update the newly created profile with bio, skills, etc.
-        // createUserProfile sets default empty bio/skills.
         console.log(`Updating newly created profile with details: bio, skills`);
         await updateUserProfile(ownerUserId, {
           bio: editBio,
@@ -290,11 +289,10 @@ export default function UserProfilePage() {
           // name and email are set by createUserProfile from the user auth object.
           // username was set by createUserProfile.
           updatedAt: new Date().toISOString()
-          // Note: profilePicture handling is separate (uploading file, then updating profile with file ID)
         });
       } else {
         // Existing profile update
-        await updateUserProfile(profile.userId as string, { // Use profile.userId which is owner
+        await updateUserProfile(profile.userId as string, { 
           username: editUsername,
           bio: editBio,
           skills: editSkills,
@@ -305,9 +303,10 @@ export default function UserProfilePage() {
       setSaveSuccess(true);
       setIsEditMode(false);
       
+      // If username was newly set or changed, redirect to the new username URL
       if (editUsername && editUsername !== profile.username) {
-        console.log(`Username changed from '${profile.username}' to '${editUsername}'. Redirecting.`);
-        router.push(`/u/${editUsername}`);
+        console.log(`Username changed/set from '${profile.username || ''}' to '${editUsername}'. Redirecting.`);
+        router.push(`/u/${editUsername}`); 
       } else {
         console.log('Profile saved. Reloading profile data.');
         await loadProfile(); 
@@ -315,7 +314,7 @@ export default function UserProfilePage() {
     } catch (error) {
       console.error('Error saving profile:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save profile';
-      setError(errorMessage);
+      setError(errorMessage); 
     } finally {
       setIsSaving(false);
     }
@@ -380,10 +379,67 @@ export default function UserProfilePage() {
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
         {error && !profile ? ( // Show error prominently if profile failed to load entirely
-          <Alert severity="error" sx={{ mb: 3, p: 2, borderRadius: 2 }}>
-            <Typography variant="h6">Profile Error</Typography>
-            {error}
-          </Alert>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              p: 4, 
+              borderRadius: 3, 
+              mb: 4, 
+              background: 'linear-gradient(135deg, rgba(32,151,255,0.05) 0%, rgba(120,87,255,0.05) 100%)', 
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)', 
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 3
+            }}
+          >
+            <Box sx={{ mb: 2 }}>
+              <Avatar 
+                sx={{ 
+                  width: 120, 
+                  height: 120, 
+                  mx: 'auto', 
+                  mb: 2,
+                  background: 'linear-gradient(135deg, #2097ff 0%, #7857ff 100%)'
+                }}
+              >
+                <PersonOutline sx={{ fontSize: 60 }} />
+              </Avatar>
+              <Typography variant="h4" fontWeight="bold" gutterBottom>
+                Profile Not Found
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+                The profile you're looking for doesn't exist yet. This username or ID is still available.
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, gap: 2, mt: 2 }}>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                size="large"
+                onClick={() => router.push('/signup')}
+                startIcon={<PersonOutline />}
+              >
+                Sign Up & Claim This Profile
+              </Button>
+              <Button 
+                variant="outlined" 
+                color="primary" 
+                size="large"
+                onClick={() => router.push('/signin')}
+              >
+                Sign In
+              </Button>
+              <Button 
+                variant="text" 
+                onClick={() => router.push('/')}
+              >
+                Go Home
+              </Button>
+            </Box>
+          </Paper>
         ) : (
           <>
             {error && profile && ( // Show error as a less intrusive alert if profile data exists but some error occurred

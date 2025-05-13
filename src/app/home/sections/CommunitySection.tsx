@@ -85,7 +85,7 @@ export default function CommunitySection() {
                   },
                 }}
                 component="a"
-                href="https://discord.gg/web3lancer"
+                href="https://discord.gg/TZKSNdHr"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -131,9 +131,9 @@ export default function CommunitySection() {
 function SocialButtons() {
   const theme = useTheme();
   const socialNetworks = [
-    { icon: <TwitterIcon />, color: '#1DA1F2', name: 'Twitter', url: 'https://twitter.com/web3lancer' },
+    { icon: <TwitterIcon />, color: '#1DA1F2', name: 'Twitter', url: 'https://x.com/web3lancerr' },
     { icon: <GitHubIcon />, color: '#333', name: 'GitHub', url: 'https://github.com/web3lancer' }, // Changed GitHub icon color for better contrast
-    { icon: <TelegramIcon />, color: '#0088cc', name: 'Telegram', url: 'https://t.me/web3lancer' },
+    { icon: <TelegramIcon />, color: '#0088cc', name: 'Telegram', url: 'https://t.me/web3lancerr' },
     { icon: <LinkedInIcon />, color: '#0077B5', name: 'LinkedIn', url: 'https://linkedin.com/company/web3lancer' },
   ];
 
