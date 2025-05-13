@@ -22,7 +22,6 @@ export default function SidebarAccountWidget() {
   const theme = useTheme();
   
   useEffect(() => {
-  useEffect(() => {
     // Fetch wallet info if needed
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
@@ -54,17 +53,16 @@ export default function SidebarAccountWidget() {
           <>
             <Avatar
               sx={{ width: 40, height: 40, bgcolor: theme.palette.primary.light }}
-              alt={user.email?.split('@')[0] || "User"}
-              src={user.photoURL || undefined}
+              alt={user?.email?.split('@')[0] || "User"}
             >
-              {(user.email?.split('@')[0] || "U")[0].toUpperCase()}
+              {(user?.email?.charAt(0) || "U").toUpperCase()}
             </Avatar>
             <Box sx={{ ml: 2 }}>
               <Typography variant="body2" sx={{ fontWeight: 600, color: '#fff' }}>
-                {user.email?.split('@')[0] || "User"}
+                {user?.email?.split('@')[0] || "User"}
               </Typography>
               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                {user.email || ""}
+                {user?.email || ""}
               </Typography>
             </Box>
           </>

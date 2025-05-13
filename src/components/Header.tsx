@@ -53,58 +53,37 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
     handleWalletMenuClose();
   };
 
-  /*
   useEffect(() => {
     let isMounted = true;
 
     const checkWalletConnection = async () => {
-      try {
-        const wagmi = await import('wagmi');
-
-        // Ensure getClient exists before calling it
-        if (typeof wagmi.getClient === 'function') {
-          const client = wagmi.getClient();
-          if (client) {
-            const account = client.getAccount();
-            if (isMounted) {
-              setWalletAddress(account?.address);
-            }
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (isMounted && accounts.length > 0) {
+            setWalletAddress(accounts[0]);
           }
+        } catch (error) {
+          console.error("Failed to get ethereum accounts:", error);
         }
-      } catch (err) {
-        console.error("Failed to load or use wagmi:", err);
       }
     };
 
     checkWalletConnection();
 
-    // Check if window.ethereum exists and has the necessary methods
-    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+    // Check for account changes
+    if (typeof window !== 'undefined' && window.ethereum) {
       const handleAccountsChanged = (accounts: string[]) => {
         if (isMounted) {
-          setWalletAddress(accounts[0]);
+          setWalletAddress(accounts.length > 0 ? accounts[0] : undefined);
         }
       };
 
-      if (typeof window.ethereum.on === 'function') {
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-      }
-
-      if (typeof window.ethereum.request === 'function') {
-        window.ethereum.request({ method: 'eth_accounts' })
-          .then((accounts: string[]) => {
-            if (isMounted && accounts.length > 0) {
-              setWalletAddress(accounts[0]);
-            }
-          })
-          .catch(console.error);
-      }
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
 
       return () => {
         isMounted = false;
-        if (typeof window.ethereum.removeListener === 'function') {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        }
+        window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
       };
     }
 
@@ -112,7 +91,6 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
       isMounted = false;
     };
   }, []);
-  */
 
   // Define the connect wallet button style
   const connectWalletButtonSx: SxProps<Theme> = {
@@ -136,109 +114,8 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
     }
   };
 
-  // Function to format wallet address for display
   const formatWalletAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  // Add wallet connection button for desktop screens
-  const WalletButton = () => {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-      setAnchorEl(event.currentTarget);
-    };
-
-    const handleClose = () => {
-      setAnchorEl(null);
-    };
-
-    const handleDisconnect = () => {
-      // Disconnect wallet logic
-      if (window.ethereum && typeof window.ethereum.request === 'function') {
-        // This is more of a UI disconnect, actual implementation depends on wallet
-        setWalletAddress(undefined);
-      }
-      handleClose();
-    };
-
-    return (
-      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-        {walletAddress ? (
-          <>
-            <Button
-              variant="outlined"
-              onClick={handleClick}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
-                color: theme.palette.text.primary,
-                '&:hover': {
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.3)',
-                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                }
-              }}
-            >
-              {formatWalletAddress(walletAddress)}
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              PaperProps={{
-                elevation: 3,
-                sx: {
-                  borderRadius: '12px',
-                  minWidth: '180px',
-                  overflow: 'visible',
-                  mt: 1.5,
-                  '&:before': {
-                    content: '""',
-                    display: 'block',
-                    position: 'absolute',
-                    top: 0,
-                    right: 14,
-                    width: 10,
-                    height: 10,
-                    bgcolor: 'background.paper',
-                    transform: 'translateY(-50%) rotate(45deg)',
-                    zIndex: 0,
-                  },
-                },
-              }}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-              <MenuItem onClick={handleClose}>Wallet</MenuItem>
-              <MenuItem onClick={handleDisconnect}>Disconnect</MenuItem>
-            </Menu>
-          </>
-        ) : (
-          <Button
-            variant="contained"
-            onClick={async () => {
-              if (window.ethereum && typeof window.ethereum.request === 'function') {
-                try {
-                  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                  if (accounts.length > 0) {
-                    setWalletAddress(accounts[0]);
-                  }
-                } catch (error) {
-                  console.error("Failed to connect wallet:", error);
-                }
-              } else {
-                // Redirect to signin if no wallet is available
-                window.location.href = '/signin';
-              }
-            }}
-            sx={connectWalletButtonSx}
-          >
-            Connect
-          </Button>
-        )}
-      </Box>
-    );
   };
 
   if (isHomePage) {
