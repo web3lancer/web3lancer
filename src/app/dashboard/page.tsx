@@ -825,40 +825,8 @@ export default function DashboardPage() {
         </Grid>
 
         {/* Right sidebar - only on desktop/tablet */}
-        <Grid item={true} xs={12} md={3} lg={3.5} sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              border: `1px solid ${theme.palette.divider}`,
-              mb: 3,
-              position: 'sticky',
-              top: 80,
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              Tag Filters
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-              {trendingTopics.map((topic, index) => (
-                <Chip
-                  key={index}
-                  label={topic.tag}
-                  component={Link}
-                  href={`/search?q=${encodeURIComponent(topic.tag)}`}
-                  clickable
-                  sx={{ 
-                    borderRadius: 2,
-                    bgcolor: `${theme.palette.primary.main}15`,
-                    color: theme.palette.primary.main,
-                    '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
-                    mb: 1
-                  }}
-                />
-              ))}
-            </Box>
-          </Paper>
+        <Grid item xs={12} md={3} lg={3.5} sx={{ display: { xs: 'none', md: 'block' } }}>
+          {/* Right sidebar is now empty or can be removed entirely if desired */}
         </Grid>
       </Grid>
 
