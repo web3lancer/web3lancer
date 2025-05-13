@@ -187,26 +187,50 @@ export default function SecondarySidebar({
   };
 
   const toggleNotifications = () => {
+    // If notifications is expanded and we're trying to collapse it, check if messages is collapsed
+    if (expandedNotifications && !expandedMessages) {
+      // Don't allow both to be collapsed - expand messages first
+      setExpandedMessages(true);
+      // Calculate heights for transition
+      const totalHeight = window.innerHeight - 140; // Subtract header and margins
+      setMessagesHeight(totalHeight);
+    }
+    
     setExpandedNotifications(!expandedNotifications);
+    
     if (expandedNotifications) {
       // If collapsing, store current height and expand messages
-      setMessagesHeight(messagesHeight + notificationsHeight);
+      setMessagesHeight(messagesHeight + notificationsHeight - 48); // 48px is the header height
     } else {
-      // If expanding, restore from collapsed state
-      setNotificationsHeight(window.innerHeight * 0.5);
-      setMessagesHeight(window.innerHeight * 0.5);
+      // If expanding, adjust heights proportionally
+      const totalHeight = window.innerHeight - 140; // Subtract header and margins
+      const ratio = 0.5; // Default ratio
+      setNotificationsHeight(totalHeight * ratio);
+      setMessagesHeight(totalHeight * (1 - ratio));
     }
   };
 
   const toggleMessages = () => {
+    // If messages is expanded and we're trying to collapse it, check if notifications is collapsed
+    if (expandedMessages && !expandedNotifications) {
+      // Don't allow both to be collapsed - expand notifications first
+      setExpandedNotifications(true);
+      // Calculate heights for transition
+      const totalHeight = window.innerHeight - 140; // Subtract header and margins
+      setNotificationsHeight(totalHeight);
+    }
+    
     setExpandedMessages(!expandedMessages);
+    
     if (expandedMessages) {
       // If collapsing, store current height and expand notifications
-      setNotificationsHeight(notificationsHeight + messagesHeight);
+      setNotificationsHeight(notificationsHeight + messagesHeight - 48); // 48px is the header height
     } else {
-      // If expanding, restore from collapsed state
-      setNotificationsHeight(window.innerHeight * 0.5);
-      setMessagesHeight(window.innerHeight * 0.5);
+      // If expanding, adjust heights proportionally
+      const totalHeight = window.innerHeight - 140; // Subtract header and margins
+      const ratio = 0.5; // Default ratio
+      setNotificationsHeight(totalHeight * (1 - ratio));
+      setMessagesHeight(totalHeight * ratio);
     }
   };
 
@@ -242,13 +266,22 @@ export default function SecondarySidebar({
   };
 
   const NotificationsPanel = (
-    <Box sx={{ 
-      height: expandedNotifications ? notificationsHeight : 48, 
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'height 0.3s ease'
-    }}>
+    <Box 
+      component={Paper}
+      elevation={3}
+      sx={{ 
+        height: expandedNotifications ? notificationsHeight : 48, 
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'height 0.3s ease',
+        borderRadius: '16px',
+        background: theme.palette.mode === 'dark' 
+          ? theme.palette.primary.dark
+          : theme.palette.background.paper,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      }}
+    >
       <Box sx={{ 
         display: 'flex', 
         alignItems: 'center', 
@@ -319,13 +352,22 @@ export default function SecondarySidebar({
   );
 
   const MessagesPanel = (
-    <Box sx={{ 
-      height: expandedMessages ? messagesHeight : 48, 
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'height 0.3s ease'
-    }}>
+    <Box 
+      component={Paper}
+      elevation={3}
+      sx={{ 
+        height: expandedMessages ? messagesHeight : 48, 
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'height 0.3s ease',
+        borderRadius: '16px',
+        background: theme.palette.mode === 'dark' 
+          ? theme.palette.primary.dark
+          : theme.palette.background.paper,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      }}
+    >
       <Box sx={{ 
         display: 'flex', 
         alignItems: 'center', 
@@ -352,9 +394,53 @@ export default function SecondarySidebar({
         </IconButton>
       </Box>
       
+      {/* Tabs stay pinned at the top of the messages container */}
+      {expandedMessages && (
+        <Box sx={{ 
+          borderBottom: 1, 
+          borderColor: 'divider',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          bgcolor: theme.palette.mode === 'dark' 
+            ? theme.palette.primary.dark
+            : theme.palette.background.paper,
+        }}>
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => setActiveTab(newValue)}
+            variant="fullWidth"
+            sx={{ minHeight: '40px' }}
+          >
+            <Tab 
+              label="Recent" 
+              sx={{ 
+                minHeight: '40px',
+                fontSize: '0.75rem',
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                  fontWeight: 'bold'
+                }
+              }} 
+            />
+            <Tab 
+              label="Unread" 
+              sx={{ 
+                minHeight: '40px',
+                fontSize: '0.75rem',
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                  fontWeight: 'bold'
+                }
+              }} 
+            />
+          </Tabs>
+        </Box>
+      )}
+      
       <Collapse in={expandedMessages} sx={{ 
         overflow: 'auto', 
-        height: 'calc(100% - 48px)',
+        height: 'calc(100% - 48px - 40px)', // Adjust for header and tabs height
         '&::-webkit-scrollbar': {
           width: '8px',
         },
@@ -363,16 +449,6 @@ export default function SecondarySidebar({
           borderRadius: '4px',
         },
       }}>
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          variant="fullWidth"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab label="Recent" />
-          <Tab label="Unread" />
-        </Tabs>
-        
         <List sx={{ py: 0 }}>
           {messageItems
             .filter(msg => activeTab === 0 || (activeTab === 1 && msg.unread))
@@ -466,7 +542,13 @@ export default function SecondarySidebar({
   );
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box 
+      sx={{ 
+        position: 'relative',
+        minWidth: `${sidebarWidth}px`,
+        flexShrink: 0, 
+      }}
+    >
       {/* Horizontal resize handle */}
       <Box
         ref={resizeHandleRef}
@@ -513,24 +595,23 @@ export default function SecondarySidebar({
           display: { xs: 'none', lg: 'flex' },
           flexDirection: 'column',
           position: 'fixed',
-          top: 64, // Header height
-          right: 0,
-          bottom: 0,
-          width: sidebarWidth,
-          background: theme.palette.background.paper,
-          borderLeft: `1px solid ${theme.palette.divider}`,
+          top: 76, // Header height + margin
+          right: 12, // Add margin from right edge
+          bottom: 12, // Add margin from bottom edge
+          width: `calc(${sidebarWidth}px - 12px)`, // Subtract right margin
+          background: 'transparent',
+          border: 'none',
           zIndex: theme.zIndex.appBar - 1,
-          overflow: 'hidden',
-          boxShadow: '-4px 0 20px rgba(0,0,0,0.05)', // Add left-side shadow
+          overflow: 'visible',
+          boxShadow: 'none',
           transition: theme.transitions.create(['width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
+          gap: '12px', // Add gap between notification and message widgets
         }}
       >
         {NotificationsPanel}
-        
-        {expandedNotifications && expandedMessages && DividerHandle}
         
         {MessagesPanel}
       </Box>
@@ -538,6 +619,7 @@ export default function SecondarySidebar({
   );
 }
 
+// Helper function to create alpha colors
 function alpha(color: string, opacity: number): string {
   // Simple alpha function for demo purposes
   return color + Math.round(opacity * 255).toString(16).padStart(2, '0');

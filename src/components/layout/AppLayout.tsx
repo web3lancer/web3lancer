@@ -98,9 +98,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           right: { xs: 0, lg: showSecondarySidebar ? `${secondarySidebarWidth}px` : 0 },
           top: { xs: '56px', sm: '64px' },
           bottom: 0,
+          paddingRight: { lg: showSecondarySidebar ? '12px' : 0 }, // Add padding to account for secondary sidebar margin
           paddingBottom: { xs: showSidebar ? '70px' : 0, md: 0 },
           transition: theme.transitions.create(
-            ['left', 'right', 'width', 'background-color', 'color'],
+            ['left', 'right', 'width', 'background-color', 'color', 'padding'],
             {
               easing: theme.transitions.easing.easeOut,
               duration: theme.transitions.duration.standard,
