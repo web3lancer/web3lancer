@@ -509,134 +509,138 @@ async function createMfaEmailVerification() {
  */
 async function getUserProfile(userId: string): Promise<Models.Document | null> { // Add return type
   try {
-    console.log('Fetching user profile for user ID:', userId);
-    const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
-    const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
-    
-    try {
-      // Attempt to get the profile document using the userId as the documentId
-      const profile = await databases.getDocument(databaseId, collectionId, userId);
-      console.log('Profile found:', profile);
-      return profile;
-    } catch (error: any) {
-      // If document not found (404), try to create it
-      if (error instanceof AppwriteException && error.code === 404) {
-        console.log('Profile not found for user:', userId, 'Attempting to create one.');
-        // Fetch user data to pass to createUserProfile
-        try {
-          const currentUserData = await account.get();
-          return await createUserProfile(userId, currentUserData);
-        } catch (accountError) {
-          console.error('Failed to get user account data while creating profile:', accountError);
-          return null; // Cannot create profile without user data
-        }
-      } else {
-        // Re-throw other errors
-        console.error('Error fetching profile document:', error);
-        throw error;
-      }
-    }
+    const profile = await databases.getDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      userId
+    );
+    return profile;
   } catch (error) {
-    console.error('General error in getUserProfile:', error);
-    return null;
+    if ((error as AppwriteException).code === 404) {
+      console.log(`Profile not found for user ID: ${userId}`);
+      return null;
+    }
+    console.error('Error fetching user profile:', error);
+    throw error;
   }
 }
+
+async function getUserProfileByUsername(username: string): Promise<Models.Document | null> {
+  try {
+    const response = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      [Query.equal('username', username)]
+    );
+    if (response.documents.length > 0) {
+      return response.documents[0];
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching user profile by username:', error);
+    throw error;
+  }
+}
+
+async function checkUsernameAvailability(username: string): Promise<boolean> {
+  try {
+    const response = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      [Query.equal('username', username)]
+    );
+    return response.documents.length === 0; // True if username is available
+  } catch (error) {
+    console.error('Error checking username availability:', error);
+    // Assuming an error means it's not available or there's a system issue
+    return false; 
+  }
+}
+
 
 /**
  * Create a new user profile in the database
  */
-async function createUserProfile(userId: string, userData: Models.User<Models.Preferences>): Promise<Models.Document | null> { // Add return type and use correct userData type
+async function createUserProfile(userId: string, userData: Models.User<Models.Preferences>, username?: string): Promise<Models.Document | null> { // Add return type and use correct userData type
   try {
-    console.log('Creating new user profile for:', userId, userData);
-    const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
-    const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
-    
-    const email = userData.email || '';
-    const name = userData.name || '';
-    
-    const response = await databases.createDocument(
-      databaseId,
-      collectionId,
-      userId, // Use the Appwrite User ID as the Document ID
-      {
-        userId: userId,
-        name: name,
-        email: email,
-        profilePicture: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        skills: [],
-        bio: ''
-      },
-      [
-        `read("user:${userId}")`,
-        `write("user:${userId}")`
-      ]
-    );
-    
-    console.log('User profile created successfully:', response);
-    return response;
-  } catch (error: any) {
-    console.error('Error creating user profile:', error);
-    if (error instanceof AppwriteException && error.code === 409) {
-      console.log('Profile already exists for user (concurrent creation attempt?):', userId);
-      // If it already exists due to a race condition, try fetching it again.
-      return await databases.getDocument(APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411', APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6', userId);
+    // Check if a profile already exists for this userId to prevent duplicates
+    // Appwrite document ID for profiles should be the same as the user ID for easy lookup
+    try {
+      const existingProfile = await databases.getDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
+        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+        userId
+      );
+      if (existingProfile) {
+        console.log(`Profile already exists for user ${userId}`);
+        return existingProfile;
+      }
+    } catch (e: any) {
+      // If document not found, that's good, we can create it.
+      if (e.code !== 404) {
+        throw e; // Re-throw other errors
+      }
     }
-    // Return null instead of throwing for create errors if getUserProfile called it
-    return null; 
+
+    const profileData: { [key: string]: any } = {
+      userId: userId, // Explicitly set userId attribute in the document
+      name: userData.name || '',
+      email: userData.email || '',
+      username: username || '', // Add username
+      profilePicture: '', // Initialize or get from userData if available
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      skills: [],
+      bio: ''
+    };
+
+    // Use the userId as the documentId for the profile document
+    const profile = await databases.createDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      userId, // Use user's ID as document ID for the profile
+      profileData
+    );
+    return profile;
+  } catch (error: any) {
+    // Handle specific error for unique constraint violation on username if applicable
+    if (error.code === 409) { // Appwrite conflict error code
+      console.error('Error creating user profile: Username might be taken or another conflict.', error);
+    } else {
+      console.error('Error creating user profile:', error);
+    }
+    // Optionally, re-throw or return null based on how you want to handle this upstream
+    throw error;
   }
 }
 
 async function updateUserProfile(userId: string, data: any) {
   try {
-    console.log('Updating user profile for:', userId, 'with data:', data);
-    const databaseId = APPWRITE_CONFIG.DATABASES.USERS || '67b885280000d2cb5411';
-    const collectionId = APPWRITE_CONFIG.COLLECTIONS.PROFILES || '67b8853c003c55c82ff6';
-    
-    try {
-      // First check if profile exists
-      await databases.getDocument(databaseId, collectionId, userId);
-      
-      // Update the document
-      const response = await databases.updateDocument(
-        databaseId,
-        collectionId,
-        userId,
-        {
-          ...data,
-          updatedAt: new Date().toISOString()
+    // If username is being updated, check for availability first
+    if (data.username) {
+      const currentProfile = await getUserProfile(userId);
+      // Check if currentProfile exists and if the username is actually changing
+      if (currentProfile && currentProfile.username !== data.username) {
+        const isAvailable = await checkUsernameAvailability(data.username);
+        if (!isAvailable) {
+          throw new Error(`Username '${data.username}' is already taken.`);
         }
-      );
-      return response;
-    } catch (error: any) {
-      // If profile doesn't exist yet, create it
-      if (error.code === 404) {
-        console.log('Profile not found during update, creating new profile');
-        // Get current user data to populate basic fields
-        const currentUser = await account.get();
-        const newProfile = await createUserProfile(userId, currentUser);
-        
-        // Apply the updates to the newly created profile
-        if (Object.keys(data).length > 0) {
-          return await databases.updateDocument(
-            databaseId,
-            collectionId,
-            userId,
-            {
-              ...data,
-              updatedAt: new Date().toISOString()
-            }
-          );
-        }
-        
-        return newProfile;
       }
-      throw error;
     }
+
+    const profile = await databases.updateDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      userId, // Document ID is the user's ID
+      {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }
+    );
+    return profile;
   } catch (error) {
     console.error('Error updating user profile:', error);
-    throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw error;
   }
 }
 
@@ -1186,6 +1190,8 @@ export {
   updateMfaChallenge,
   createMfaEmailVerification,
   getUserProfile,
+  getUserProfileByUsername, // Export new function
+  checkUsernameAvailability, // Export new function
   createUserProfile,
   updateUserProfile,
   addBookmark, 
