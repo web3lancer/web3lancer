@@ -24,7 +24,7 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { getUserProfile, getUserProfileByUsername, getProfilePictureUrl, updateUserProfile, checkUsernameAvailability } from '@/utils/api';
+import { getUserProfile, getUserProfileByUsername, getProfilePictureUrl, updateUserProfile, checkUsernameAvailability, createUserProfile } from '@/utils/api';
 import { Models } from 'appwrite';
 
 // Import section components from /components/profile
@@ -107,19 +107,19 @@ export default function UserProfilePage() {
     
     setLoading(true);
     setError(null);
-    setProfile(null); // Reset profile state at the beginning of a load
+    setProfile(null); // Reset profile state
     
-    try {
-      let fetchedProfile: Models.Document | null = null;
-      let fetchedBy: 'username' | 'id' | 'none' = 'none';
+    let fetchedProfileDoc: Models.Document | null = null;
+    let fetchedByMethod: 'username' | 'id' | 'none' = 'none';
 
+    try {
       // 1. Try to fetch by usernameOrId as a username
       try {
         console.log(`Attempting to fetch profile by username: ${usernameOrId}`);
-        fetchedProfile = await getUserProfileByUsername(usernameOrId);
-        if (fetchedProfile) {
-          fetchedBy = 'username';
-          console.log('Profile found by username:', fetchedProfile);
+        fetchedProfileDoc = await getUserProfileByUsername(usernameOrId);
+        if (fetchedProfileDoc) {
+          fetchedByMethod = 'username';
+          console.log('Profile found by username:', fetchedProfileDoc);
         } else {
           console.log(`Profile not found by username '${usernameOrId}', will try by ID.`);
         }
@@ -129,45 +129,38 @@ export default function UserProfilePage() {
       }
 
       // 2. If not found by username, try to fetch by usernameOrId as an ID
-      if (!fetchedProfile) {
+      if (!fetchedProfileDoc) {
         try {
           console.log(`Attempting to fetch profile by ID: ${usernameOrId}`);
-          fetchedProfile = await getUserProfile(usernameOrId); // Assumes usernameOrId could be an ID
-          if (fetchedProfile) {
-            fetchedBy = 'id';
-            console.log('Profile found by ID:', fetchedProfile);
+          fetchedProfileDoc = await getUserProfile(usernameOrId); // Assumes usernameOrId could be an ID
+          if (fetchedProfileDoc) {
+            fetchedByMethod = 'id';
+            console.log('Profile found by ID:', fetchedProfileDoc);
           } else {
             console.log(`Profile not found by ID '${usernameOrId}' either.`);
           }
         } catch (err) {
           console.warn(`Error during getUserProfile for ID '${usernameOrId}':`, err);
-          // If this also fails, it's likely a true "not found" or other critical error from API
         }
       }
 
-      if (fetchedProfile) {
-        const profileUsername = fetchedProfile.username as string | undefined;
-        const profileDocumentId = fetchedProfile.$id as string; // Document ID of the profile
-        const profileOwnerUserId = fetchedProfile.userId as string; // userId field in the document, should be auth user ID
+      if (fetchedProfileDoc) {
+        const profileUsername = fetchedProfileDoc.username as string | undefined;
+        const profileOwnerUserId = fetchedProfileDoc.userId as string;
 
-        // 3. Handle redirection if fetched by ID but a username exists and differs from URL param
-        if (fetchedBy === 'id' && profileUsername && profileUsername !== usernameOrId) {
+        if (fetchedByMethod === 'id' && profileUsername && profileUsername !== usernameOrId) {
           console.log(`Redirecting from ID-based URL ('${usernameOrId}') to username-based URL ('/u/${profileUsername}')`);
           router.push(`/u/${profileUsername}`);
-          // Return early to prevent rendering with old ID-based data; new load will occur after redirect.
-          // setLoading(false) will be handled by the new page load's finally block.
           return; 
         }
 
-        // If no redirect, set the profile and related states
-        console.log('Setting profile data:', fetchedProfile);
-        setProfile(fetchedProfile);
+        console.log('Setting profile data:', fetchedProfileDoc);
+        setProfile(fetchedProfileDoc);
         
         setEditUsername(profileUsername || '');
-        setEditBio(fetchedProfile.bio || '');
-        setEditSkills(fetchedProfile.skills || []);
+        setEditBio(fetchedProfileDoc.bio || '');
+        setEditSkills(fetchedProfileDoc.skills || []);
         
-        // Determine if the viewing user is the owner of this profile
         if (user && user.$id === profileOwnerUserId) {
           setIsCurrentUser(true);
           console.log('Current user is viewing their own profile.');
@@ -176,27 +169,63 @@ export default function UserProfilePage() {
           console.log('Viewing another user\'s profile or user not logged in.');
         }
         
-        if (fetchedProfile.profilePicture) {
-          setImagePreview(getProfilePictureUrl(fetchedProfile.profilePicture));
+        if (fetchedProfileDoc.profilePicture) {
+          setImagePreview(getProfilePictureUrl(fetchedProfileDoc.profilePicture));
         } else {
           setImagePreview(null);
         }
         
-        // Use actual data or default to 0
-        setFollowersCount(fetchedProfile.followersCount || 0); 
-        setFollowingCount(fetchedProfile.followingCount || 0);
-        setConnectionsCount(fetchedProfile.connectionsCount || 0);
+        setFollowersCount(fetchedProfileDoc.followersCount || 0); 
+        setFollowingCount(fetchedProfileDoc.followingCount || 0);
+        setConnectionsCount(fetchedProfileDoc.connectionsCount || 0);
 
-        setTabValue(0); // Reset tab to default
-        setSecuritySubTabValue(0); // Reset security sub-tab
+        setTabValue(0);
+        setSecuritySubTabValue(0);
 
       } else {
         // Profile not found after trying both methods
-        console.log(`Profile definitively not found for '${usernameOrId}'.`);
-        setError('Profile not found. The user may not exist or the link may be incorrect.');
+        // Check if it's the current user trying to access their own profile by ID, and it's missing
+        if (user && user.$id === usernameOrId) {
+          console.log(`Profile document not found for current user (ID: ${usernameOrId}). Initializing for creation.`);
+          const newProfileShell = {
+            $id: user.$id, // Document ID will be user's ID
+            userId: user.$id, // Owner of the profile
+            name: user.name || '', // From auth user
+            email: user.email || '', // From auth user
+            username: '', // To be filled by user
+            bio: '', // To be filled by user
+            skills: [], // To be filled by user
+            profilePicture: null, // No picture yet
+            // No $createdAt, $updatedAt from DB, indicates it's a shell
+            _isNewShell: true, // Client-side flag
+            // Default other fields the UI might expect
+            followersCount: 0,
+            followingCount: 0,
+            connectionsCount: 0,
+            completedProjects: 0,
+            portfolio: "",
+            projects: [],
+            reviews: [],
+            activities: [],
+          } as unknown as Models.Document; // Cast needed for state type
+
+          setProfile(newProfileShell);
+          setIsCurrentUser(true);
+          setEditUsername('');
+          setEditBio('');
+          setEditSkills([]);
+          setImagePreview(null);
+          setFollowersCount(0);
+          setFollowingCount(0);
+          setConnectionsCount(0);
+          setError(null); // Clear any fetch error
+          setIsEditMode(true); // Go straight to edit mode to complete profile
+        } else {
+          console.log(`Profile definitively not found for '${usernameOrId}'.`);
+          setError('Profile not found. The user may not exist or the link may be incorrect.');
+        }
       }
     } catch (err) { 
-      // Catch any unexpected errors from the overall process not caught by inner try-catches
       console.error('Unexpected error in loadProfile function:', err);
       setError('Failed to load profile information due to an unexpected server or network error.');
     } finally {
@@ -227,20 +256,16 @@ export default function UserProfilePage() {
   };
 
   const handleSaveProfile = async () => {
-    if (!user || !profile) return;
+    if (!user || !profile) return; // Profile should exist (either fetched or shell)
     
     setIsSaving(true);
     setUsernameError(null);
     
-    try {
-      // Ensure profile.userId (owner of the profile) is used for update, not profile.$id if they could differ
-      // Though typically for user profiles, document ID ($id) IS the user's auth ID.
-      // Here, profile.userId is the explicit field storing the auth ID.
-      const ownerUserId = profile.userId as string; 
-      if (!ownerUserId) {
-        throw new Error("Profile owner user ID is missing.");
-      }
+    const isNewProfileCreation = !!(profile as any)._isNewShell;
 
+    try {
+      const ownerUserId = user.$id; // For new profile, or existing profile being edited by owner.
+      
       if (editUsername && editUsername !== profile.username) {
         const isAvailable = await checkUsernameAvailability(editUsername);
         if (!isAvailable) {
@@ -250,31 +275,46 @@ export default function UserProfilePage() {
         }
       }
       
-      await updateUserProfile(ownerUserId, { // Use ownerUserId for the update
-        username: editUsername,
-        bio: editBio,
-        skills: editSkills,
-        // name: profile.name, // Name is usually part of Appwrite auth user, not directly in profile doc for edit here
-        updatedAt: new Date().toISOString()
-      });
+      if (isNewProfileCreation) {
+        console.log(`Creating new profile for ${ownerUserId} with username ${editUsername}`);
+        // Step 1: Create the basic profile document using Appwrite user data and new username
+        // createUserProfile(userId, userData, username) - userData is Models.User<Models.Preferences>
+        await createUserProfile(ownerUserId, user, editUsername);
+        
+        // Step 2: Update the newly created profile with bio, skills, etc.
+        // createUserProfile sets default empty bio/skills.
+        console.log(`Updating newly created profile with details: bio, skills`);
+        await updateUserProfile(ownerUserId, {
+          bio: editBio,
+          skills: editSkills,
+          // name and email are set by createUserProfile from the user auth object.
+          // username was set by createUserProfile.
+          updatedAt: new Date().toISOString()
+          // Note: profilePicture handling is separate (uploading file, then updating profile with file ID)
+        });
+      } else {
+        // Existing profile update
+        await updateUserProfile(profile.userId as string, { // Use profile.userId which is owner
+          username: editUsername,
+          bio: editBio,
+          skills: editSkills,
+          updatedAt: new Date().toISOString()
+        });
+      }
       
       setSaveSuccess(true);
       setIsEditMode(false);
       
-      // If username changed, redirect to the new username URL
       if (editUsername && editUsername !== profile.username) {
         console.log(`Username changed from '${profile.username}' to '${editUsername}'. Redirecting.`);
         router.push(`/u/${editUsername}`);
-        // No need to call loadProfile() here, redirect will trigger it.
       } else {
-        // If username didn't change, just reload the current profile data
-        console.log('Username did not change. Reloading profile data.');
+        console.log('Profile saved. Reloading profile data.');
         await loadProfile(); 
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      // Check if error is an AppwriteException and has a specific message
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      console.error('Error saving profile:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save profile';
       setError(errorMessage);
     } finally {
       setIsSaving(false);
@@ -354,7 +394,7 @@ export default function UserProfilePage() {
               sx={{ p: 3, borderRadius: 3, mb: 4, background: 'linear-gradient(135deg, rgba(32,151,255,0.08) 0%, rgba(120,87,255,0.08) 100%)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)', backdropFilter: 'blur(8px)' }}
             >
               <Grid container spacing={3} alignItems="center">
-                <Grid item={true} xs={12} md={3} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                <Grid item xs={12} md={3} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                   <Box position="relative" display="inline-block">
                     <Avatar 
                       src={imagePreview || undefined} 
@@ -373,7 +413,7 @@ export default function UserProfilePage() {
                   </Box>
                 </Grid>
                 
-                <Grid item={true} xs={12} md={9}>
+                <Grid item xs={12} md={9}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                     <Box sx={{ flexGrow: 1 }}>
                       {isEditMode && isCurrentUser ? (

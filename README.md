@@ -83,3 +83,8 @@ Web3Lancer is licensed under [GNU Affero General Public License v3.0 (AGPL-3.0)]
 <p align="center">
   <i>Connecting talent with opportunity, globally and transparently. 🌍✨</i>
 </p>
+
+
+[pitch-deck](https://doc.storydoc.ai/tgKIKu)
+
+[demo-video](https://youtube.com/watch?v=VwpeeR8MMG8)
