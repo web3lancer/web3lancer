@@ -44,6 +44,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Determine if the page is a pre-auth page or home page
   const isPreAuthPage = ['/signin', '/signup'].includes(pathname);
   const isHomePage = pathname === '/';
+  
+  // Check if this is the 404 page (using the body class added in not-found.tsx)
+  const [isNotFoundPage, setIsNotFoundPage] = useState(false);
+  
+  useEffect(() => {
+    // Check if the not-found-page class exists on the body
+    setIsNotFoundPage(document.body.classList.contains('not-found-page'));
+  }, [pathname]); // Re-run when pathname changes
 
   return (
     <Box sx={{ 
@@ -54,12 +62,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
     }}>
       <Header 
         isHomePage={isHomePage} 
-        isPreAuthPage={isPreAuthPage} 
+        isPreAuthPage={isPreAuthPage || isNotFoundPage} 
       />
       
-      {showSidebar && <Sidebar />}
+      {showSidebar && !isNotFoundPage && <Sidebar />}
 
-      {showSecondarySidebar && 
+      {showSecondarySidebar && !isNotFoundPage && 
         <SecondarySidebar 
           drawerWidth={primaryDrawerWidth}
           width={secondarySidebarWidth}
@@ -72,13 +80,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         component="main"
         sx={{
           position: 'fixed', 
-          left: { xs: 0, md: showSidebar ? `${primaryDrawerWidth + 12}px` : 0 },
-          right: { xs: 0, lg: showSecondarySidebar ? `${secondarySidebarWidth}px` : 0 },
+          left: { xs: 0, md: (showSidebar && !isNotFoundPage) ? `${primaryDrawerWidth + 12}px` : 0 },
+          right: { xs: 0, lg: (showSecondarySidebar && !isNotFoundPage) ? `${secondarySidebarWidth}px` : 0 },
           top: { xs: '84px', sm: '92px' },
           bottom: 0,
           paddingLeft: { xs: '12px' },
           paddingRight: { xs: '12px' },
-          paddingBottom: { xs: showSidebar ? '70px' : 0, md: 0 },
+          paddingBottom: { xs: (showSidebar && !isNotFoundPage) ? '70px' : 0, md: 0 },
           paddingTop: isHomePage ? 0 : { xs: 2, sm: 3 },
           transition: theme.transitions.create(
             ['left', 'right', 'width', 'background-color', 'color', 'padding'],
@@ -91,10 +99,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           boxSizing: 'border-box',
           width: {
             xs: '100%',
-            md: showSidebar ? `calc(100% - ${primaryDrawerWidth + 12}px)` : '100%',
-            lg: showSecondarySidebar 
+            md: (showSidebar && !isNotFoundPage) ? `calc(100% - ${primaryDrawerWidth + 12}px)` : '100%',
+            lg: (showSecondarySidebar && !isNotFoundPage) 
               ? `calc(100% - ${primaryDrawerWidth + 12 + secondarySidebarWidth}px)` 
-              : (showSidebar ? `calc(100% - ${primaryDrawerWidth + 12}px)` : '100%')
+              : ((showSidebar && !isNotFoundPage) ? `calc(100% - ${primaryDrawerWidth + 12}px)` : '100%')
           } // Explicitly set width to respect sidebars
         }}
       >
