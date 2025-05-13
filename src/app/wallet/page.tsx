@@ -137,7 +137,7 @@ export default function WalletPage() {
           </Paper>
         )}
 
-        {(wallets.length > 0 || loading) && (
+        {((wallets?.length ?? 0) > 0 || loading) && (
           <>
             <Grid container spacing={3}>
               <Grid item xs={12} md={8}>
