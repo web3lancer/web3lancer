@@ -94,35 +94,35 @@ export default function UserProfilePage() {
   const [securitySubTabValue, setSecuritySubTabValue] = useState(0);
 
   useEffect(() => {
+    console.log("UserProfilePage useEffect triggered. usernameOrId:", usernameOrId, "Current user ID:", user?.$id);
     loadProfile();
-  }, [usernameOrId, user]);
+  }, [usernameOrId, user]); // user dependency is for isCurrentUser logic and initial load consistency
 
   const loadProfile = async () => {
-    if (!usernameOrId) return;
+    if (!usernameOrId) {
+      setError("No username or ID provided in the URL.");
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     setError(null);
+    setProfile(null); // Reset profile state at the beginning of a load
     
     try {
-      let profileData: Models.Document | null = null;
-      // let isUsernameRoute = false; // This variable is not used
+      let fetchedProfile: Models.Document | null = null;
+      let fetchedBy: 'username' | 'id' | 'none' = 'none';
 
-      // Try fetching by username first if usernameOrId doesn't look like a typical Appwrite ID
-      if (usernameOrId && !usernameOrId.startsWith('user_') && !usernameOrId.match(/^[a-f0-9]{20,}$/i)) {
-        try {
-          profileData = await getUserProfileByUsername(usernameOrId);
-          // isUsernameRoute = true;
-        } catch (err) {
-          console.log('Profile not found by username, trying as ID or it might not exist.');
+      // 1. Try to fetch by usernameOrId as a username
+      try {
+        console.log(`Attempting to fetch profile by username: ${usernameOrId}`);
+        fetchedProfile = await getUserProfileByUsername(usernameOrId);
+        if (fetchedProfile) {
+          fetchedBy = 'username';
+          console.log('Profile found by username:', fetchedProfile);
+        } else {
+          console.log(`Profile not found by username '${usernameOrId}', will try by ID.`);
         }
-      }
-
-      // If not found by username, or if it looked like an ID, try fetching by ID
-      if (!profileData) {
-        try {
-          profileData = await getUserProfile(usernameOrId); // This could be an ID or a username if the above failed
-        } catch (err) {
-          console.error('Error loading profile by ID/username:', err);
         }
       }
       
