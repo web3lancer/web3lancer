@@ -161,7 +161,7 @@ export function Account() {
         }}
       >
         {user && !isAnonymous ? (
-          // User is logged in - show profile info and logout option
+          // User is logged in AND not anonymous - show profile info and logout option
           [
             <Box key="userInfo" sx={{ px: 2, py: 1.5 }}>
               <Typography variant="subtitle2" fontWeight="bold">
@@ -199,7 +199,7 @@ export function Account() {
             </MenuItem>
           ]
         ) : (
-          // Guest user - show only login and signup options
+          // Guest user (isAnonymous is true) or no user at all - show only login and signup options
           [
             <MenuItem key="login" onClick={handleLoginClick} sx={{ py: 1.5, px: 2 }}>
               <ListItemIcon>

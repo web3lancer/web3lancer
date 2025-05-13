@@ -54,7 +54,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false); // Initial state can be false, refreshUser will set it.
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   const refreshUser = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
@@ -65,7 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("AuthContext: account.get() successful. Raw currentUser:", JSON.stringify(currentUser, null, 2));
       
       setUser(currentUser);
-      setIsAnonymous(false);
+      // Ensure isAnonymous is correctly set based on the currentUser object
+      setIsAnonymous(isAnonymousUser(currentUser)); 
       
       console.log(`AuthContext: User Name from currentUser: ${currentUser.name}`);
       console.log(`AuthContext: User Email from currentUser: ${currentUser.email}`);
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.warn('AuthContext: Error in refreshUser (likely no active session or session expired):', error);
       setUser(null);
       setProfilePicture(null);
+      // Ensure isAnonymous is true if account.get() fails
       setIsAnonymous(true); 
       return null;
     } finally {
