@@ -222,6 +222,13 @@ export default function DashboardPage() {
   };
   
   const generateQuickPicks = () => {
+    // Determine the correct profile path for the "Complete Your Profile" quick pick
+    let profileLink = '/login'; // Default to login if user is not available
+    if (user && user.$id) { // Check for user.$id
+      // The UserProfilePage at /u/[usernameOrId] will handle redirection from ID to username if username exists
+      profileLink = `/u/${user.$id}`;
+    }
+
     const picks: QuickPickItem[] = [
       {
         id: 'qp1',
@@ -230,7 +237,7 @@ export default function DashboardPage() {
         description: 'Add your skills and experience to get more job recommendations',
         icon: PersonOutlineIcon,
         action: 'Update',
-        link: '/profile/edit',
+        link: profileLink, // Use the dynamically determined profile link
         color: theme.palette.primary.main
       },
       {
@@ -274,15 +281,15 @@ export default function DashboardPage() {
         color: theme.palette.warning.main
       },
       {
-        id: 'qp6',
+        id: 'qp6', 
         type: 'recommendation',
         title: 'Top Match: Smart Contract Audit',
         description: 'Your skills are a perfect match for this high-paying role',
         icon: StarBorderOutlinedIcon,
         action: 'View Job',
-        link: '/jobs/recommended',
+        link: '/jobs/recommended', 
         color: theme.palette.success.main,
-        badge: '95% Match'
+        badge: 'High Match'
       },
     ];
     
@@ -484,7 +491,7 @@ export default function DashboardPage() {
             />
             
             <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={7} component="div">
+              <Grid item={true} xs={12} md={7} component="div">
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 3 } }}>
                   <Avatar 
                     // Use dashboardUserImage, fallback to user.photoURL, then to default
@@ -509,7 +516,7 @@ export default function DashboardPage() {
                 
                 <Box sx={{ mb: 2 }}>
                   <Grid container spacing={2}>
-                    <Grid item xs={6} sm={3} component="div">
+                    <Grid item={true} xs={6} sm={3} component="div">
                       <Box>
                         <Typography variant="body2" sx={{ opacity: 0.8 }}>
                           Jobs Applied
@@ -519,7 +526,7 @@ export default function DashboardPage() {
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={6} sm={3} component="div">
+                    <Grid item={true} xs={6} sm={3} component="div">
                       <Box>
                         <Typography variant="body2" sx={{ opacity: 0.8 }}>
                           Interviews
@@ -529,7 +536,7 @@ export default function DashboardPage() {
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={6} sm={3} component="div">
+                    <Grid item={true} xs={6} sm={3} component="div">
                       <Box>
                         <Typography variant="body2" sx={{ opacity: 0.8 }}>
                           Projects
@@ -539,7 +546,7 @@ export default function DashboardPage() {
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={6} sm={3} component="div">
+                    <Grid item={true} xs={6} sm={3} component="div">
                       <Box>
                         <Typography variant="body2" sx={{ opacity: 0.8 }}>
                           Proposals
@@ -553,7 +560,7 @@ export default function DashboardPage() {
                 </Box>
               </Grid>
               
-              <Grid item xs={12} md={5} sx={{ display: { xs: 'none', md: 'block' } }} component="div">
+              <Grid item={true} xs={12} md={5} sx={{ display: { xs: 'none', md: 'block' } }} component="div">
                 <Box sx={{ position: 'relative', textAlign: 'right' }}>
                   <Box sx={{ position: 'relative', display: 'inline-block' }}>
                     <Box 
@@ -741,7 +748,7 @@ export default function DashboardPage() {
             
             <Grid container spacing={2} sx={{ width: '100%', margin: 0 }}>
               {jobs.slice(0, 3).map((job) => (
-                <Grid item xs={12} sm={4} key={job.$id} component="div">
+                <Grid item={true} xs={12} sm={4} key={job.$id} component="div">
                   <motion.div variants={cardHoverVariants} whileHover="hover" style={{ width: '100%' }}>
                     <Card
                       sx={{ 
@@ -895,7 +902,7 @@ export default function DashboardPage() {
                 {sortedJobs().length > 0 ? (
                   <Grid container spacing={2} sx={{ width: '100%', margin: 0 }}>
                     {sortedJobs().slice(0, 6).map((job) => (
-                      <Grid item xs={12} sm={6} md={4} key={job.$id} component="div" sx={{ width: '100%' }}>
+                      <Grid item={true} xs={12} sm={6} md={4} key={job.$id} component="div" sx={{ width: '100%' }}>
                         <motion.div variants={cardHoverVariants} whileHover="hover" style={{ width: '100%' }}>
                           <Card
                             sx={{ 
@@ -1032,7 +1039,7 @@ export default function DashboardPage() {
                 {sortedProjects().length > 0 ? (
                   <Grid container spacing={2} sx={{ width: '100%', margin: 0 }}>
                     {sortedProjects().slice(0, 6).map((project) => (
-                      <Grid item xs={12} sm={6} md={4} key={project.$id} component="div" sx={{ width: '100%' }}>
+                      <Grid item={true} xs={12} sm={6} md={4} key={project.$id} component="div" sx={{ width: '100%' }}>
                         <motion.div variants={cardHoverVariants} whileHover="hover" style={{ width: '100%' }}>
                           <Card
                             sx={{ 
@@ -1168,7 +1175,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mt: { xs: 2, md: 3 } }}>
-          <Grid item xs={12} lg={8}>
+          <Grid item={true} xs={12} lg={8}>
             <motion.div variants={itemVariants}>
               <Paper 
                 elevation={0} 
@@ -1184,7 +1191,7 @@ export default function DashboardPage() {
               </Paper>
             </motion.div>
           </Grid>
-          <Grid item xs={12} lg={4}>
+          <Grid item={true} xs={12} lg={4}>
             <motion.div variants={itemVariants}>
               <Paper 
                 elevation={0} 

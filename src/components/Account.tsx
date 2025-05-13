@@ -58,7 +58,14 @@ export function Account() {
   
   const handleProfileClick = () => {
     handleClose();
-    router.push('/profile');
+    if (user) {
+      // The UserProfilePage at /u/[usernameOrId] will handle redirection from ID to username if username exists
+      const profilePath = `/u/${user.$id}`;
+      router.push(profilePath);
+    } else {
+      // Fallback or error handling if user is not available
+      router.push('/login'); 
+    }
   };
   
   const handleSettingsClick = () => {
@@ -79,7 +86,7 @@ export function Account() {
 
   // Get display name (username or wallet address)
   const displayName = user?.name || 
-                    (user?.walletId ? formatAddress(user.walletId) : '');
+                    (user?.prefs?.walletId ? formatAddress(user.prefs.walletId as string) : '');
   
   // Debug information
   console.log('Account component render:', { 
