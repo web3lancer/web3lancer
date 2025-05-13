@@ -45,6 +45,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const isPreAuthPage = ['/signin', '/signup'].includes(pathname);
   const isHomePage = pathname === '/';
 
+  // Update main content position when secondary sidebar width changes
+  React.useEffect(() => {
+    if (showSecondarySidebar) {
+      // Force re-render on width change to ensure main content properly respects sidebar boundaries
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        // Ensure main content has proper right spacing
+        const currentRight = window.getComputedStyle(mainContent).right;
+        const needsUpdate = currentRight !== `${secondarySidebarWidth}px`;
+        
+        if (needsUpdate) {
+          // This will force the main content to respect the new width
+          mainContent.style.right = `${secondarySidebarWidth}px`;
+          // Then let the CSS transition take over
+          setTimeout(() => {
+            mainContent.style.right = '';
+          }, 0);
+        }
+      }
+    }
+  }, [secondarySidebarWidth, showSecondarySidebar]);
+
   return (
     <Box sx={{ 
       display: 'flex', 

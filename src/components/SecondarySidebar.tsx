@@ -477,7 +477,7 @@ export default function SecondarySidebar({
           bottom: 0,
           width: '8px',
           cursor: 'ew-resize',
-          zIndex: theme.zIndex.appBar - 1,
+          zIndex: theme.zIndex.appBar, // Increased z-index to ensure it's above other elements
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -522,7 +522,7 @@ export default function SecondarySidebar({
           zIndex: theme.zIndex.appBar - 1,
           overflow: 'hidden',
           boxShadow: '-4px 0 20px rgba(0,0,0,0.05)', // Add left-side shadow
-          transition: theme.transitions.create(['width', 'background-color'], {
+          transition: theme.transitions.create(['width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
