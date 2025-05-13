@@ -167,6 +167,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
                 <Typography
                   variant="h6"
                   sx={{
+                    display: { xs: 'none', sm: 'block' }, // Hide on mobile
                     background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -257,6 +258,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
               <Typography
                 variant="h6"
                 sx={{
+                  display: { xs: 'none', sm: 'block' }, // Hide on mobile
                   background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -298,6 +300,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
               <Typography
                 variant="h6"
                 sx={{
+                  display: { xs: 'none', sm: 'block' }, // Hide on mobile
                   background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
