@@ -45,11 +45,11 @@ export default function Sidebar() {
 
   const [value, setValue] = useState(() => {
     const currentPath = pathname ?? '';
-    // Match /u/[id] or /u/[username] by checking if currentPath starts with /u/ and item.text is Profile
-    if (currentPath.startsWith('/u/')) {
-      const profileIndex = menuItems.findIndex(item => item.text === 'Profile');
-      if (profileIndex !== -1) return profileIndex;
-    }
+  // Match /u/[id] or /u/[usernameOrId] by checking if currentPath starts with /u/ and item.text is Profile
+  if (currentPath.startsWith('/u/')) {
+    const profileIndex = menuItems.findIndex(item => item.text === 'Profile');
+    if (profileIndex !== -1) return profileIndex;
+  }
     const index = menuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
     return index !== -1 ? index : (currentPath === '/' ? 0 : -1); // Default to -1 if no match, 0 for dashboard on root
   });
