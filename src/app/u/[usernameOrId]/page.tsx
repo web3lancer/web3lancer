@@ -123,50 +123,82 @@ export default function UserProfilePage() {
         } else {
           console.log(`Profile not found by username '${usernameOrId}', will try by ID.`);
         }
+      } catch (err) {
+        console.warn(`Error during getUserProfileByUsername for '${usernameOrId}':`, err);
+        // Do not set main error yet, allow fallback to fetching by ID
+      }
+
+      // 2. If not found by username, try to fetch by usernameOrId as an ID
+      if (!fetchedProfile) {
+        try {
+          console.log(`Attempting to fetch profile by ID: ${usernameOrId}`);
+          fetchedProfile = await getUserProfile(usernameOrId); // Assumes usernameOrId could be an ID
+          if (fetchedProfile) {
+            fetchedBy = 'id';
+            console.log('Profile found by ID:', fetchedProfile);
+          } else {
+            console.log(`Profile not found by ID '${usernameOrId}' either.`);
+          }
+        } catch (err) {
+          console.warn(`Error during getUserProfile for ID '${usernameOrId}':`, err);
+          // If this also fails, it's likely a true "not found" or other critical error from API
         }
       }
-      
-      if (profileData) {
-        // Redirect to username URL if ID is used and username exists
-        // Ensure profileData.username and profileData.userId are valid fields from your Appwrite document
-        if (profileData.username && profileData.userId && usernameOrId === profileData.userId && usernameOrId !== profileData.username) {
-          router.push(`/u/${profileData.username}`);
-          // setLoading(false); // Potentially stop loading here to prevent rendering old data
-          return; // Exit after redirecting
+
+      if (fetchedProfile) {
+        const profileUsername = fetchedProfile.username as string | undefined;
+        const profileDocumentId = fetchedProfile.$id as string; // Document ID of the profile
+        const profileOwnerUserId = fetchedProfile.userId as string; // userId field in the document, should be auth user ID
+
+        // 3. Handle redirection if fetched by ID but a username exists and differs from URL param
+        if (fetchedBy === 'id' && profileUsername && profileUsername !== usernameOrId) {
+          console.log(`Redirecting from ID-based URL ('${usernameOrId}') to username-based URL ('/u/${profileUsername}')`);
+          router.push(`/u/${profileUsername}`);
+          // Return early to prevent rendering with old ID-based data; new load will occur after redirect.
+          // setLoading(false) will be handled by the new page load's finally block.
+          return; 
         }
 
-        console.log('Profile loaded successfully:', profileData);
-        setProfile(profileData);
+        // If no redirect, set the profile and related states
+        console.log('Setting profile data:', fetchedProfile);
+        setProfile(fetchedProfile);
         
-        setEditUsername(profileData.username || '');
-        setEditBio(profileData.bio || '');
-        setEditSkills(profileData.skills || []);
+        setEditUsername(profileUsername || '');
+        setEditBio(fetchedProfile.bio || '');
+        setEditSkills(fetchedProfile.skills || []);
         
-        if (user && (user.$id === profileData.userId)) {
+        // Determine if the viewing user is the owner of this profile
+        if (user && user.$id === profileOwnerUserId) {
           setIsCurrentUser(true);
+          console.log('Current user is viewing their own profile.');
         } else {
           setIsCurrentUser(false);
+          console.log('Viewing another user\'s profile or user not logged in.');
         }
         
-        if (profileData.profilePicture) {
-          setImagePreview(getProfilePictureUrl(profileData.profilePicture));
+        if (fetchedProfile.profilePicture) {
+          setImagePreview(getProfilePictureUrl(fetchedProfile.profilePicture));
         } else {
           setImagePreview(null);
         }
         
-        setFollowersCount(profileData.followersCount || Math.floor(Math.random() * 100) + 5); // Use actual data or fallback
-        setFollowingCount(profileData.followingCount || Math.floor(Math.random() * 50) + 3);
-        setConnectionsCount(profileData.connectionsCount || Math.floor(Math.random() * 20) + 2);
+        // Use actual data or default to 0
+        setFollowersCount(fetchedProfile.followersCount || 0); 
+        setFollowingCount(fetchedProfile.followingCount || 0);
+        setConnectionsCount(fetchedProfile.connectionsCount || 0);
 
-        setTabValue(0);
-        setSecuritySubTabValue(0);
+        setTabValue(0); // Reset tab to default
+        setSecuritySubTabValue(0); // Reset security sub-tab
 
       } else {
-        setError('Profile not found.');
+        // Profile not found after trying both methods
+        console.log(`Profile definitively not found for '${usernameOrId}'.`);
+        setError('Profile not found. The user may not exist or the link may be incorrect.');
       }
-    } catch (err) {
-      console.error('Error loading profile:', err);
-      setError('Failed to load profile information.');
+    } catch (err) { 
+      // Catch any unexpected errors from the overall process not caught by inner try-catches
+      console.error('Unexpected error in loadProfile function:', err);
+      setError('Failed to load profile information due to an unexpected server or network error.');
     } finally {
       setLoading(false);
     }
@@ -201,6 +233,14 @@ export default function UserProfilePage() {
     setUsernameError(null);
     
     try {
+      // Ensure profile.userId (owner of the profile) is used for update, not profile.$id if they could differ
+      // Though typically for user profiles, document ID ($id) IS the user's auth ID.
+      // Here, profile.userId is the explicit field storing the auth ID.
+      const ownerUserId = profile.userId as string; 
+      if (!ownerUserId) {
+        throw new Error("Profile owner user ID is missing.");
+      }
+
       if (editUsername && editUsername !== profile.username) {
         const isAvailable = await checkUsernameAvailability(editUsername);
         if (!isAvailable) {
@@ -210,26 +250,32 @@ export default function UserProfilePage() {
         }
       }
       
-      await updateUserProfile(user.$id, {
+      await updateUserProfile(ownerUserId, { // Use ownerUserId for the update
         username: editUsername,
         bio: editBio,
         skills: editSkills,
-        // name: profile.name, // Assuming name is handled elsewhere or part of initial profile creation
+        // name: profile.name, // Name is usually part of Appwrite auth user, not directly in profile doc for edit here
         updatedAt: new Date().toISOString()
       });
       
       setSaveSuccess(true);
       setIsEditMode(false);
-      // await loadProfile(); // Reload profile data
       
+      // If username changed, redirect to the new username URL
       if (editUsername && editUsername !== profile.username) {
-        router.push(`/u/${editUsername}`); // Redirect if username changed
+        console.log(`Username changed from '${profile.username}' to '${editUsername}'. Redirecting.`);
+        router.push(`/u/${editUsername}`);
+        // No need to call loadProfile() here, redirect will trigger it.
       } else {
-        await loadProfile(); // Reload if username didn't change
+        // If username didn't change, just reload the current profile data
+        console.log('Username did not change. Reloading profile data.');
+        await loadProfile(); 
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError('Failed to update profile');
+      // Check if error is an AppwriteException and has a specific message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      setError(errorMessage);
     } finally {
       setIsSaving(false);
     }
