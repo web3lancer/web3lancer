@@ -45,28 +45,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const isPreAuthPage = ['/signin', '/signup'].includes(pathname);
   const isHomePage = pathname === '/';
 
-  // Update main content position when secondary sidebar width changes
-  React.useEffect(() => {
-    if (showSecondarySidebar) {
-      // Force re-render on width change to ensure main content properly respects sidebar boundaries
-      const mainContent = document.querySelector('main');
-      if (mainContent) {
-        // Ensure main content has proper right spacing
-        const currentRight = window.getComputedStyle(mainContent).right;
-        const needsUpdate = currentRight !== `${secondarySidebarWidth}px`;
-        
-        if (needsUpdate) {
-          // This will force the main content to respect the new width
-          mainContent.style.right = `${secondarySidebarWidth}px`;
-          // Then let the CSS transition take over
-          setTimeout(() => {
-            mainContent.style.right = '';
-          }, 0);
-        }
-      }
-    }
-  }, [secondarySidebarWidth, showSecondarySidebar]);
-
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -83,7 +61,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {showSecondarySidebar && 
         <SecondarySidebar 
-          drawerWidth={primaryDrawerWidth} // This prop seems less relevant if width is directly controlled
+          drawerWidth={primaryDrawerWidth}
           width={secondarySidebarWidth}
           onWidthChange={handleResizeSecondarySidebar}
         />
@@ -94,14 +72,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         component="main"
         sx={{
           position: 'fixed', 
-          left: { xs: 0, md: showSidebar ? `${primaryDrawerWidth + 12}px` : 0 }, // Include sidebar margin
+          left: { xs: 0, md: showSidebar ? `${primaryDrawerWidth + 12}px` : 0 },
           right: { xs: 0, lg: showSecondarySidebar ? `${secondarySidebarWidth}px` : 0 },
-          top: { xs: '84px', sm: '92px' }, // Increased space from header
+          top: { xs: '84px', sm: '92px' },
           bottom: 0,
-          paddingLeft: { xs: '12px' }, // Add consistent left padding
-          paddingRight: { xs: '12px', lg: showSecondarySidebar ? '12px' : '12px' }, // Add consistent right padding
+          paddingLeft: { xs: '12px' },
+          paddingRight: { xs: '12px' },
           paddingBottom: { xs: showSidebar ? '70px' : 0, md: 0 },
-          // Apply top padding only when not on homepage to account for the header
           paddingTop: isHomePage ? 0 : { xs: 2, sm: 3 },
           transition: theme.transitions.create(
             ['left', 'right', 'width', 'background-color', 'color', 'padding'],
@@ -112,6 +89,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
           ),
           overflow: 'auto',
           boxSizing: 'border-box',
+          width: {
+            xs: '100%',
+            md: showSidebar ? `calc(100% - ${primaryDrawerWidth + 12}px)` : '100%',
+            lg: showSecondarySidebar 
+              ? `calc(100% - ${primaryDrawerWidth + 12 + secondarySidebarWidth}px)` 
+              : (showSidebar ? `calc(100% - ${primaryDrawerWidth + 12}px)` : '100%')
+          } // Explicitly set width to respect sidebars
         }}
       >
         {/* Inner padding for content */}

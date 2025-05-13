@@ -446,7 +446,10 @@ export default function DashboardPage() {
         p: { xs: 2, md: 3 }, 
         minHeight: 'calc(100vh - 64px)', 
         background: theme.palette.background.default,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        width: '100%', // Ensure the box respects parent container width
+        maxWidth: '100%', // Prevent overflowing
+        boxSizing: 'border-box' // Include padding in width calculation
       }}
     >
       <motion.div
@@ -619,7 +622,9 @@ export default function DashboardPage() {
                 '&::-webkit-scrollbar': {
                   display: 'none'
                 },
-                gap: 2
+                gap: 2,
+                width: '100%',
+                maxWidth: '100%'
               }}
             >
               {quickPicks.map((pick) => (
@@ -627,6 +632,7 @@ export default function DashboardPage() {
                   key={pick.id}
                   variants={cardHoverVariants}
                   whileHover="hover"
+                  style={{ flexShrink: 0 }}
                 >
                   <Card
                     component={Link}
@@ -733,13 +739,14 @@ export default function DashboardPage() {
               Personalized job recommendations based on your skills and profile
             </Typography>
             
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ width: '100%', margin: 0 }}>
               {jobs.slice(0, 3).map((job) => (
                 <Grid item xs={12} sm={4} key={job.$id} component="div">
-                  <motion.div variants={cardHoverVariants} whileHover="hover">
+                  <motion.div variants={cardHoverVariants} whileHover="hover" style={{ width: '100%' }}>
                     <Card
                       sx={{ 
                         height: '100%',
+                        width: '100%',
                         borderRadius: 2,
                         border: '1px solid',
                         borderColor: 'divider',
@@ -886,13 +893,14 @@ export default function DashboardPage() {
             {activeTab === 0 && (
               <Box>
                 {sortedJobs().length > 0 ? (
-                  <Grid container spacing={2}>
+                  <Grid container spacing={2} sx={{ width: '100%', margin: 0 }}>
                     {sortedJobs().slice(0, 6).map((job) => (
-                      <Grid item xs={12} sm={6} md={4} key={job.$id} component="div">
-                        <motion.div variants={cardHoverVariants} whileHover="hover">
+                      <Grid item xs={12} sm={6} md={4} key={job.$id} component="div" sx={{ width: '100%' }}>
+                        <motion.div variants={cardHoverVariants} whileHover="hover" style={{ width: '100%' }}>
                           <Card
                             sx={{ 
                               height: '100%',
+                              width: '100%',
                               borderRadius: 2,
                               border: '1px solid',
                               borderColor: 'divider'
@@ -1022,13 +1030,14 @@ export default function DashboardPage() {
             {activeTab === 1 && (
               <Box>
                 {sortedProjects().length > 0 ? (
-                  <Grid container spacing={2}>
+                  <Grid container spacing={2} sx={{ width: '100%', margin: 0 }}>
                     {sortedProjects().slice(0, 6).map((project) => (
-                      <Grid item xs={12} sm={6} md={4} key={project.$id} component="div">
-                        <motion.div variants={cardHoverVariants} whileHover="hover">
+                      <Grid item xs={12} sm={6} md={4} key={project.$id} component="div" sx={{ width: '100%' }}>
+                        <motion.div variants={cardHoverVariants} whileHover="hover" style={{ width: '100%' }}>
                           <Card
                             sx={{ 
                               height: '100%',
+                              width: '100%',
                               borderRadius: 2,
                               border: '1px solid',
                               borderColor: 'divider'
