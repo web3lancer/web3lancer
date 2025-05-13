@@ -4,7 +4,7 @@ import { Drawer, List, ListItemText, ListItemIcon, Box, BottomNavigation, Bottom
 import { Dashboard, Work, Bookmarks, Storefront, Person, People } from "@mui/icons-material";
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react"; // Added useMemo
 import { useAuth } from '@/contexts/AuthContext';
 import SidebarAccountWidget from './SidebarAccountWidget';
 
@@ -21,30 +21,42 @@ declare global {
 
 const drawerWidth = 240;
 
-const menuItems = [
-  { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
-  { text: 'Projects', icon: Work, path: '/projects' },
-  { text: 'Connect', icon: People, path: '/connect' },
-  { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
-  { text: 'Profile', icon: Person, path: '/profile' },
-];
-
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
+  const { user } = useAuth(); // Get user from AuthContext
+
+  const profilePath = useMemo(() => {
+    if (user) {
+      // Ensure user.$id is the correct field for user ID from your AuthContext
+      return user.username ? `/u/${user.username}` : (user.$id ? `/u/${user.$id}` : '/login');
+    }
+    return '/login'; // Fallback if user is null, or redirect to sign-in
+  }, [user]);
+
+  const menuItems = useMemo(() => [
+    { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
+    { text: 'Projects', icon: Work, path: '/projects' },
+    { text: 'Connect', icon: People, path: '/connect' },
+    { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
+    { text: 'Profile', icon: Person, path: profilePath },
+  ], [profilePath]);
 
   const [value, setValue] = useState(() => {
-    const index = menuItems.findIndex(item => item.path === pathname);
+    const index = menuItems.findIndex(item => pathname.startsWith(item.path)); // use startsWith for dynamic routes like /u/[username]
     return index !== -1 ? index : 0;
   });
 
   useEffect(() => {
-    const index = menuItems.findIndex(item => item.path === pathname);
+    const index = menuItems.findIndex(item => pathname.startsWith(item.path));
     if (index !== -1) {
       setValue(index);
+    } else if (pathname === profilePath) { // Explicitly check for profile path if it's dynamic
+        const profileIndex = menuItems.findIndex(item => item.text === 'Profile');
+        if (profileIndex !== -1) setValue(profileIndex);
     }
-  }, [pathname]);
+  }, [pathname, menuItems, profilePath]);
 
   const listVariants = {
     hidden: { opacity: 0 },
@@ -74,7 +86,7 @@ export default function Sidebar() {
         initial="hidden"
         animate="show"
         variants={listVariants}
-        style={{ padding: '0 8px', flexGrow: 1 }}
+        style={{ padding: '0 8px', flexGrow: 1, overflowY: 'auto' }} // Added overflowY auto for scrolling list items
       >
         <List>
           {menuItems.map((item) => {
