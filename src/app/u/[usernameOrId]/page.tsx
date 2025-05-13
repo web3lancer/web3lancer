@@ -248,7 +248,7 @@ export default function UserProfilePage() {
   };
   
   const handleMessage = () => {
-    if (!user || !profile) return;
+    if (!user || !profile || !profile.userId) return;
     router.push(`/messages?recipient=${profile.userId}`);
   };
 
@@ -256,19 +256,19 @@ export default function UserProfilePage() {
     setSaveSuccess(false);
   };
 
-  const publicTabs = [
+  const publicTabs = useMemo(() => [
     { label: "Portfolio", icon: <WorkOutline /> },
-    { label: "Projects", icon: <AssignmentIcon /> }, // Corrected icon
+    { label: "Projects", icon: <AssignmentIcon /> },
     { label: "Reviews", icon: <StarBorder /> },
     { label: "Activity", icon: <ListAltIcon /> }
-  ];
+  ], []);
 
-  const currentUserSettingsTabs = [
+  const currentUserSettingsTabs = useMemo(() => [
     { label: "Profile Settings", icon: <SettingsIcon /> },
     { label: "Security", icon: <SecurityIcon /> },
     { label: "Wallet", icon: <AccountBalanceWalletIcon /> },
     { label: "Notifications", icon: <NotificationsIcon /> }
-  ];
+  ], []);
 
   const allTabs = useMemo(() => {
     let tabs = [...publicTabs];
@@ -308,7 +308,7 @@ export default function UserProfilePage() {
               sx={{ p: 3, borderRadius: 3, mb: 4, background: 'linear-gradient(135deg, rgba(32,151,255,0.08) 0%, rgba(120,87,255,0.08) 100%)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)', backdropFilter: 'blur(8px)' }}
             >
               <Grid container spacing={3} alignItems="center">
-                <Grid xs={12} md={3} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                <Grid item={true} xs={12} md={3} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                   <Box position="relative" display="inline-block">
                     <Avatar 
                       src={imagePreview || undefined} 
@@ -327,7 +327,7 @@ export default function UserProfilePage() {
                   </Box>
                 </Grid>
                 
-                <Grid xs={12} md={9}>
+                <Grid item={true} xs={12} md={9}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                     <Box sx={{ flexGrow: 1 }}>
                       {isEditMode && isCurrentUser ? (

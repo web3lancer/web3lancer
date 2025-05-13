@@ -28,11 +28,11 @@ export default function Sidebar() {
   const { user } = useAuth(); // Get user from AuthContext
 
   const profilePath = useMemo(() => {
-    if (user) {
-      // Ensure user.$id is the correct field for user ID from your AuthContext
-      return user.username ? `/u/${user.username}` : (user.$id ? `/u/${user.$id}` : '/login');
+    if (user && user.$id) {
+      // Use user.$id for the link. UserProfilePage will handle redirecting to username if available.
+      return `/u/${user.$id}`;
     }
-    return '/login'; // Fallback if user is null, or redirect to sign-in
+    return '/login'; // Fallback if user or user.$id is null/undefined
   }, [user]);
 
   const menuItems = useMemo(() => [
@@ -40,22 +40,50 @@ export default function Sidebar() {
     { text: 'Projects', icon: Work, path: '/projects' },
     { text: 'Connect', icon: People, path: '/connect' },
     { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
-    { text: 'Profile', icon: Person, path: profilePath },
+    { text: 'Profile', icon: Person, path: profilePath }, // Uses dynamic profile path
   ], [profilePath]);
 
   const [value, setValue] = useState(() => {
-    const index = menuItems.findIndex(item => pathname.startsWith(item.path)); // use startsWith for dynamic routes like /u/[username]
-    return index !== -1 ? index : 0;
+    const currentPath = pathname ?? '';
+    // Match /u/[id] or /u/[username] by checking if currentPath starts with /u/ and item.text is Profile
+    if (currentPath.startsWith('/u/')) {
+      const profileIndex = menuItems.findIndex(item => item.text === 'Profile');
+      if (profileIndex !== -1) return profileIndex;
+    }
+    const index = menuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
+    return index !== -1 ? index : (currentPath === '/' ? 0 : -1); // Default to -1 if no match, 0 for dashboard on root
   });
 
   useEffect(() => {
-    const index = menuItems.findIndex(item => pathname.startsWith(item.path));
-    if (index !== -1) {
-      setValue(index);
-    } else if (pathname === profilePath) { // Explicitly check for profile path if it's dynamic
-        const profileIndex = menuItems.findIndex(item => item.text === 'Profile');
-        if (profileIndex !== -1) setValue(profileIndex);
+    const currentPath = pathname ?? '';
+    let activeIndex = -1;
+
+    // Special handling for dynamic profile paths /u/[usernameOrId]
+    if (currentPath.startsWith('/u/')) {
+      const profileItemIndex = menuItems.findIndex(item => item.text === 'Profile');
+      if (profileItemIndex !== -1) {
+        activeIndex = profileItemIndex;
+      }
+    } else {
+      // Standard path matching
+      const exactMatchIndex = menuItems.findIndex(item => item.path === currentPath);
+      if (exactMatchIndex !== -1) {
+        activeIndex = exactMatchIndex;
+      } else {
+        // Fallback to startsWith for parent paths, ensuring it's not just root '/'
+        const startsWithIndex = menuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
+        if (startsWithIndex !== -1) {
+          activeIndex = startsWithIndex;
+        }
+      }
     }
+    // If still no match and on root path, select Dashboard (index 0)
+    if (activeIndex === -1 && currentPath === '/' && menuItems[0]?.path === '/dashboard') {
+        activeIndex = 0;
+    }
+
+    setValue(activeIndex);
+
   }, [pathname, menuItems, profilePath]);
 
   const listVariants = {
@@ -86,75 +114,64 @@ export default function Sidebar() {
         initial="hidden"
         animate="show"
         variants={listVariants}
-        style={{ padding: '0 8px', flexGrow: 1, overflowY: 'auto' }} // Added overflowY auto for scrolling list items
+        style={{ padding: '0 8px', flexGrow: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} // Added overflowY auto for scrolling list items
       >
         <List>
-          {menuItems.map((item) => {
-            const isActive = pathname === item.path;
-
+          {menuItems.map((item, index) => {
+            const isActive = value === index;
             return (
-              <motion.div
-                key={item.text}
-                variants={itemVariants}
-                whileHover={{ x: 5 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <ListItemButton 
-                  onClick={() => {
-                    router.push(item.path);
-                  }}
-                  sx={{
-                    my: 0.5,
-                    mx: 0.5,
-                    borderRadius: 1.5,
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    padding: '10px 16px',
-                    transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
+              <motion.div key={item.text} variants={itemVariants}>
+                <ListItem 
+                  disablePadding 
+                  sx={{ 
+                    mb: 0.5,
+                    borderRadius: '8px',
+                    transition: 'background-color 0.2s ease-in-out',
                     '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     },
                   }}
                 >
-                  <AnimatePresence>
-                    {isActive && (
-                      <Box
-                        component={motion.div}
-                        layoutId="activeIndicator"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        sx={{
-                          position: 'absolute',
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 4,
-                          bgcolor: 'primary.contrastText',
-                          borderTopRightRadius: 4,
-                          borderBottomRightRadius: 4,
-                        }}
-                      />
-                    )}
-                  </AnimatePresence>
-                  <ListItemIcon sx={{ color: 'primary.contrastText', minWidth: 36 }}>
-                    <item.icon sx={{ fontSize: 22 }} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={item.text}
-                    sx={{
-                      ml: 0.5,
-                      '& .MuiListItemText-primary': {
-                        color: 'primary.contrastText',
-                        fontWeight: isActive ? 600 : 400,
-                        fontSize: '0.9rem',
-                        transition: 'font-weight 0.2s ease',
-                      },
+                  <ListItemButton
+                    selected={isActive}
+                    onClick={() => {
+                      // setValue(index); // Optimistically set, or rely on useEffect after navigation
+                      router.push(item.path);
                     }}
-                  />
-                </ListItemButton>
+                    sx={{
+                      borderRadius: '8px',
+                      py: 1.2, 
+                      px: 2,
+                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                      '&.Mui-selected': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                        '&:hover': {
+                           backgroundColor: 'rgba(255, 255, 255, 0.20)',
+                        },
+                        '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                          color: theme.palette.common.white,
+                          fontWeight: '600',
+                        },
+                      },
+                      '& .MuiListItemIcon-root': {
+                        minWidth: '40px',
+                        color: isActive ? theme.palette.common.white : 'rgba(255, 255, 255, 0.8)',
+                        transition: 'color 0.2s ease-in-out',
+                      },
+                      '& .MuiListItemText-primary': {
+                        color: isActive ? theme.palette.common.white : 'rgba(255, 255, 255, 0.8)',
+                        fontSize: '0.9rem',
+                        fontWeight: isActive ? '600' : 'normal',
+                        transition: 'color 0.2s ease-in-out, font-weight 0.2s ease-in-out',
+                      }
+                    }}
+                  >
+                    <ListItemIcon>
+                      <item.icon />
+                    </ListItemIcon>
+                    <ListItemText primary={item.text} />
+                  </ListItemButton>
+                </ListItem>
               </motion.div>
             );
           })}
