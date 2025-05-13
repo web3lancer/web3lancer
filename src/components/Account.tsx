@@ -45,13 +45,17 @@ export function Account() {
     handleClose();
     try {
       console.log("Attempting sign out via apiSignOut...");
-      await apiSignOut(); // Directly call the imported signOut function
+      const success = await apiSignOut(); // apiSignOut is from '@/utils/api'
+      if (success) {
+        console.log("Sign out successful. Redirecting and reloading to ensure state reset.");
+      } else {
+        console.warn("Sign out API call reported failure or no active session. Still proceeding with redirect/reload.");
+      }
     } catch (error) {
-      console.error("Error during sign out:", error);
-      // Handle the error appropriately, maybe show a message to the user
+      console.error("Error during sign out process:", error);
     } finally {
-      // Ensure redirection happens even if sign out fails
-      router.push('/'); 
+      // Force a full page reload to home to ensure all state is reset.
+      window.location.href = '/';
     }
   };
 
@@ -136,7 +140,7 @@ export function Account() {
             <ListItemIcon>
               <Login fontSize="small" sx={{ color: '#1E40AF' }} />
             </ListItemIcon>
-            <ListItemText>Sign In</ListItemText>
+            <ListItemText>Login</ListItemText>
           </MenuItem>
           <MenuItem 
             onClick={() => {

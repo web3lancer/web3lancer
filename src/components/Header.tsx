@@ -213,7 +213,7 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
                   variant="contained"
                   sx={connectWalletButtonSx}
                 >
-                  Connect Wallet
+                  Connect
                 </Button>
               ) : (
                 <Button
