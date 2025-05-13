@@ -947,19 +947,19 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
     // Ensure base URL is correctly determined
     const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
                    (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
-    
-    // Standardize on /oauth/callback to match the existing component
-    const successUrl = `${baseURL}/oauth/callback`;
-    const failureUrl = `${baseURL}/signin?error=github_oauth_failed`;
+    const successUrl = `${baseURL}/auth/callback`; // Redirect to a dedicated callback page
+    const failureUrl = `${baseURL}/signin?error=github_oauth_failed`; // Redirect back to signin on failure
 
     console.log(`Initiating GitHub OAuth: Success URL: ${successUrl}, Failure URL: ${failureUrl}`);
     
+    // Use Appwrite's built-in OAuth method
     await account.createOAuth2Session(
-      OAuthProvider.Github,
+      OAuthProvider.Github, // Use the correct provider enum
       successUrl,
       failureUrl,
       scopes
     );
+    // No return needed, Appwrite handles the redirect
   } catch (error) {
     console.error('Error initiating GitHub OAuth session:', error);
     throw new Error(`Failed to initiate GitHub OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -968,15 +968,9 @@ async function createGitHubOAuthSession(scopes: string[] = ['user:email']) {
 
 async function createGoogleOAuthSession(scopes: string[] = ['email', 'profile']) {
   try {
-    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 
-                   (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
-    
-    // Match the GitHub implementation to be consistent
-    const successUrl = `${baseURL}/oauth/callback`;
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://www.web3lancer.website');
+    const successUrl = `${baseURL}/auth/callback`;
     const failureUrl = `${baseURL}/signin?error=google_oauth_failed`;
-    
-    console.log(`Initiating Google OAuth: Success URL: ${successUrl}, Failure URL: ${failureUrl}`);
-    
     await account.createOAuth2Session(
       OAuthProvider.Google,
       successUrl,
@@ -1034,31 +1028,23 @@ async function ensureValidOAuthToken() {
       return null;
     }
     
-    // Proceed if this is an OAuth session with a provider
-    if (!session.provider) {
-      return session;
-    }
-    
-    // For both GitHub and Google OAuth providers
-    if (['github', 'google'].includes(session.provider.toLowerCase())) {
-      // Check if token expiry information exists
-      if (session.providerAccessTokenExpiry) {
-        // Ensure providerAccessTokenExpiry is treated as a number
-        const expiryTime = Number(session.providerAccessTokenExpiry) * 1000; // Convert seconds to milliseconds
-        const now = Date.now();
-        const buffer = 5 * 60 * 1000; // 5 minutes buffer
-        
-        // If the token is close to expiring or already expired
-        if (!isNaN(expiryTime) && now >= expiryTime - buffer) {
-          console.log(`${session.provider} OAuth token needs refresh.`);
-          // Attempt to refresh the session
-          try {
-            return await refreshOAuthSession(session.$id);
-          } catch (refreshError) {
-            console.error(`Failed to refresh ${session.provider} OAuth token:`, refreshError);
-            // If refresh fails, might need to re-authenticate
-            return null;
-          }
+    // Only proceed if this is an OAuth session
+    if (session.provider && session.provider === 'github') {
+      // Ensure providerAccessTokenExpiry is treated as a number
+      const expiryTime = Number(session.providerAccessTokenExpiry) * 1000; // Convert seconds to milliseconds
+      const now = Date.now();
+      const buffer = 5 * 60 * 1000; // 5 minutes buffer
+
+      // Check if the token is close to expiring or already expired
+      if (!isNaN(expiryTime) && now >= expiryTime - buffer) {
+        console.log('GitHub OAuth token needs refresh.');
+        // Attempt to refresh the session
+        try {
+          return await refreshOAuthSession(session.$id);
+        } catch (refreshError) {
+          console.error('Failed to refresh GitHub OAuth token:', refreshError);
+          // If refresh fails, might need to re-authenticate
+          return null;
         }
       }
     }

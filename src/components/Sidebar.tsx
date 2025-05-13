@@ -159,8 +159,7 @@ export default function Sidebar() {
             position: 'fixed',
             height: '100%',
             zIndex: theme.zIndex.appBar - 1,
-            transition: 'background-color 0.3s ease, width 0.3s ease',
-            boxShadow: '0 0 20px rgba(0,0,0,0.05)'
+            transition: 'background-color 0.3s ease',
           },
           width: drawerWidth,
           flexShrink: 0,

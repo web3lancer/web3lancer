@@ -114,6 +114,13 @@ export default function SecondarySidebar({
     e.preventDefault();
   };
 
+  // Update parent component when width changes
+  const updateParentWidth = (newWidth: number) => {
+    if (onWidthChange) {
+      onWidthChange(newWidth);
+    }
+  };
+
   const handleHorizontalResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
@@ -122,16 +129,8 @@ export default function SecondarySidebar({
     const newWidth = Math.max(minSidebarWidth, Math.min(maxSidebarWidth, startWidth - deltaX));
     setSidebarWidth(newWidth);
     
-    // Create custom event to notify the rest of the application about the resize
-    const resizeEvent = new CustomEvent('secondarySidebarResize', { 
-      detail: { width: newWidth } 
-    });
-    window.dispatchEvent(resizeEvent);
-    
-    // Notify parent component of width change
-    if (onWidthChange) {
-      onWidthChange(newWidth);
-    }
+    // Notify parent component of width change immediately
+    updateParentWidth(newWidth);
     
     // Update document styles to indicate resizing
     document.body.style.cursor = 'ew-resize';
