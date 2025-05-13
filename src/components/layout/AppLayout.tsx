@@ -101,6 +101,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
           paddingLeft: { xs: '12px' }, // Add consistent left padding
           paddingRight: { xs: '12px', lg: showSecondarySidebar ? '12px' : '12px' }, // Add consistent right padding
           paddingBottom: { xs: showSidebar ? '70px' : 0, md: 0 },
+          // Apply top padding only when not on homepage to account for the header
+          paddingTop: isHomePage ? 0 : { xs: 2, sm: 3 },
           transition: theme.transitions.create(
             ['left', 'right', 'width', 'background-color', 'color', 'padding'],
             {
