@@ -1079,6 +1079,27 @@ async function addUser(email: string, password: string, name: string) {
  */
 
 /**
+ * Safely get a document with error handling
+ * @param databaseId Database ID
+ * @param collectionId Collection ID
+ * @param documentId Document ID
+ * @returns Document or null on failure
+ */
+// async function safeGetDocument(databaseId: string, collectionId: string, documentId: string): Promise<any | null> {
+//   try {
+//     const document = await databases.getDocument(
+//       databaseId,
+//       collectionId,
+//       documentId
+//     );
+//     return document;
+//   } catch (error) {
+//     console.error('Error getting document:', error);
+//     return null;
+//   }
+// }
+
+/**
  * Safe document fetching that handles "Document not found" errors gracefully
  * @param databaseId Database ID
  * @param collectionId Collection ID
