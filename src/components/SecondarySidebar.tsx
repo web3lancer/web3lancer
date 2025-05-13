@@ -38,9 +38,15 @@ const minMessagesHeight = 200;
 
 interface SecondarySidebarProps {
   drawerWidth?: number;
+  width?: number;
+  onWidthChange?: (width: number) => void;
 }
 
-export default function SecondarySidebar({ drawerWidth = 240 }: SecondarySidebarProps) {
+export default function SecondarySidebar({ 
+  drawerWidth = 240, 
+  width = secondarySidebarWidth,
+  onWidthChange 
+}: SecondarySidebarProps) {
   const theme = useTheme();
   const [expandedNotifications, setExpandedNotifications] = useState(true);
   const [expandedMessages, setExpandedMessages] = useState(true);
@@ -50,11 +56,31 @@ export default function SecondarySidebar({ drawerWidth = 240 }: SecondarySidebar
   const [startDragY, setStartDragY] = useState(0);
   const [startHeights, setStartHeights] = useState({ notifications: 0, messages: 0 });
   const [activeTab, setActiveTab] = useState(0);
-  const [sidebarWidth, setSidebarWidth] = useState(secondarySidebarWidth);
+  const [sidebarWidth, setSidebarWidth] = useState(width);
   const [isResizing, setIsResizing] = useState(false);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
+  
+  // Update internal state when prop changes
+  useEffect(() => {
+    setSidebarWidth(width);
+  }, [width]);
+  
+  // Listen for window resize to adjust sidebar positioning if needed
+  useEffect(() => {
+    const handleResize = () => {
+      // Reset vertical panel sizes on window resize
+      const totalHeight = window.innerHeight - 64; // Subtract header height
+      setNotificationsHeight(totalHeight * 0.5);
+      setMessagesHeight(totalHeight * 0.5);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Mock notification data
   const notificationItems = [
@@ -95,6 +121,17 @@ export default function SecondarySidebar({ drawerWidth = 240 }: SecondarySidebar
     // Since we're on the right side, we need to reverse the direction
     const newWidth = Math.max(minSidebarWidth, Math.min(maxSidebarWidth, startWidth - deltaX));
     setSidebarWidth(newWidth);
+    
+    // Create custom event to notify the rest of the application about the resize
+    const resizeEvent = new CustomEvent('secondarySidebarResize', { 
+      detail: { width: newWidth } 
+    });
+    window.dispatchEvent(resizeEvent);
+    
+    // Notify parent component of width change
+    if (onWidthChange) {
+      onWidthChange(newWidth);
+    }
     
     // Update document styles to indicate resizing
     document.body.style.cursor = 'ew-resize';
@@ -439,9 +476,12 @@ export default function SecondarySidebar({ drawerWidth = 240 }: SecondarySidebar
           left: 0,
           top: 0,
           bottom: 0,
-          width: '5px',
+          width: '8px',
           cursor: 'ew-resize',
           zIndex: theme.zIndex.appBar - 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           '&:hover': {
             backgroundColor: theme.palette.mode === 'dark' 
               ? 'rgba(255, 255, 255, 0.1)' 
@@ -453,6 +493,16 @@ export default function SecondarySidebar({ drawerWidth = 240 }: SecondarySidebar
               : 'rgba(0, 0, 0, 0.2)',
           },
           transition: 'background-color 0.2s ease',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            height: '30px',
+            width: '3px',
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.3)' 
+              : 'rgba(0, 0, 0, 0.2)',
+            borderRadius: '3px',
+          }
         }}
         onMouseDown={handleHorizontalResizeStart}
       />
@@ -489,7 +539,6 @@ export default function SecondarySidebar({ drawerWidth = 240 }: SecondarySidebar
   );
 }
 
-// Helper function to create alpha colors
 function alpha(color: string, opacity: number): string {
   // Simple alpha function for demo purposes
   return color + Math.round(opacity * 255).toString(16).padStart(2, '0');
