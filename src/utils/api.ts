@@ -1145,6 +1145,335 @@ async function safeListDocuments(databaseId: string, collectionId: string, queri
   }
 }
 
+/**
+ * Social Connections functions - for following, connecting, and other social features
+ */
+
+/**
+ * Follow/unfollow a user
+ * @param followerId ID of the user doing the following
+ * @param followeeId ID of the user being followed
+ * @param action 'follow' or 'unfollow'
+ */
+async function toggleFollowUser(followerId: string, followeeId: string, action: 'follow' | 'unfollow') {
+  if (followerId === followeeId) {
+    throw new Error('Users cannot follow themselves');
+  }
+
+  try {
+    // First, check if relationship already exists
+    const relations = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('followerId', followerId),
+        Query.equal('followeeId', followeeId),
+        Query.equal('type', 'follow')
+      ]
+    );
+
+    // Handle follow action
+    if (action === 'follow') {
+      // If already following, return existing relationship
+      if (relations.documents.length > 0) {
+        return relations.documents[0];
+      }
+
+      // Create new follow relationship
+      const result = await databases.createDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+        ID.unique(),
+        {
+          followerId,
+          followeeId,
+          type: 'follow',
+          createdAt: new Date().toISOString()
+        }
+      );
+
+      // Create notification for the user being followed
+      await addNotification(
+        followeeId,
+        `User ${followerId} started following you`,
+        'follow'
+      );
+
+      return result;
+    } 
+    // Handle unfollow action
+    else {
+      // If not following, nothing to do
+      if (relations.documents.length === 0) {
+        return null;
+      }
+
+      // Delete the follow relationship
+      await databases.deleteDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+        relations.documents[0].$id
+      );
+
+      return { success: true };
+    }
+  } catch (error) {
+    console.error(`Error ${action === 'follow' ? 'following' : 'unfollowing'} user:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Connect/disconnect with another user (bidirectional relationship)
+ * @param userId1 First user in the connection
+ * @param userId2 Second user in the connection
+ * @param action 'connect' or 'disconnect'
+ */
+async function toggleConnectUsers(userId1: string, userId2: string, action: 'connect' | 'disconnect') {
+  if (userId1 === userId2) {
+    throw new Error('Users cannot connect with themselves');
+  }
+
+  try {
+    // Check if connection already exists
+    const connections = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('type', 'connection'),
+        Query.equal('status', action === 'connect' ? 'active' : 'active'),
+        Query.or([
+          Query.and([Query.equal('userId1', userId1), Query.equal('userId2', userId2)]),
+          Query.and([Query.equal('userId1', userId2), Query.equal('userId2', userId1)])
+        ])
+      ]
+    );
+
+    // Handle connect action
+    if (action === 'connect') {
+      // Check for existing connection requests
+      const pendingRequests = await databases.listDocuments(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+        [
+          Query.equal('type', 'connection'),
+          Query.equal('status', 'pending'),
+          Query.or([
+            Query.and([Query.equal('userId1', userId1), Query.equal('userId2', userId2)]),
+            Query.and([Query.equal('userId1', userId2), Query.equal('userId2', userId1)])
+          ])
+        ]
+      );
+
+      // If there's a pending request from the other user, accept it
+      const pendingFromOther = pendingRequests.documents.find(
+        doc => doc.userId1 === userId2 && doc.userId2 === userId1
+      );
+
+      if (pendingFromOther) {
+        const result = await databases.updateDocument(
+          process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+          process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+          pendingFromOther.$id,
+          { status: 'active', updatedAt: new Date().toISOString() }
+        );
+
+        // Notify both users
+        await addNotification(
+          userId1,
+          `You are now connected with a user`,
+          'connection'
+        );
+        await addNotification(
+          userId2,
+          `You are now connected with a user`,
+          'connection'
+        );
+
+        return result;
+      }
+
+      // If already connected or already sent a request, return existing connection
+      if (connections.documents.length > 0 || pendingRequests.documents.length > 0) {
+        return connections.documents[0] || pendingRequests.documents[0];
+      }
+
+      // Create new connection request
+      const result = await databases.createDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+        ID.unique(),
+        {
+          userId1, // Requester
+          userId2, // Recipient
+          type: 'connection',
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      );
+
+      // Notify the recipient of the connection request
+      await addNotification(
+        userId2,
+        `User ${userId1} wants to connect with you`,
+        'connection_request'
+      );
+
+      return result;
+    } 
+    // Handle disconnect action
+    else {
+      // If not connected, nothing to do
+      if (connections.documents.length === 0) {
+        return null;
+      }
+
+      // Update connection status to disconnected
+      const result = await databases.updateDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+        connections.documents[0].$id,
+        { status: 'disconnected', updatedAt: new Date().toISOString() }
+      );
+
+      return result;
+    }
+  } catch (error) {
+    console.error(`Error ${action === 'connect' ? 'connecting' : 'disconnecting'} users:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Check if a user is following another user
+ * @param followerId ID of the follower
+ * @param followeeId ID of the user being followed
+ * @returns boolean indicating if the follow relationship exists
+ */
+async function isFollowing(followerId: string, followeeId: string): Promise<boolean> {
+  try {
+    const relations = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('followerId', followerId),
+        Query.equal('followeeId', followeeId),
+        Query.equal('type', 'follow')
+      ]
+    );
+    
+    return relations.documents.length > 0;
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    return false;
+  }
+}
+
+/**
+ * Check connection status between two users
+ * @param userId1 First user ID
+ * @param userId2 Second user ID
+ * @returns Connection status: 'none', 'pending', 'active', 'disconnected'
+ */
+async function getConnectionStatus(userId1: string, userId2: string): Promise<'none' | 'pending' | 'active' | 'disconnected'> {
+  try {
+    const connections = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('type', 'connection'),
+        Query.or([
+          Query.and([Query.equal('userId1', userId1), Query.equal('userId2', userId2)]),
+          Query.and([Query.equal('userId1', userId2), Query.equal('userId2', userId1)])
+        ])
+      ]
+    );
+    
+    if (connections.documents.length === 0) {
+      return 'none';
+    }
+    
+    return connections.documents[0].status;
+  } catch (error) {
+    console.error('Error checking connection status:', error);
+    return 'none';
+  }
+}
+
+/**
+ * Get followers count for a user
+ * @param userId User ID
+ * @returns Number of followers
+ */
+async function getFollowersCount(userId: string): Promise<number> {
+  try {
+    const followers = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('followeeId', userId),
+        Query.equal('type', 'follow')
+      ]
+    );
+    
+    return followers.total;
+  } catch (error) {
+    console.error('Error getting followers count:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get following count for a user
+ * @param userId User ID
+ * @returns Number of users being followed
+ */
+async function getFollowingCount(userId: string): Promise<number> {
+  try {
+    const following = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('followerId', userId),
+        Query.equal('type', 'follow')
+      ]
+    );
+    
+    return following.total;
+  } catch (error) {
+    console.error('Error getting following count:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get connections count for a user (active connections only)
+ * @param userId User ID
+ * @returns Number of active connections
+ */
+async function getConnectionsCount(userId: string): Promise<number> {
+  try {
+    const connections = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONNECTIONS_ID!,
+      [
+        Query.equal('type', 'connection'),
+        Query.equal('status', 'active'),
+        Query.or([
+          Query.equal('userId1', userId),
+          Query.equal('userId2', userId)
+        ])
+      ]
+    );
+    
+    return connections.total;
+  } catch (error) {
+    console.error('Error getting connections count:', error);
+    return 0;
+  }
+}
+
 export const deleteProfilePictureFile = async (fileId: string): Promise<void> => {
   const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
   if (!bucketId) {
@@ -1190,8 +1519,8 @@ export {
   updateMfaChallenge,
   createMfaEmailVerification,
   getUserProfile,
-  getUserProfileByUsername, // Export new function
-  checkUsernameAvailability, // Export new function
+  getUserProfileByUsername,
+  checkUsernameAvailability,
   createUserProfile,
   updateUserProfile,
   addBookmark, 
@@ -1206,7 +1535,7 @@ export {
   addPaymentMethod,
   getUserPaymentMethods,
   uploadFile,
-  getFilePreview, // Ensure getFilePreview is exported if needed elsewhere
+  getFilePreview,
   fetchJobs,
   fetchJob,
   createGitHubOAuthSession,
@@ -1217,5 +1546,12 @@ export {
   isLoggedIn,
   Query,
   safeGetDocument,
-  safeListDocuments
+  safeListDocuments,
+  toggleFollowUser,
+  toggleConnectUsers,
+  isFollowing,
+  getConnectionStatus,
+  getFollowersCount,
+  getFollowingCount,
+  getConnectionsCount
 };
