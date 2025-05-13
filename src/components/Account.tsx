@@ -82,6 +82,16 @@ export function Account() {
     router.push('/wallet');
   };
 
+  const handleLoginClick = () => {
+    handleClose();
+    router.push('/signin');
+  };
+
+  const handleCreateAccountClick = () => {
+    handleClose();
+    router.push('/signup');
+  };
+
   // Format wallet address for display
   const formatAddress = (addr?: string) => {
     if (!addr) return '';
@@ -100,67 +110,8 @@ export function Account() {
     userName: user?.name
   });
 
-  if (isAnonymous || !user) {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        <Button
-          onClick={handleMenuClick}
-          sx={{
-            borderRadius: '12px',
-            background: 'rgba(59, 130, 246, 0.1)',
-            color: '#1E40AF',
-            fontWeight: 600,
-            '&:hover': {
-              background: 'rgba(59, 130, 246, 0.2)',
-            }
-          }}
-          endIcon={<KeyboardArrowDown />}
-        >
-          Guest User
-        </Button>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-          PaperProps={{
-            sx: {
-              borderRadius: '12px',
-              boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-              mt: 1
-            }
-          }}
-        >
-          <MenuItem 
-            onClick={() => {
-              handleClose();
-              router.push('/signin');
-            }} 
-            sx={{ py: 1.5, px: 2 }}
-          >
-            <ListItemIcon>
-              <Login fontSize="small" sx={{ color: '#1E40AF' }} />
-            </ListItemIcon>
-            <ListItemText>Login</ListItemText>
-          </MenuItem>
-          <MenuItem 
-            onClick={() => {
-              handleClose();
-              router.push('/signup');
-            }} 
-            sx={{ py: 1.5, px: 2 }}
-          >
-            <ListItemIcon>
-              <PersonAdd fontSize="small" sx={{ color: '#1E40AF' }} />
-            </ListItemIcon>
-            <ListItemText>Create Account</ListItemText>
-          </MenuItem>
-        </Menu>
-        <Box sx={{ ml: 2 }}>
-          <NetworkSwitcher />
-        </Box>
-      </Box>
-    );
-  }
+  // Removed the if (isAnonymous || !user) block that returned a different Button and Menu.
+  // The component will now always return the Avatar-based menu, with items changing based on auth state.
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -183,7 +134,7 @@ export function Account() {
                 boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
               }}
             >
-              {/* Fallback to initials if no picture */}
+              {/* Fallback to initials if no picture, or '?' if not logged in/no name */}
               {!headerProfilePicture && user?.name ? user.name[0]?.toUpperCase() : !headerProfilePicture ? '?' : null}
             </Avatar>
           </motion.div>
@@ -191,7 +142,6 @@ export function Account() {
             fontSize="small"
             sx={{
               color: 'text.secondary',
-              // Ensure this is always visible or adjust based on design for the icon-only look
               ml: 0.5 
             }}
           />
@@ -210,40 +160,61 @@ export function Account() {
           }
         }}
       >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle2" fontWeight="bold">
-            {displayName || 'User'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {user.email || 'guest'}
-          </Typography>
-        </Box>
-        <Divider />
-        <MenuItem onClick={handleProfileClick} sx={{ py: 1.5, px: 2 }}>
-          <ListItemIcon>
-            <Person fontSize="small" sx={{ color: '#1E40AF' }} />
-          </ListItemIcon>
-          <ListItemText>Profile</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleSettingsClick} sx={{ py: 1.5, px: 2 }}>
-          <ListItemIcon>
-            <Settings fontSize="small" sx={{ color: '#1E40AF' }} />
-          </ListItemIcon>
-          <ListItemText>Settings</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleWalletClick} sx={{ py: 1.5, px: 2 }}>
-          <ListItemIcon>
-            <AccountBalanceWallet fontSize="small" sx={{ color: '#1E40AF' }} />
-          </ListItemIcon>
-          <ListItemText>Wallet</ListItemText>
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleLogout} sx={{ py: 1.5, px: 2 }}>
-          <ListItemIcon>
-            <Logout fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText sx={{ color: 'error.main' }}>Logout</ListItemText>
-        </MenuItem>
+        {user && !isAnonymous ? (
+          // User is logged in - show profile info and logout option
+          [
+            <Box key="userInfo" sx={{ px: 2, py: 1.5 }}>
+              <Typography variant="subtitle2" fontWeight="bold">
+                {displayName || 'User'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {user.email || 'No email provided'}
+              </Typography>
+            </Box>,
+            <Divider key="divider1" />,
+            <MenuItem key="profile" onClick={handleProfileClick} sx={{ py: 1.5, px: 2 }}>
+              <ListItemIcon>
+                <Person fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText>Profile</ListItemText>
+            </MenuItem>,
+            <MenuItem key="settings" onClick={handleSettingsClick} sx={{ py: 1.5, px: 2 }}>
+              <ListItemIcon>
+                <Settings fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText>Settings</ListItemText>
+            </MenuItem>,
+            <MenuItem key="wallet" onClick={handleWalletClick} sx={{ py: 1.5, px: 2 }}>
+              <ListItemIcon>
+                <AccountBalanceWallet fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText>Wallet</ListItemText>
+            </MenuItem>,
+            <Divider key="divider2" />,
+            <MenuItem key="logout" onClick={handleLogout} sx={{ py: 1.5, px: 2 }}>
+              <ListItemIcon>
+                <Logout fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText sx={{ color: 'error.main' }}>Logout</ListItemText>
+            </MenuItem>
+          ]
+        ) : (
+          // Guest user - show only login and signup options
+          [
+            <MenuItem key="login" onClick={handleLoginClick} sx={{ py: 1.5, px: 2 }}>
+              <ListItemIcon>
+                <Login fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText>Login</ListItemText>
+            </MenuItem>,
+            <MenuItem key="signup" onClick={handleCreateAccountClick} sx={{ py: 1.5, px: 2 }}>
+              <ListItemIcon>
+                <PersonAdd fontSize="small" sx={{ color: '#1E40AF' }} />
+              </ListItemIcon>
+              <ListItemText>Sign Up</ListItemText>
+            </MenuItem>
+          ]
+        )}
       </Menu>
       
       <Box sx={{ ml: 2 }}>
