@@ -94,11 +94,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
         component="main"
         sx={{
           position: 'fixed', 
-          left: { xs: 0, md: showSidebar ? `${primaryDrawerWidth}px` : 0 },
+          left: { xs: 0, md: showSidebar ? `${primaryDrawerWidth + 12}px` : 0 }, // Include sidebar margin
           right: { xs: 0, lg: showSecondarySidebar ? `${secondarySidebarWidth}px` : 0 },
-          top: { xs: '56px', sm: '64px' },
+          top: { xs: '84px', sm: '92px' }, // Increased space from header
           bottom: 0,
-          paddingRight: { lg: showSecondarySidebar ? '12px' : 0 }, // Add padding to account for secondary sidebar margin
+          paddingLeft: { xs: '12px' }, // Add consistent left padding
+          paddingRight: { xs: '12px', lg: showSecondarySidebar ? '12px' : '12px' }, // Add consistent right padding
           paddingBottom: { xs: showSidebar ? '70px' : 0, md: 0 },
           transition: theme.transitions.create(
             ['left', 'right', 'width', 'background-color', 'color', 'padding'],

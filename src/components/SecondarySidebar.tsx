@@ -595,13 +595,13 @@ export default function SecondarySidebar({
           display: { xs: 'none', lg: 'flex' },
           flexDirection: 'column',
           position: 'fixed',
-          top: 76, // Header height + margin
+          top: 92, // Increased margin from header
           right: 12, // Add margin from right edge
           bottom: 12, // Add margin from bottom edge
           width: `calc(${sidebarWidth}px - 12px)`, // Subtract right margin
           background: 'transparent',
           border: 'none',
-          zIndex: theme.zIndex.appBar - 1,
+          zIndex: theme.zIndex.appBar - 1, // Below navbar
           overflow: 'visible',
           boxShadow: 'none',
           transition: theme.transitions.create(['width'], {

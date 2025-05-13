@@ -144,32 +144,31 @@ export default function Sidebar() {
   );
 
   return (
-    <>
-      <Drawer
-        variant="permanent"
-        open
-        sx={{
-          display: { xs: 'none', md: 'block' },
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
+    <>        <Drawer
+          variant="permanent"
+          open
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+              borderRight: 'none',
+              background: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+              position: 'fixed',
+              height: 'calc(100% - 104px)', // Adjusted to leave more space for navbar
+              zIndex: theme.zIndex.appBar - 1,
+              transition: 'background-color 0.3s ease',
+              marginTop: '92px', // Increased spacing from navbar
+              marginBottom: '12px',
+              marginLeft: '12px',
+              borderRadius: '16px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+              backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+            },
             width: drawerWidth,
-            borderRight: 'none',
-            background: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
-            position: 'fixed',
-            height: 'calc(100% - 24px)',
-            zIndex: theme.zIndex.appBar - 1,
-            transition: 'background-color 0.3s ease',
-            marginTop: '12px',
-            marginBottom: '12px',
-            marginLeft: '12px',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-            backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-          },
-          width: drawerWidth,
-          flexShrink: 0,
-        }}
+            flexShrink: 0,
+          }}
       >
         {drawerContent}
       </Drawer>

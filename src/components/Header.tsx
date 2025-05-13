@@ -21,6 +21,11 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
   const pathname = usePathname();
   const theme = useTheme();
+  
+  // Add variables for sidebar calculations
+  const drawerWidth = 240; // Match the primaryDrawerWidth from AppLayout
+  const showSidebar = !isHomePage && !isPreAuthPage && 
+    !['/signin', '/signup', '/'].includes(pathname ?? ''); // Simple check for sidebar visibility
 
   /*
   useEffect(() => {
@@ -87,16 +92,25 @@ export default function Header({ isHomePage = false, isPreAuthPage = false }: He
     return null;
   }
 
+  // Transform the appBar to have rounded corners and aloofness
   const appBarSx: SxProps<Theme> = {
     background: theme.palette.mode === 'dark' 
       ? 'rgba(17, 24, 39, 0.85)' 
       : 'rgba(255, 255, 255, 0.85)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)', // For Safari
-    borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
-    width: '100%',
-    zIndex: theme.zIndex.drawer + 1,
+    borderBottom: 'none',
+    width: 'auto',
+    zIndex: theme.zIndex.drawer + 2, // Higher z-index to ensure it's above sidebars
     transition: 'background-color 0.3s ease, border-color 0.3s ease',
+    margin: '16px',
+    marginLeft: '16px', // Always have left margin
+    marginRight: '16px', // Always have right margin
+    borderRadius: '16px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    position: 'fixed',
+    left: 0,
+    right: 0,
   };
 
   if (isPreAuthPage) {
