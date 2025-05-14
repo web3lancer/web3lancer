@@ -1,10 +1,10 @@
 "use client";
 
-import { Drawer, List, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction, Divider, ListItemButton, useTheme, useMediaQuery, Avatar, Button, Typography, Menu, MenuItem, ListItem } from "@mui/material";
-import { Dashboard, Work, Bookmarks, Storefront, Person, People, Groups, Loyalty, CampaignOutlined } from "@mui/icons-material";
+import { Drawer, List, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction, Divider, ListItemButton, useTheme, useMediaQuery, Avatar, Button, Typography, Menu, MenuItem, ListItem, Tooltip, Fade, ButtonBase, Popper, Paper, ClickAwayListener, MenuList } from "@mui/material";
+import { Dashboard, Work, Bookmarks, Storefront, Person, People, Groups, Loyalty, CampaignOutlined, MoreHoriz } from "@mui/icons-material";
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
-import React, { useState, useEffect, useMemo } from "react"; // Added useMemo
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from '@/contexts/AuthContext';
 
 // Add ethereum window type declaration
@@ -24,36 +24,55 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
-  const { user } = useAuth(); // Get user from AuthContext
-
+  const { user } = useAuth();
+  const isMediumScreen = useMediaQuery(theme.breakpoints.down('lg'));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // State for "More" dropdown menu
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLDivElement>(null);
+  const moreBottomNavRef = useRef<HTMLDivElement>(null);
+  
   const profilePath = useMemo(() => {
     if (user && user.$id) {
-      // Use user.$id for the link. UserProfilePage will handle redirecting to username if available.
       return `/u/${user.$id}`;
     }
-    return '/login'; // Fallback if user or user.$id is null/undefined
+    return '/login';
   }, [user]);
 
-  const menuItems = useMemo(() => [
+  // Define menu items for the sidebar
+  const mainMenuItems = useMemo(() => [
     { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
     { text: 'Projects', icon: Work, path: '/projects' },
     { text: 'Connect', icon: People, path: '/connect' },
     { text: 'Groups', icon: Groups, path: '/groups' },
-    { text: 'Lancelot', icon: Loyalty, path: '/lancelot' },
+    { text: 'Lancelot', icon: Loyalty, path: '/lancelot' }
+  ], []);
+  
+  // Items to show in "More" dropdown on smaller screens
+  const moreMenuItems = useMemo(() => [
     { text: 'Ads', icon: CampaignOutlined, path: '/ads' },
     { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
-    { text: 'Profile', icon: Person, path: profilePath }, // Uses dynamic profile path
+    { text: 'Profile', icon: Person, path: profilePath }
   ], [profilePath]);
+  
+  // All menu items combined for larger screens and mobile bottom nav
+  const allMenuItems = useMemo(() => [
+    ...mainMenuItems,
+    ...moreMenuItems
+  ], [mainMenuItems, moreMenuItems]);
 
   const [value, setValue] = useState(() => {
     const currentPath = pathname ?? '';
-  // Match /u/[id] or /u/[usernameOrId] by checking if currentPath starts with /u/ and item.text is Profile
-  if (currentPath.startsWith('/u/')) {
-    const profileIndex = menuItems.findIndex(item => item.text === 'Profile');
-    if (profileIndex !== -1) return profileIndex;
-  }
-    const index = menuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
-    return index !== -1 ? index : (currentPath === '/' ? 0 : -1); // Default to -1 if no match, 0 for dashboard on root
+    
+    // Match /u/[id] or /u/[usernameOrId] 
+    if (currentPath.startsWith('/u/')) {
+      const profileIndex = allMenuItems.findIndex(item => item.text === 'Profile');
+      if (profileIndex !== -1) return profileIndex;
+    }
+    
+    const index = allMenuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
+    return index !== -1 ? index : (currentPath === '/' ? 0 : -1);
   });
 
   useEffect(() => {
@@ -62,31 +81,54 @@ export default function Sidebar() {
 
     // Special handling for dynamic profile paths /u/[usernameOrId]
     if (currentPath.startsWith('/u/')) {
-      const profileItemIndex = menuItems.findIndex(item => item.text === 'Profile');
+      const profileItemIndex = allMenuItems.findIndex(item => item.text === 'Profile');
       if (profileItemIndex !== -1) {
         activeIndex = profileItemIndex;
       }
     } else {
       // Standard path matching
-      const exactMatchIndex = menuItems.findIndex(item => item.path === currentPath);
+      const exactMatchIndex = allMenuItems.findIndex(item => item.path === currentPath);
       if (exactMatchIndex !== -1) {
         activeIndex = exactMatchIndex;
       } else {
-        // Fallback to startsWith for parent paths, ensuring it's not just root '/'
-        const startsWithIndex = menuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
+        // Fallback to startsWith for parent paths
+        const startsWithIndex = allMenuItems.findIndex(item => item.path !== '/' && currentPath.startsWith(item.path));
         if (startsWithIndex !== -1) {
           activeIndex = startsWithIndex;
         }
       }
     }
-    // If still no match and on root path, select Dashboard (index 0)
-    if (activeIndex === -1 && currentPath === '/' && menuItems[0]?.path === '/dashboard') {
+    
+    // If still no match and on root path, select Dashboard
+    if (activeIndex === -1 && currentPath === '/' && allMenuItems[0]?.path === '/dashboard') {
         activeIndex = 0;
     }
 
     setValue(activeIndex);
+  }, [pathname, allMenuItems, profilePath]);
 
-  }, [pathname, menuItems, profilePath]);
+  const handleMoreClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    setMoreMenuOpen(prev => !prev);
+  };
+
+  const handleMoreItemClick = (path: string) => {
+    router.push(path);
+    setMoreMenuOpen(false);
+  };
+
+  const handleClickAway = () => {
+    setMoreMenuOpen(false);
+  };
+
+  // Check if an item from the More menu is active
+  const isMoreActive = useMemo(() => {
+    const currentPath = pathname ?? '';
+    return moreMenuItems.some(item => 
+      item.path === currentPath || 
+      (item.path !== '/' && currentPath.startsWith(item.path)) ||
+      (item.text === 'Profile' && currentPath.startsWith('/u/'))
+    );
+  }, [pathname, moreMenuItems]);
 
   const listVariants = {
     hidden: { opacity: 0 },
@@ -104,81 +146,199 @@ export default function Sidebar() {
     show: { opacity: 1, x: 0, transition: { duration: 0.3 } }
   };
 
+  const renderMainMenuItems = () => (
+    mainMenuItems.map((item, index) => {
+      const isActive = mainMenuItems.findIndex(mItem => mItem.path === pathname) === index || 
+                      (pathname && pathname.startsWith(item.path) && item.path !== '/');
+      
+      return (
+        <motion.div key={item.text} variants={itemVariants}>
+          <ListItemButton
+            component="a"
+            href={item.path}
+            onClick={(e) => {
+              e.preventDefault();
+              router.push(item.path);
+            }}
+            sx={{
+              borderRadius: '12px',
+              mb: 0.5,
+              py: 1.5,
+              color: 'primary.contrastText',
+              backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : undefined,
+              '&:hover': {
+                backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+              <item.icon />
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.text} 
+              primaryTypographyProps={{ 
+                fontWeight: isActive ? 600 : 400,
+                sx: { letterSpacing: '0.025em' }
+              }} 
+            />
+          </ListItemButton>
+        </motion.div>
+      );
+    })
+  );
+
+  const renderMoreButton = () => (
+    <motion.div variants={itemVariants}>
+      <ListItemButton
+        ref={moreButtonRef}
+        onClick={handleMoreClick}
+        sx={{
+          borderRadius: '12px',
+          mb: 0.5,
+          py: 1.5,
+          color: 'primary.contrastText',
+          backgroundColor: isMoreActive || moreMenuOpen ? 'rgba(255, 255, 255, 0.15)' : undefined,
+          '&:hover': {
+            backgroundColor: isMoreActive || moreMenuOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
+          },
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+          <MoreHoriz />
+        </ListItemIcon>
+        <ListItemText 
+          primary="More" 
+          primaryTypographyProps={{ 
+            fontWeight: isMoreActive ? 600 : 400,
+            sx: { letterSpacing: '0.025em' }
+          }} 
+        />
+      </ListItemButton>
+
+      <Popper
+        open={moreMenuOpen}
+        anchorEl={moreButtonRef.current}
+        placement="right-start"
+        transition
+        sx={{ zIndex: 1300 }}
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Paper 
+              elevation={6}
+              sx={{ 
+                borderRadius: '12px',
+                mt: 0.5,
+                minWidth: 200,
+                backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+                color: theme.palette.primary.contrastText
+              }}
+            >
+              <ClickAwayListener onClickAway={handleClickAway}>
+                <MenuList autoFocusItem={moreMenuOpen}>
+                  {moreMenuItems.map((item) => {
+                    const isItemActive = pathname === item.path || 
+                                        (pathname && pathname.startsWith(item.path) && item.path !== '/') ||
+                                        (item.text === 'Profile' && pathname && pathname.startsWith('/u/'));
+                    
+                    return (
+                      <MenuItem
+                        key={item.text}
+                        onClick={() => handleMoreItemClick(item.path)}
+                        sx={{
+                          borderRadius: '8px',
+                          mx: 1,
+                          my: 0.5,
+                          backgroundColor: isItemActive ? 'rgba(255, 255, 255, 0.15)' : undefined,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+                          <item.icon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary={item.text} />
+                      </MenuItem>
+                    );
+                  })}
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
+    </motion.div>
+  );
+
   const drawerContent = (
     <Box sx={{ 
-      mt: { xs: 8, md: 9 }, 
-      height: 'calc(100% - 72px)', 
+      mt: { xs: 1, md: 1 }, // Minimal top margin to push content to the top
+      height: 'calc(100% - 32px)',
       display: 'flex', 
       flexDirection: 'column',
-      overflow: 'hidden' // Changed from 'auto' to 'hidden' to prevent scrolling
+      overflow: 'hidden' // Container doesn't scroll, but allows inner content to scroll
     }}>
       <motion.div
         initial="hidden"
         animate="show"
         variants={listVariants}
-        style={{ padding: '0 8px', flexGrow: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} // Added overflowY auto for scrolling list items
+        style={{ 
+          padding: '0 8px', 
+          flexGrow: 1, 
+          overflowY: 'auto',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
+        }}
       >
-        <List>
-          {menuItems.map((item, index) => {
-            const isActive = value === index;
+        <List disablePadding>
+          {/* Main menu items */}
+          {renderMainMenuItems()}
+          
+          {/* More dropdown for small screens */}
+          {isMediumScreen && renderMoreButton()}
+          
+          {/* Secondary items displayed directly on larger screens */}
+          {!isMediumScreen && moreMenuItems.map((item, index) => {
+            const isActive = value === mainMenuItems.length + index;
+            
             return (
               <motion.div key={item.text} variants={itemVariants}>
-                <ListItem 
-                  disablePadding 
-                  sx={{ 
+                <ListItemButton
+                  component="a"
+                  href={item.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    router.push(item.path);
+                  }}
+                  sx={{
+                    borderRadius: '12px',
                     mb: 0.5,
-                    borderRadius: '8px',
-                    transition: 'background-color 0.2s ease-in-out',
+                    py: 1.5,
+                    color: 'primary.contrastText',
+                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : undefined,
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
                     },
                   }}
                 >
-                  <ListItemButton
-                    selected={isActive}
-                    onClick={() => {
-                      // setValue(index); // Optimistically set, or rely on useEffect after navigation
-                      router.push(item.path);
-                    }}
-                    sx={{
-                      borderRadius: '8px',
-                      py: 1.2, 
-                      px: 2,
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                      '&.Mui-selected': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                        '&:hover': {
-                           backgroundColor: 'rgba(255, 255, 255, 0.20)',
-                        },
-                        '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-                          color: theme.palette.common.white,
-                          fontWeight: '600',
-                        },
-                      },
-                      '& .MuiListItemIcon-root': {
-                        minWidth: '40px',
-                        color: isActive ? theme.palette.common.white : 'rgba(255, 255, 255, 0.8)',
-                        transition: 'color 0.2s ease-in-out',
-                      },
-                      '& .MuiListItemText-primary': {
-                        color: isActive ? theme.palette.common.white : 'rgba(255, 255, 255, 0.8)',
-                        fontSize: '0.9rem',
-                        fontWeight: isActive ? '600' : 'normal',
-                        transition: 'color 0.2s ease-in-out, font-weight 0.2s ease-in-out',
-                      }
-                    }}
-                  >
-                    <ListItemIcon>
-                      <item.icon />
-                    </ListItemIcon>
-                    <ListItemText primary={item.text} />
-                  </ListItemButton>
-                </ListItem>
+                  <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                    <item.icon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    primaryTypographyProps={{ 
+                      fontWeight: isActive ? 600 : 400,
+                      sx: { letterSpacing: '0.025em' }
+                    }} 
+                  />
+                </ListItemButton>
               </motion.div>
             );
           })}
         </List>
       </motion.div>
+      
       <Divider sx={{ bgcolor: 'rgba(255,255,255,0.1)', my: 1 }} />
       
       {/* Copyright */}
@@ -194,40 +354,18 @@ export default function Sidebar() {
     </Box>
   );
 
-  return (
-    <>        <Drawer
-          variant="permanent"
-          open
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-              borderRight: 'none',
-              background: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              position: 'fixed',
-              height: 'calc(100% - 104px)', // Adjusted to leave more space for navbar
-              zIndex: theme.zIndex.appBar - 1,
-              transition: 'background-color 0.3s ease',
-              marginTop: '92px', // Increased spacing from navbar
-              marginBottom: '12px',
-              marginLeft: '12px',
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-              backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-            },
-            width: drawerWidth,
-            flexShrink: 0,
-          }}
-      >
-        {drawerContent}
-      </Drawer>
-
+  // Mobile bottom navigation with "More" dropdown
+  const bottomNavigation = (
+    <Box sx={{ position: 'relative' }}>
       <BottomNavigation
-        value={value}
+        value={value < mainMenuItems.length ? value : mainMenuItems.length}
         onChange={(event, newValue) => {
-          router.push(menuItems[newValue].path);
+          if (newValue === mainMenuItems.length) {
+            // "More" button clicked
+            setMoreMenuOpen(true);
+          } else {
+            router.push(mainMenuItems[newValue].path);
+          }
         }}
         showLabels
         sx={{
@@ -243,45 +381,122 @@ export default function Sidebar() {
           height: 'auto',
           minHeight: 56,
           pb: 'env(safe-area-inset-bottom)',
-          transition: 'background-color 0.3s ease, border-color 0.3s ease',
           '& .MuiBottomNavigationAction-root': {
              color: theme.palette.text.secondary,
              paddingTop: '8px',
              paddingBottom: '8px',
-             minWidth: 'auto',
-             flex: 1,
              '&.Mui-selected': {
                color: theme.palette.primary.main,
-               paddingTop: '6px',
                '& .MuiBottomNavigationAction-label': {
                  fontSize: '0.75rem',
                  fontWeight: 500,
                },
-               '& .MuiSvgIcon-root': {
-                 fontSize: 24,
-               },
-             },
-             '& .MuiBottomNavigationAction-label': {
-               fontSize: '0.65rem',
-               fontWeight: 400,
-               transition: 'font-size 0.2s ease, color 0.2s ease',
-               mt: '2px',
-             },
-             '& .MuiSvgIcon-root': {
-               fontSize: 22,
-               transition: 'font-size 0.2s ease, color 0.2s ease',
              },
           }
         }}
       >
-        {menuItems.map((item) => (
+        {mainMenuItems.map((item) => (
           <BottomNavigationAction
             key={item.text}
             label={item.text}
             icon={<item.icon />}
           />
         ))}
+        
+        <Box ref={moreBottomNavRef}>
+          <BottomNavigationAction
+            label="More"
+            icon={<MoreHoriz />}
+          />
+        </Box>
       </BottomNavigation>
+
+      <Popper
+        open={moreMenuOpen}
+        anchorEl={moreBottomNavRef.current}
+        placement="top"
+        transition
+        sx={{ zIndex: theme.zIndex.appBar + 1, width: '100%', maxWidth: 280, left: '50% !important', transform: 'translateX(-50%) !important' }}
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Paper
+              elevation={6}
+              sx={{ 
+                borderRadius: '12px 12px 0 0',
+                mb: 1,
+                backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+                color: theme.palette.primary.contrastText
+              }}
+            >
+              <ClickAwayListener onClickAway={handleClickAway}>
+                <MenuList>
+                  {moreMenuItems.map((item) => {
+                    const isItemActive = pathname === item.path || 
+                                        (pathname && pathname.startsWith(item.path) && item.path !== '/') ||
+                                        (item.text === 'Profile' && pathname && pathname.startsWith('/u/'));
+                    
+                    return (
+                      <MenuItem
+                        key={item.text}
+                        onClick={() => handleMoreItemClick(item.path)}
+                        sx={{
+                          py: 1.5,
+                          backgroundColor: isItemActive ? 'rgba(255, 255, 255, 0.15)' : undefined,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: 'inherit' }}>
+                          <item.icon />
+                        </ListItemIcon>
+                        <ListItemText primary={item.text} />
+                      </MenuItem>
+                    );
+                  })}
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
+    </Box>
+  );
+
+  return (
+    <>
+      <Drawer
+        variant="permanent"
+        open
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            borderRight: 'none',
+            background: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            position: 'fixed',
+            height: 'calc(100% - 104px)',
+            zIndex: theme.zIndex.appBar - 1,
+            transition: 'background-color 0.3s ease',
+            marginTop: '92px',
+            marginBottom: '12px',
+            marginLeft: '12px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+          },
+          width: drawerWidth,
+          flexShrink: 0,
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Mobile Bottom Navigation */}
+      {isSmallScreen && bottomNavigation}
     </>
   );
 }

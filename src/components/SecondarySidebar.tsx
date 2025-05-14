@@ -308,11 +308,7 @@ export default function SecondarySidebar({
         overflow: 'auto', 
         height: 'calc(100% - 48px)',
         '&::-webkit-scrollbar': {
-          width: '8px',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(0,0,0,0.2)',
-          borderRadius: '4px',
+          width: '0px', // Hide scrollbar width
         },
       }}>
         <List sx={{ py: 0 }}>
@@ -442,11 +438,7 @@ export default function SecondarySidebar({
         overflow: 'auto', 
         height: 'calc(100% - 48px - 40px)', // Adjust for header and tabs height
         '&::-webkit-scrollbar': {
-          width: '8px',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(0,0,0,0.2)',
-          borderRadius: '4px',
+          width: '0px', // Hide scrollbar
         },
       }}>
         <List sx={{ py: 0 }}>
