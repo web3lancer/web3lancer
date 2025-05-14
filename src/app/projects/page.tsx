@@ -28,7 +28,20 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ pt: 3 }}>
+        <Box sx={{ 
+          pt: 1, 
+          animation: 'fadeIn 0.4s ease-in-out',
+          '@keyframes fadeIn': {
+            '0%': {
+              opacity: 0,
+              transform: 'translateY(10px)'
+            },
+            '100%': {
+              opacity: 1,
+              transform: 'translateY(0)'
+            }
+          }
+        }}>
           {children}
         </Box>
       )}
@@ -96,18 +109,47 @@ export default function ProjectsPage() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-        Projects & Jobs
-      </Typography>
-      
+    <Box sx={{ width: '100%' }}>
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 3, 
+            borderRadius: 2,
+            boxShadow: 2
+          }}
+        >
           {error}
         </Alert>
       )}
       
-      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+      
+      <Tabs 
+        value={activeTab} 
+        onChange={handleTabChange} 
+        variant="fullWidth"
+        sx={{ 
+          mb: 3,
+          borderRadius: '16px 16px 0 0',
+          background: theme => `linear-gradient(145deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+          '& .MuiTab-root': {
+            color: 'white',
+            opacity: 0.7,
+            fontWeight: 500,
+            py: 2,
+            transition: 'all 0.3s ease',
+            '&.Mui-selected': {
+              opacity: 1,
+              fontWeight: 700,
+            },
+          },
+          '& .MuiTabs-indicator': {
+            height: 4,
+            borderRadius: '4px 4px 0 0',
+            backgroundColor: 'white',
+          }
+        }}
+      >
         <Tab label="Browse" />
         <Tab label="Post a Job" />
         <Tab label="Create Project" />

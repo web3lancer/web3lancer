@@ -87,7 +87,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           paddingLeft: { xs: 1, md: 1.5 }, // Adjusted for md
           paddingRight: { xs: 1, md: 1.5 }, // Adjusted for md
           paddingBottom: { xs: (showSidebar && !isNotFoundPage) ? '70px' : 0, md: 0 },
-          paddingTop: isHomePage ? 0 : { xs: 1, sm: 1, md: 1.5 }, // Adjusted for sm and md
+          paddingTop: isHomePage ? 0 : { xs: 1, sm: 1, md: 0.3 }, // Reduced md from 1.5 to 0.5
           transition: theme.transitions.create(
             ['left', 'right', 'width', 'background-color', 'color', 'padding'],
             {
