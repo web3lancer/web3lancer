@@ -1,28 +1,24 @@
-import { ID, Query, Databases, Storage } from "appwrite";
-import { client } from "@/app/appwrite";
+import { ID, Query } from "appwrite";
+import { databases, storage } from "@/app/api";
 import { Profile, VerificationRequest, VerificationType } from "@/types";
+
+// Define collection and bucket IDs if they don't exist in env
+const VERIFICATION_REQUESTS_COLLECTION_ID = "verification_requests";
+const VERIFICATION_DOCUMENTS_BUCKET_ID = "verification_documents";
+
+// Import existing constants
 import {
   PROFILES_DATABASE_ID,
   USER_PROFILES_COLLECTION_ID,
   PROFILE_AVATARS_BUCKET_ID,
-  COVER_IMAGES_BUCKET_ID,
-  VERIFICATION_REQUESTS_COLLECTION_ID,
-  VERIFICATION_DOCUMENTS_BUCKET_ID
+  COVER_IMAGES_BUCKET_ID
 } from "@/lib/env";
 
 class ProfileService {
-  private databases: Databases;
-  private storage: Storage;
-
-  constructor() {
-    this.databases = new Databases(client);
-    this.storage = new Storage(client);
-  }
-
   // Create a new profile
   async createProfile(profileData: Partial<Profile>): Promise<Profile | null> {
     try {
-      const newProfile = await this.databases.createDocument(
+      const newProfile = await databases.createDocument(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         ID.unique(),
@@ -41,7 +37,7 @@ class ProfileService {
           ...profileData
         }
       );
-      return newProfile as Profile;
+      return newProfile as unknown as Profile;
     } catch (error) {
       console.error("Error creating profile:", error);
       return null;
@@ -51,12 +47,12 @@ class ProfileService {
   // Get profile by ID
   async getProfile(profileId: string): Promise<Profile | null> {
     try {
-      const profile = await this.databases.getDocument(
+      const profile = await databases.getDocument(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         profileId
       );
-      return profile as Profile;
+      return profile as unknown as Profile;
     } catch (error) {
       console.error("Error fetching profile:", error);
       return null;
@@ -66,14 +62,14 @@ class ProfileService {
   // Get profile by userId
   async getProfileByUserId(userId: string): Promise<Profile | null> {
     try {
-      const profiles = await this.databases.listDocuments(
+      const profiles = await databases.listDocuments(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         [Query.equal("userId", userId)]
       );
 
       if (profiles.total > 0) {
-        return profiles.documents[0] as Profile;
+        return profiles.documents[0] as unknown as Profile;
       }
       return null;
     } catch (error) {
@@ -85,14 +81,14 @@ class ProfileService {
   // Get profile by username
   async getProfileByUsername(username: string): Promise<Profile | null> {
     try {
-      const profiles = await this.databases.listDocuments(
+      const profiles = await databases.listDocuments(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         [Query.equal("username", username)]
       );
 
       if (profiles.total > 0) {
-        return profiles.documents[0] as Profile;
+        return profiles.documents[0] as unknown as Profile;
       }
       return null;
     } catch (error) {
@@ -104,13 +100,13 @@ class ProfileService {
   // Update profile
   async updateProfile(profileId: string, profileData: Partial<Profile>): Promise<Profile | null> {
     try {
-      const updatedProfile = await this.databases.updateDocument(
+      const updatedProfile = await databases.updateDocument(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         profileId,
         profileData
       );
-      return updatedProfile as Profile;
+      return updatedProfile as unknown as Profile;
     } catch (error) {
       console.error("Error updating profile:", error);
       return null;
@@ -129,14 +125,14 @@ class ProfileService {
       // Delete old avatar if exists
       if (profile.avatarFileId) {
         try {
-          await this.storage.deleteFile(PROFILE_AVATARS_BUCKET_ID, profile.avatarFileId);
+          await storage.deleteFile(PROFILE_AVATARS_BUCKET_ID, profile.avatarFileId);
         } catch (error) {
           console.error("Error deleting old avatar:", error);
         }
       }
 
       // Upload new avatar
-      const uploadedFile = await this.storage.createFile(
+      const uploadedFile = await storage.createFile(
         PROFILE_AVATARS_BUCKET_ID,
         ID.unique(),
         avatarFile
@@ -169,14 +165,14 @@ class ProfileService {
       // Delete old cover if exists
       if (profile.coverImageFileId) {
         try {
-          await this.storage.deleteFile(COVER_IMAGES_BUCKET_ID, profile.coverImageFileId);
+          await storage.deleteFile(COVER_IMAGES_BUCKET_ID, profile.coverImageFileId);
         } catch (error) {
           console.error("Error deleting old cover image:", error);
         }
       }
 
       // Upload new cover
-      const uploadedFile = await this.storage.createFile(
+      const uploadedFile = await storage.createFile(
         COVER_IMAGES_BUCKET_ID,
         ID.unique(),
         coverFile
@@ -199,12 +195,12 @@ class ProfileService {
 
   // Get avatar URL
   getProfileAvatarUrl(fileId: string): string {
-    return this.storage.getFileView(PROFILE_AVATARS_BUCKET_ID, fileId).href;
+    return storage.getFileView(PROFILE_AVATARS_BUCKET_ID, fileId);
   }
 
   // Get cover image URL
   getProfileCoverUrl(fileId: string): string {
-    return this.storage.getFileView(COVER_IMAGES_BUCKET_ID, fileId).href;
+    return storage.getFileView(COVER_IMAGES_BUCKET_ID, fileId);
   }
 
   // Submit verification request
@@ -218,7 +214,7 @@ class ProfileService {
       // Upload all documents
       const documentIds: string[] = [];
       for (const doc of documents) {
-        const uploadedFile = await this.storage.createFile(
+        const uploadedFile = await storage.createFile(
           VERIFICATION_DOCUMENTS_BUCKET_ID,
           ID.unique(),
           doc
@@ -227,7 +223,7 @@ class ProfileService {
       }
 
       // Create verification request
-      const verificationRequest = await this.databases.createDocument(
+      const verificationRequest = await databases.createDocument(
         PROFILES_DATABASE_ID,
         VERIFICATION_REQUESTS_COLLECTION_ID,
         ID.unique(),
@@ -242,7 +238,7 @@ class ProfileService {
       );
 
       return {
-        request: verificationRequest as VerificationRequest,
+        request: verificationRequest as unknown as VerificationRequest,
         documentIds
       };
     } catch (error) {
@@ -254,13 +250,13 @@ class ProfileService {
   // Get verification requests for a profile
   async getVerificationRequests(profileId: string): Promise<VerificationRequest[]> {
     try {
-      const requests = await this.databases.listDocuments(
+      const requests = await databases.listDocuments(
         PROFILES_DATABASE_ID,
         VERIFICATION_REQUESTS_COLLECTION_ID,
         [Query.equal("profileId", profileId)]
       );
 
-      return requests.documents as VerificationRequest[];
+      return requests.documents as unknown as VerificationRequest[];
     } catch (error) {
       console.error("Error fetching verification requests:", error);
       return [];
@@ -271,7 +267,7 @@ class ProfileService {
   async searchProfiles(searchTerm: string, limit: number = 10): Promise<Profile[]> {
     try {
       // Search by username, displayName, skills, etc.
-      const profiles = await this.databases.listDocuments(
+      const profiles = await databases.listDocuments(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         [
@@ -280,7 +276,7 @@ class ProfileService {
         ]
       );
 
-      return profiles.documents as Profile[];
+      return profiles.documents as unknown as Profile[];
     } catch (error) {
       console.error("Error searching profiles:", error);
       return [];
@@ -319,7 +315,7 @@ class ProfileService {
 
       // Add more complex queries if needed
 
-      const response = await this.databases.listDocuments(
+      const response = await databases.listDocuments(
         PROFILES_DATABASE_ID,
         USER_PROFILES_COLLECTION_ID,
         queries
@@ -327,7 +323,7 @@ class ProfileService {
 
       // Additional filtering for properties like roles and skills
       // that might need more complex filtering than Appwrite queries allow
-      let filteredProfiles = response.documents as Profile[];
+      let filteredProfiles = response.documents as unknown as Profile[];
 
       if (roles && roles.length > 0) {
         filteredProfiles = filteredProfiles.filter(profile => 

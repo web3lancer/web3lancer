@@ -1,122 +1,179 @@
-import { Profile } from "@/types";
-import Link from "next/link";
-import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext-new";
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Profile } from '@/types';
+import profileService from '@/services/profileService';
 
 interface ProfileHeaderProps {
   profile: Profile;
+  isCurrentUser?: boolean;
   className?: string;
 }
 
-export default function ProfileHeader({ profile, className = "" }: ProfileHeaderProps) {
-  const { user } = useAuth();
-  const isCurrentUser = user && user.$id === profile.userId;
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
+  profile, 
+  isCurrentUser = false,
+  className = ''
+}) => {
+  // Default images if none exist
+  const avatarUrl = profile.avatarFileId 
+    ? profileService.getProfileAvatarUrl(profile.avatarFileId)
+    : '/images/default-avatar.png';
   
+  const coverUrl = profile.coverImageFileId
+    ? profileService.getProfileCoverUrl(profile.coverImageFileId)
+    : '/images/default-cover.jpg';
+
   return (
-    <div className={`relative ${className}`}>
+    <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden ${className}`}>
       {/* Cover Image */}
-      <div className="relative h-48 sm:h-64 bg-gray-300 dark:bg-gray-700">
-        {profile.coverImageFileId ? (
-          <Image 
-            src={`/api/profile/cover/${profile.coverImageFileId}`} 
-            alt="Cover" 
-            fill 
-            className="object-cover" 
-            priority
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
-        )}
+      <div className="relative h-32 md:h-48 lg:h-64 w-full">
+        <Image
+          src={coverUrl}
+          alt="Profile Cover"
+          layout="fill"
+          objectFit="cover"
+          priority
+        />
       </div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 sm:-mt-24">
-          {/* Profile Avatar */}
-          <div className="relative z-10 h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-600 shadow-md">
-            {profile.avatarFileId ? (
-              <Image 
-                src={`/api/profile/avatar/${profile.avatarFileId}`} 
-                alt={profile.displayName} 
-                fill 
-                className="object-cover" 
-                priority
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full w-full text-4xl font-bold text-gray-500 dark:text-gray-400">
-                {profile.displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            
+      {/* Profile Info */}
+      <div className="relative px-4 sm:px-6 pb-5">
+        {/* Avatar - positioned to overlap the cover */}
+        <div className="absolute -top-16 left-4 sm:left-6">
+          <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white dark:border-slate-800 overflow-hidden">
+            <Image
+              src={avatarUrl}
+              alt={profile.displayName}
+              layout="fill"
+              objectFit="cover"
+              className="rounded-full"
+            />
             {profile.isVerified && (
-              <div className="absolute bottom-1 right-1 h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1" title="Verified Profile">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="text-white"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
               </div>
             )}
           </div>
-          
-          {/* Profile Info */}
-          <div className="mt-4 sm:mt-0 sm:ml-6 sm:mb-2 text-center sm:text-left flex-grow">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profile.displayName}</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">@{profile.username}</p>
-              </div>
+        </div>
+        
+        {/* Edit Profile Button for current user */}
+        {isCurrentUser && (
+          <div className="absolute top-4 right-4">
+            <Link href="/settings/profile" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+              Edit Profile
+            </Link>
+          </div>
+        )}
+        
+        {/* Profile Info */}
+        <div className="mt-16 md:mt-20 pt-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{profile.displayName}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">@{profile.username}</p>
               
-              <div className="sm:ml-auto">
-                {isCurrentUser ? (
-                  <Link
-                    href="/settings/profile"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              <div className="flex flex-wrap items-center mt-2 text-sm text-gray-600 dark:text-gray-300">
+                {profile.profileType === 'organization' && (
+                  <span className="mr-4 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 px-2 py-1 rounded-full text-xs">
+                    Organization
+                  </span>
+                )}
+                
+                {profile.roles && profile.roles.length > 0 && (
+                  <span className="mr-4">{profile.roles.join(' • ')}</span>
+                )}
+                
+                {profile.location && (
+                  <span className="mr-4 flex items-center">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="mr-1"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
                     </svg>
-                    Edit Profile
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-                    </svg>
-                    Connect
-                  </button>
+                    {profile.location}
+                  </span>
+                )}
+                
+                {profile.reputationScore > 0 && (
+                  <span className="flex items-center mr-4">
+                    <span className="text-yellow-500 mr-1">★</span>
+                    <span>{profile.reputationScore.toFixed(1)} rating</span>
+                  </span>
                 )}
               </div>
             </div>
-            
-            {profile.tagline && (
-              <p className="mt-2 text-gray-700 dark:text-gray-300">{profile.tagline}</p>
-            )}
-            
-            <div className="mt-4 flex flex-wrap gap-2">
-              {profile.roles.map((role) => (
-                <span 
-                  key={role} 
-                  className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-                >
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </span>
-              ))}
-              <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                Reputation: {profile.reputationScore}
-              </span>
-              {profile.location && (
-                <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                  {profile.location}
-                </span>
-              )}
-            </div>
           </div>
+          
+          {/* Bio */}
+          {profile.bio && (
+            <div className="mt-4">
+              <p className="text-gray-600 dark:text-gray-300">{profile.bio}</p>
+            </div>
+          )}
+          
+          {/* Skills */}
+          {profile.skills && profile.skills.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map((skill, idx) => (
+                  <span 
+                    key={idx} 
+                    className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Social Links */}
+          {profile.socialLinks && Object.keys(profile.socialLinks).length > 0 && (
+            <div className="mt-4 flex space-x-3">
+              {Object.entries(profile.socialLinks).map(([platform, url]) => (
+                <a 
+                  key={platform} 
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  {/* Add social icons based on platform */}
+                  <span>{platform}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProfileHeader;
