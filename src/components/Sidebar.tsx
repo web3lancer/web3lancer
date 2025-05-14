@@ -61,6 +61,15 @@ export default function Sidebar() {
     ...mainMenuItems,
     ...moreMenuItems
   ], [mainMenuItems, moreMenuItems]);
+  
+  // Mobile nav items (Dashboard, Projects, Connect, Lancelot, Profile)
+  const mobileNavItems = useMemo(() => [
+    { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
+    { text: 'Projects', icon: Work, path: '/projects' },
+    { text: 'Connect', icon: People, path: '/connect' },
+    { text: 'Lancelot', icon: Loyalty, path: '/lancelot' },
+    { text: 'Profile', icon: Person, path: profilePath }
+  ], [profilePath]);
 
   const [value, setValue] = useState(() => {
     const currentPath = pathname ?? '';
@@ -354,18 +363,26 @@ export default function Sidebar() {
     </Box>
   );
 
-  // Mobile bottom navigation with "More" dropdown
+  // Mobile bottom navigation with five fixed items
   const bottomNavigation = (
-    <Box sx={{ position: 'relative' }}>
+    <Box>
       <BottomNavigation
-        value={value < mainMenuItems.length ? value : mainMenuItems.length}
-        onChange={(event, newValue) => {
-          if (newValue === mainMenuItems.length) {
-            // "More" button clicked
-            setMoreMenuOpen(true);
-          } else {
-            router.push(mainMenuItems[newValue].path);
+        value={(() => {
+          const currentPath = pathname ?? '';
+          
+          // Special handling for profile path
+          if (currentPath.startsWith('/u/')) {
+            return 4; // Profile is the 5th item (index 4)
           }
+          
+          // Find matching path in mobile items
+          return mobileNavItems.findIndex(item => 
+            item.path === currentPath || 
+            (item.path !== '/' && currentPath.startsWith(item.path))
+          );
+        })()}
+        onChange={(event, newValue) => {
+          router.push(mobileNavItems[newValue].path);
         }}
         showLabels
         sx={{
@@ -395,72 +412,14 @@ export default function Sidebar() {
           }
         }}
       >
-        {mainMenuItems.map((item) => (
+        {mobileNavItems.map((item) => (
           <BottomNavigationAction
             key={item.text}
             label={item.text}
             icon={<item.icon />}
           />
         ))}
-        
-        <Box ref={moreBottomNavRef}>
-          <BottomNavigationAction
-            label="More"
-            icon={<MoreHoriz />}
-          />
-        </Box>
       </BottomNavigation>
-
-      <Popper
-        open={moreMenuOpen}
-        anchorEl={moreBottomNavRef.current}
-        placement="top"
-        transition
-        sx={{ zIndex: theme.zIndex.appBar + 1, width: '100%', maxWidth: 280, left: '50% !important', transform: 'translateX(-50%) !important' }}
-      >
-        {({ TransitionProps }) => (
-          <Fade {...TransitionProps} timeout={200}>
-            <Paper
-              elevation={6}
-              sx={{ 
-                borderRadius: '12px 12px 0 0',
-                mb: 1,
-                backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-                color: theme.palette.primary.contrastText
-              }}
-            >
-              <ClickAwayListener onClickAway={handleClickAway}>
-                <MenuList>
-                  {moreMenuItems.map((item) => {
-                    const isItemActive = pathname === item.path || 
-                                        (pathname && pathname.startsWith(item.path) && item.path !== '/') ||
-                                        (item.text === 'Profile' && pathname && pathname.startsWith('/u/'));
-                    
-                    return (
-                      <MenuItem
-                        key={item.text}
-                        onClick={() => handleMoreItemClick(item.path)}
-                        sx={{
-                          py: 1.5,
-                          backgroundColor: isItemActive ? 'rgba(255, 255, 255, 0.15)' : undefined,
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
-                      >
-                        <ListItemIcon sx={{ color: 'inherit' }}>
-                          <item.icon />
-                        </ListItemIcon>
-                        <ListItemText primary={item.text} />
-                      </MenuItem>
-                    );
-                  })}
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Fade>
-        )}
-      </Popper>
     </Box>
   );
 
