@@ -96,6 +96,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             }
           ),
           overflow: 'auto',
+          scrollbarWidth: 'none', /* Firefox */
+          msOverflowStyle: 'none', /* IE and Edge */
+          '&::-webkit-scrollbar': {
+            display: 'none' /* Chrome, Safari, Opera */
+          },
           boxSizing: 'border-box',
           width: {
             xs: '100%',
@@ -115,6 +120,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
           minHeight: '100vh', 
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'auto',
+          scrollbarWidth: 'none', /* Firefox */
+          msOverflowStyle: 'none', /* IE and Edge */
+          '&::-webkit-scrollbar': {
+            display: 'none' /* Chrome, Safari, Opera */
+          },
           '& > *': {
             maxWidth: '100%',
             boxSizing: 'border-box',

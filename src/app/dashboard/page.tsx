@@ -409,7 +409,7 @@ export default function DashboardPage() {
   const VisibilityIcon = visibilityOptions.find(option => option.value === selectedVisibility)?.icon || PublicIcon;
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 0, mb: 6 }}>
+    <Container maxWidth="lg" sx={{ pt: 0, mb: 12 }}>
       <Grid container spacing={3} sx={{ mt: -1.5 }}>
         {/* Left sidebar - only on desktop */}
         {!isMobile && (
@@ -605,7 +605,7 @@ export default function DashboardPage() {
                 <CircularProgress />
               </Box>
             ) : (
-              <Box id="scrollableDiv" sx={{ height: '800px', overflow: 'auto' }}>
+              <Box id="scrollableDiv" sx={{ height: '800px', overflow: 'auto', pb: 2 }}>
                 {lances.map((lance) => (
                   <AnimatedCard
                     key={lance.$id}
@@ -806,7 +806,7 @@ export default function DashboardPage() {
 
                 {/* End of feed message */}
                 {!isLoading && !hasMore && (
-                  <Box sx={{ py: 3, textAlign: 'center' }}>
+                  <Box sx={{ py: 3, textAlign: 'center', mb: 3 }}>
                     <Typography variant="body2" color="text.secondary">
                       You've reached the end of your feed
                     </Typography>

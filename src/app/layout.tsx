@@ -27,7 +27,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} style={{ margin: 0, padding: 0, overflowX: 'hidden' }}>
+      <body className={inter.className} style={{ 
+        margin: 0, 
+        padding: 0, 
+        overflowX: 'hidden', 
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }}>
+        <style jsx global>{`
+          ::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
         <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
             <ThemeProviderWrapper>
