@@ -186,3 +186,47 @@ export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || '';
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Web3Lancer';
 export const APP_DESCRIPTION = process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Decentralized freelancing platform';
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://web3lancer.app';
+
+// Appwrite Project Config
+export const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+export const APPWRITE_PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '';
+
+// Database IDs
+export const PROFILE_DATABASE_ID = process.env.NEXT_PUBLIC_PROFILE_DATABASE_ID || 'web3lancer_db';
+export const PROJECT_DATABASE_ID = process.env.NEXT_PUBLIC_PROJECT_DATABASE_ID || 'web3lancer_db';
+
+// Collection IDs
+export const PROFILES_COLLECTION_ID = process.env.NEXT_PUBLIC_PROFILES_COLLECTION_ID || 'profiles';
+export const VERIFICATION_COLLECTION_ID = process.env.NEXT_PUBLIC_VERIFICATION_COLLECTION_ID || 'verifications';
+export const PROJECTS_COLLECTION_ID = process.env.NEXT_PUBLIC_PROJECTS_COLLECTION_ID || 'projects';
+export const PROPOSALS_COLLECTION_ID = process.env.NEXT_PUBLIC_PROPOSALS_COLLECTION_ID || 'proposals';
+export const CONTRACTS_COLLECTION_ID = process.env.NEXT_PUBLIC_CONTRACTS_COLLECTION_ID || 'contracts';
+export const PAYMENTS_COLLECTION_ID = process.env.NEXT_PUBLIC_PAYMENTS_COLLECTION_ID || 'payments';
+
+// Storage Bucket IDs
+export const PROFILE_AVATARS_BUCKET_ID = process.env.NEXT_PUBLIC_PROFILE_AVATARS_BUCKET_ID || 'profile_avatars';
+export const PROFILE_COVERS_BUCKET_ID = process.env.NEXT_PUBLIC_PROFILE_COVERS_BUCKET_ID || 'profile_covers';
+export const VERIFICATION_DOCUMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_VERIFICATION_DOCUMENTS_BUCKET_ID || 'verification_documents';
+export const PROJECT_ATTACHMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_PROJECT_ATTACHMENTS_BUCKET_ID || 'project_attachments';
+
+// Skills list for form selections
+export const AVAILABLE_SKILLS = [
+  'React', 'JavaScript', 'TypeScript', 'Node.js', 'Python', 
+  'Solidity', 'Web3', 'Smart Contracts', 'Blockchain',
+  'UI/UX', 'Design', 'Backend', 'Frontend', 'Full Stack',
+  'AWS', 'Cloud', 'Database', 'Rust', 'Go', 'DevOps'
+];
+
+// Project categories
+export const PROJECT_CATEGORIES = [
+  'Development', 'Design', 'Marketing', 'Writing', 'Admin Support',
+  'Blockchain', 'Smart Contracts', 'NFT', 'DeFi', 'DAO', 'Metaverse'
+];
+
+// API routes
+export const API_ROUTES = {
+  PROFILE: '/api/profile',
+  PROJECT: '/api/project',
+  PROPOSAL: '/api/proposal',
+  AUTH: '/api/auth',
+};

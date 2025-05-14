@@ -10,25 +10,35 @@ export * from './profile';
 
 // Index type exports
 
+export interface User {
+  userId: string;
+  email: string;
+  name?: string;
+}
+
 export interface Profile {
   $id: string;
   userId: string;
   username: string;
   displayName: string;
   bio?: string;
-  profileType: 'individual' | 'organization';
-  roles: string[];
-  reputationScore: number;
-  isVerified: boolean;
-  isActive: boolean;
-  avatarFileId?: string;
-  coverImageFileId?: string;
-  socialLinks?: Record<string, string>;
   skills?: string[];
-  location?: string;
-  languages?: string[];
-  verificationLevel?: 'none' | 'basic' | 'advanced' | 'expert';
-  createdAt?: string;
+  roles: ('freelancer' | 'client' | 'admin')[];
+  verified?: boolean;
+  avatarFileId?: string;
+  coverFileId?: string;
+  socialLinks?: {
+    website?: string;
+    github?: string;
+    twitter?: string;
+    linkedin?: string;
+  };
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+  };
+  createdAt: string;
   updatedAt?: string;
 }
 
@@ -36,24 +46,22 @@ export type VerificationType = 'basic' | 'identity' | 'professional' | 'organiza
 
 export interface VerificationRequest {
   $id: string;
-  profileId: string;
   userId: string;
-  verificationType: VerificationType;
+  profileId: string;
+  documentType: 'id' | 'passport' | 'license' | 'other';
+  documentFileId: string;
   status: 'pending' | 'approved' | 'rejected';
-  documentIds: string[];
   notes?: string;
-  reviewedBy?: string;
-  reviewedAt?: string;
-  createdAt?: string;
+  createdAt: string;
   updatedAt?: string;
 }
 
 export interface Project {
   $id: string;
-  clientId: string;
   title: string;
   description: string;
   skills: string[];
+  category?: string;
   budget: {
     min: number;
     max: number;
@@ -61,13 +69,17 @@ export interface Project {
   };
   duration?: {
     value: number;
-    unit: 'hour' | 'day' | 'week' | 'month';
+    unit: 'hours' | 'days' | 'weeks' | 'months';
   };
-  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'canceled';
-  visibility: 'public' | 'private' | 'invite_only';
-  attachments?: string[];
-  category?: string;
   location?: string;
+  attachments?: string[];
+  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled';
+  visibility: 'public' | 'private' | 'invite';
+  clientId: string;
+  clientProfileId: string;
+  freelancerId?: string;
+  freelancerProfileId?: string;
+  contractId?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -76,30 +88,68 @@ export interface Proposal {
   $id: string;
   projectId: string;
   freelancerId: string;
+  freelancerProfileId: string;
   coverLetter: string;
-  price: {
-    amount: number;
-    currency: string;
-  };
-  duration?: {
+  proposedBudget?: number;
+  proposedDuration?: {
     value: number;
-    unit: 'hour' | 'day' | 'week' | 'month';
+    unit: 'hours' | 'days' | 'weeks' | 'months';
   };
-  attachments?: string[];
+  milestones?: Array<{
+    title: string;
+    description?: string;
+    amount?: number;
+  }>;
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
-  milestones?: Milestone[];
   createdAt: string;
   updatedAt?: string;
 }
 
-export interface Milestone {
+export interface Contract {
+  $id: string;
+  projectId: string;
+  proposalId?: string;
+  clientId: string;
+  clientProfileId: string;
+  freelancerId: string;
+  freelancerProfileId: string;
   title: string;
   description: string;
+  terms: string;
+  budget: number;
+  duration?: {
+    value: number;
+    unit: 'hours' | 'days' | 'weeks' | 'months';
+  };
+  milestones?: Array<{
+    title: string;
+    description?: string;
+    amount: number;
+    status: 'pending' | 'in_progress' | 'completed' | 'approved' | 'paid';
+    dueDate?: string;
+  }>;
+  status: 'draft' | 'active' | 'completed' | 'cancelled' | 'disputed';
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Payment {
+  $id: string;
+  contractId: string;
+  projectId: string;
+  milestoneId?: string;
+  clientId: string;
+  freelancerId: string;
   amount: number;
-  status: 'pending' | 'in_progress' | 'completed' | 'approved';
-  dueDate?: string;
+  currency: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+  transactionHash?: string;
+  paymentMethod?: 'crypto' | 'escrow' | 'card' | 'bank';
+  description?: string;
+  createdAt: string;
   completedAt?: string;
-  approvedAt?: string;
 }
 
 export interface Review {
