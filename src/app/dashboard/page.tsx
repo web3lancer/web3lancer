@@ -409,23 +409,28 @@ export default function DashboardPage() {
   const VisibilityIcon = visibilityOptions.find(option => option.value === selectedVisibility)?.icon || PublicIcon;
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 0, mb: 12 }}>
+    <Container maxWidth="lg" sx={{ pt: 0, mb: 8 }}>
       <Grid container spacing={3} sx={{ mt: -1.5 }}>
         {/* Left sidebar - only on desktop */}
         {!isMobile && (
-          <Grid item={true} xs={12} md={3} lg={2.5} sx={{ display: { xs: 'none', md: 'block' } }}>
-            {/* Left sidebar is now empty or can be removed entirely if desired */}
+          <Grid item xs={12} md={3} lg={2.5} sx={{ display: { xs: 'none', md: 'block' } }}>
+            {/* Left sidebar content */}
           </Grid>
         )}
 
         {/* Main content */}
-        <Grid item={true} xs={12} md={6} lg={6}>
+        <Grid item xs={12} md={6} lg={6}>
+          {/* Fixed tabs section at the top */}
           <Paper
             elevation={0}
             sx={{
-              borderRadius: 3,
+              borderRadius: '16px 16px 0 0',
               border: `1px solid ${theme.palette.divider}`,
               overflow: 'hidden',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              backgroundColor: theme.palette.background.paper,
               mb: 2,
             }}
           >
@@ -455,10 +460,19 @@ export default function DashboardPage() {
                 label="Following"
               />
             </Tabs>
+          </Paper>
 
-            {/* Post creation box - only for signed in users */}
-            {user && (
-              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          {/* Post creation box - only for signed in users */}
+          {user && (
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                border: `1px solid ${theme.palette.divider}`,
+                mb: 3,
+              }}
+            >
+              <Box sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', gap: 1.5 }}>
                   <Avatar src={userProfilePic || undefined} />
                   <Box sx={{ flexGrow: 1 }}>
@@ -597,236 +611,237 @@ export default function DashboardPage() {
                   </Box>
                 </Box>
               </Box>
-            )}
+            </Paper>
+          )}
 
-            {/* Feed content */}
-            {isLoading && lances.length === 0 ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Box id="scrollableDiv" sx={{ height: '800px', overflow: 'auto', pb: 2 }}>
-                {lances.map((lance) => (
-                  <AnimatedCard
-                    key={lance.$id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    sx={{
-                      mb: 0,
-                      borderRadius: 0,
-                      borderBottom: `1px solid ${theme.palette.divider}`,
-                      '&:hover': { bgcolor: 'action.hover' },
-                    }}
-                  >
-                    <CardContent sx={{ pb: 1 }}>
-                      <Box sx={{ display: 'flex', gap: 1.5 }}>
-                        <Avatar 
-                          src={lance.userProfilePic} 
-                          component={Link}
-                          href={`/u/${lance.userId}`}
-                          sx={{ 
-                            width: 48, 
-                            height: 48,
-                            cursor: 'pointer',
-                            '&:hover': { opacity: 0.8 } 
-                          }} 
-                        />
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <Typography 
-                                  variant="subtitle1" 
-                                  component={Link}
-                                  href={`/u/${lance.userId}`}
-                                  sx={{ 
-                                    fontWeight: 600,
-                                    textDecoration: 'none',
-                                    color: 'text.primary',
-                                    '&:hover': { textDecoration: 'underline' } 
-                                  }}
-                                >
-                                  {lance.userName}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  @{lance.userHandle}
-                                </Typography>
+          {/* Scrollable feed content - individual lance cards */}
+          {isLoading && lances.length === 0 ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box sx={{ pb: 4 }}>
+              {lances.map((lance) => (
+                <AnimatedCard
+                  key={lance.$id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  sx={{
+                    mb: 2.5,
+                    borderRadius: 3,
+                    border: `1px solid ${theme.palette.divider}`,
+                    '&:hover': { bgcolor: 'action.hover' },
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <CardContent sx={{ pb: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                      <Avatar 
+                        src={lance.userProfilePic} 
+                        component={Link}
+                        href={`/u/${lance.userId}`}
+                        sx={{ 
+                          width: 48, 
+                          height: 48,
+                          cursor: 'pointer',
+                          '&:hover': { opacity: 0.8 } 
+                        }} 
+                      />
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography 
+                                variant="subtitle1" 
+                                component={Link}
+                                href={`/u/${lance.userId}`}
+                                sx={{ 
+                                  fontWeight: 600,
+                                  textDecoration: 'none',
+                                  color: 'text.primary',
+                                  '&:hover': { textDecoration: 'underline' } 
+                                }}
+                              >
+                                {lance.userName}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                @{lance.userHandle}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                · {formatPostDate(lance.createdAt)}
+                              </Typography>
+                            </Box>
+                            {lance.visibility !== 'public' && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                {lance.visibility === 'private' && <LockIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                {lance.visibility === 'followers' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                {lance.visibility === 'following' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
                                 <Typography variant="caption" color="text.secondary">
-                                  · {formatPostDate(lance.createdAt)}
+                                  {visibilityOptions.find(opt => opt.value === lance.visibility)?.label}
                                 </Typography>
                               </Box>
-                              {lance.visibility !== 'public' && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                  {lance.visibility === 'private' && <LockIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                  {lance.visibility === 'followers' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                  {lance.visibility === 'following' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                  <Typography variant="caption" color="text.secondary">
-                                    {visibilityOptions.find(opt => opt.value === lance.visibility)?.label}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Box>
-                            <IconButton size="small">
-                              <MoreHorizIcon fontSize="small" />
-                            </IconButton>
+                            )}
                           </Box>
+                          <IconButton size="small">
+                            <MoreHorizIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
 
-                          <Typography variant="body1" sx={{ my: 1, whiteSpace: 'pre-wrap' }}>
-                            {lance.content}
-                          </Typography>
+                        <Typography variant="body1" sx={{ my: 1, whiteSpace: 'pre-wrap' }}>
+                          {lance.content}
+                        </Typography>
 
-                          {/* Tags */}
-                          {lance.tags && lance.tags.length > 0 && (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                              {lance.tags.map((tag, index) => (
-                                <Chip
-                                  key={index}
-                                  label={tag}
-                                  size="small"
-                                  component={Link}
-                                  href={`/search?q=${encodeURIComponent(tag)}`}
-                                  clickable
-                                  sx={{ 
-                                    borderRadius: 1,
-                                    height: 24,
-                                    bgcolor: `${theme.palette.primary.main}15`,
-                                    color: theme.palette.primary.main,
-                                    '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
-                                    textDecoration: 'none'
-                                  }}
-                                />
-                              ))}
-                            </Box>
-                          )}
+                        {/* Tags */}
+                        {lance.tags && lance.tags.length > 0 && (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                            {lance.tags.map((tag, index) => (
+                              <Chip
+                                key={index}
+                                label={tag}
+                                size="small"
+                                component={Link}
+                                href={`/search?q=${encodeURIComponent(tag)}`}
+                                clickable
+                                sx={{ 
+                                  borderRadius: 1,
+                                  height: 24,
+                                  bgcolor: `${theme.palette.primary.main}15`,
+                                  color: theme.palette.primary.main,
+                                  '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
+                                  textDecoration: 'none'
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        )}
 
-                          {/* Media */}
-                          {lance.media && lance.media.length > 0 && (
-                            <Box sx={{ mt: 1, mb: 2 }}>
-                              {lance.media.map((media, index) => (
-                                <Box 
-                                  key={index} 
-                                  sx={{ 
-                                    borderRadius: 2, 
-                                    overflow: 'hidden',
-                                    ...(lance.media && lance.media.length > 1 ? {
-                                      display: 'grid',
-                                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                                      gap: 1
-                                    } : {})
-                                  }}
-                                >
-                                  {media.type === 'image' ? (
-                                    <img
-                                      src={media.url}
-                                      alt="Post media"
-                                      style={{
-                                        width: '100%',
-                                        borderRadius: 8,
-                                        objectFit: 'cover',
-                                        aspectRatio: '16/9',
-                                        cursor: 'pointer',
-                                      }}
-                                      onClick={() => setDialogOpen(true)}
-                                    />
-                                  ) : media.type === 'video' ? (
-                                    <Box
-                                      component="video"
-                                      src={media.url}
-                                      controls
-                                      sx={{ width: '100%', borderRadius: 2 }}
-                                    />
-                                  ) : null}
-                                </Box>
-                              ))}
-                            </Box>
-                          )}
-
-                          {/* Action buttons */}
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleLikeToggle(lance.$id)}
-                              color={lance.isLiked ? 'primary' : 'default'}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                {lance.isLiked ? (
-                                  <FavoriteIcon fontSize="small" />
-                                ) : (
-                                  <FavoriteBorderIcon fontSize="small" />
-                                )}
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {lance.likes}
-                                </Typography>
+                        {/* Media */}
+                        {lance.media && lance.media.length > 0 && (
+                          <Box sx={{ mt: 1, mb: 2 }}>
+                            {lance.media.map((media, index) => (
+                              <Box 
+                                key={index} 
+                                sx={{ 
+                                  borderRadius: 2, 
+                                  overflow: 'hidden',
+                                  ...(lance.media && lance.media.length > 1 ? {
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                                    gap: 1
+                                  } : {})
+                                }}
+                              >
+                                {media.type === 'image' ? (
+                                  <img
+                                    src={media.url}
+                                    alt="Post media"
+                                    style={{
+                                      width: '100%',
+                                      borderRadius: 8,
+                                      objectFit: 'cover',
+                                      aspectRatio: '16/9',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => setDialogOpen(true)}
+                                  />
+                                ) : media.type === 'video' ? (
+                                  <Box
+                                    component="video"
+                                    src={media.url}
+                                    controls
+                                    sx={{ width: '100%', borderRadius: 2 }}
+                                  />
+                                ) : null}
                               </Box>
-                            </IconButton>
-                            <IconButton size="small">
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <ChatBubbleOutlineIcon fontSize="small" />
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {lance.comments}
-                                </Typography>
-                              </Box>
-                            </IconButton>
-                            <IconButton size="small">
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <RepeatIcon fontSize="small" />
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {lance.shares}
-                                </Typography>
-                              </Box>
-                            </IconButton>
-                            <IconButton 
-                              size="small"
-                              onClick={() => handleBookmarkToggle(lance.$id)}
-                              color={lance.isBookmarked ? 'primary' : 'default'}
-                            >
-                              {lance.isBookmarked ? (
-                                <BookmarkIcon fontSize="small" />
+                            ))}
+                          </Box>
+                        )}
+
+                        {/* Action buttons */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleLikeToggle(lance.$id)}
+                            color={lance.isLiked ? 'primary' : 'default'}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {lance.isLiked ? (
+                                <FavoriteIcon fontSize="small" />
                               ) : (
-                                <BookmarkBorderIcon fontSize="small" />
+                                <FavoriteBorderIcon fontSize="small" />
                               )}
-                            </IconButton>
-                            <IconButton size="small">
-                              <ShareIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
+                              <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                {lance.likes}
+                              </Typography>
+                            </Box>
+                          </IconButton>
+                          <IconButton size="small">
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <ChatBubbleOutlineIcon fontSize="small" />
+                              <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                {lance.comments}
+                              </Typography>
+                            </Box>
+                          </IconButton>
+                          <IconButton size="small">
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <RepeatIcon fontSize="small" />
+                              <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                {lance.shares}
+                              </Typography>
+                            </Box>
+                          </IconButton>
+                          <IconButton 
+                            size="small"
+                            onClick={() => handleBookmarkToggle(lance.$id)}
+                            color={lance.isBookmarked ? 'primary' : 'default'}
+                          >
+                            {lance.isBookmarked ? (
+                              <BookmarkIcon fontSize="small" />
+                            ) : (
+                              <BookmarkBorderIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                          <IconButton size="small">
+                            <ShareIcon fontSize="small" />
+                          </IconButton>
                         </Box>
                       </Box>
-                    </CardContent>
-                  </AnimatedCard>
-                ))}
+                    </Box>
+                  </CardContent>
+                </AnimatedCard>
+              ))}
 
-                {/* Load more indicator */}
-                {isLoading && lances.length > 0 && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                    <CircularProgress size={24} />
-                  </Box>
-                )}
+              {/* Load more indicator */}
+              {isLoading && lances.length > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
 
-                {/* End of feed message */}
-                {!isLoading && !hasMore && (
-                  <Box sx={{ py: 3, textAlign: 'center', mb: 3 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      You've reached the end of your feed
-                    </Typography>
-                    <Button
-                      startIcon={<RefreshIcon />}
-                      onClick={handleRefresh}
-                      sx={{ mt: 1 }}
-                    >
-                      Refresh Feed
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            )}
-          </Paper>
+              {/* End of feed message */}
+              {!isLoading && !hasMore && (
+                <Box sx={{ py: 3, textAlign: 'center', mb: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    You've reached the end of your feed
+                  </Typography>
+                  <Button
+                    startIcon={<RefreshIcon />}
+                    onClick={handleRefresh}
+                    sx={{ mt: 1 }}
+                  >
+                    Refresh Feed
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )}
         </Grid>
 
         {/* Right sidebar - only on desktop/tablet */}
         <Grid item xs={12} md={3} lg={3.5} sx={{ display: { xs: 'none', md: 'block' } }}>
-          {/* Right sidebar is now empty or can be removed entirely if desired */}
+          {/* Right sidebar content */}
         </Grid>
       </Grid>
 
