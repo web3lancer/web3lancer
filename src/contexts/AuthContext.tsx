@@ -1,10 +1,40 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-// Remove handleGitHubOAuthCallback from this import as it does not exist in api.ts
 import { account, validateSession, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
 import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
 import { Models } from 'appwrite';
+
+// Define UserProfile interface based on the ProfilesDB/user_profiles schema
+interface UserProfile {
+  $id: string;
+  userId: string;
+  name: string;
+  username?: string;
+  email?: string;
+  bio?: string;
+  tagline?: string;
+  location?: string;
+  skills?: string[];
+  profileType?: 'individual' | 'company' | 'dao'; 
+  avatarFileId?: string;
+  coverImageFileId?: string;
+  isVerified?: boolean;
+  verificationLevel?: string;
+  portfolioLink?: string;
+  socialLinks?: {
+    github?: string;
+    twitter?: string;
+    linkedin?: string;
+    website?: string;
+    [key: string]: string | undefined;
+  };
+  reputation?: number;
+  wallets?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any; // For backward compatibility with existing fields
+}
 
 interface User {
   $id: string;
@@ -21,15 +51,19 @@ interface AuthContextType {
   isLoading: boolean;
   isAnonymous: boolean;
   profilePicture: string | null;
+  userProfile: UserProfile | null; // Add userProfile to context
   setUser: (user: Models.User<Models.Preferences> | null) => void;
   setIsAnonymous: (isAnonymous: boolean) => void;
   setProfilePicture: (url: string | null) => void;
+  setUserProfile: (profile: UserProfile | null) => void; // Add profile setter
   refreshUser: () => Promise<Models.User<Models.Preferences> | null>;
+  refreshUserProfile: () => Promise<UserProfile | null>; // Add profile refresh function
   signOut: () => Promise<boolean>;
   initiateGitHubLogin: () => Promise<void>;
   initiateGoogleLogin: () => Promise<void>;
   ensureSession: () => Promise<Models.User<Models.Preferences> | null>;
   convertSession: (email: string, password: string, name?: string) => Promise<Models.User<Models.Preferences>>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
 // Create a context with a default value
@@ -38,16 +72,19 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   isAnonymous: false,
   profilePicture: null,
+  userProfile: null,
   setUser: () => {},
   setIsAnonymous: () => {},
   setProfilePicture: () => {},
+  setUserProfile: () => {},
   refreshUser: async () => null,
+  refreshUserProfile: async () => null,
   signOut: async () => false,
   initiateGitHubLogin: async () => {},
   initiateGoogleLogin: async () => {},
   ensureSession: async () => null,
-  // Provide a default implementation that matches the type, e.g., throw an error
   convertSession: async () => { throw new Error('convertSession not implemented in default context'); },
+  updatePassword: async () => false,
 });
 
 // Provider component that wraps the app
@@ -56,6 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false); // Initial state can be false, refreshUser will set it.
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   const refreshUser = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
     console.log("AuthContext: refreshUser called");
@@ -97,11 +135,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfilePicture(null);
         console.log("AuthContext: No profile picture URL in prefs.");
       }
+      
+      // Fetch user profile after getting the current user
+      await refreshUserProfile();
+      
       return currentUser;
     } catch (error) {
       console.warn('AuthContext: Error in refreshUser (likely no active session or session expired):', error);
       setUser(null);
       setProfilePicture(null);
+      setUserProfile(null);
       // Ensure isAnonymous is true if account.get() fails
       setIsAnonymous(true); 
       return null;
@@ -109,7 +152,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(false);
       console.log("AuthContext: refreshUser finished. Current isLoading state:", false);
     }
-  }, [setIsLoading, setUser, setIsAnonymous, setProfilePicture]); // Added setters to dependency array
+  }, []);
+  
+  const refreshUserProfile = useCallback(async (): Promise<UserProfile | null> => {
+    if (!user) {
+      setUserProfile(null);
+      return null;
+    }
+    
+    try {
+      const profile = await getUserProfile(user.$id);
+      if (profile) {
+        setUserProfile(profile as unknown as UserProfile);
+        
+        // Update profile picture if avatarFileId is available
+        if (profile.avatarFileId) {
+          // This assumes you've implemented or will implement a function to get avatar URL from file ID
+          // setProfilePicture(getAvatarUrl(profile.avatarFileId));
+        }
+        
+        return profile as unknown as UserProfile;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
+  }, [user]);
 
   const handleSignOut = useCallback(async (): Promise<boolean> => {
     console.log("AuthContext: handleSignOut called");
@@ -118,6 +187,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await account.deleteSession('current');
       setUser(null);
       setProfilePicture(null);
+      setUserProfile(null);
       setIsAnonymous(true);
       console.log("AuthContext: User signed out.");
       return true;
@@ -125,12 +195,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('AuthContext: Error signing out:', error);
       setUser(null);
       setProfilePicture(null);
+      setUserProfile(null);
       setIsAnonymous(true);
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [setIsLoading, setUser, setIsAnonymous, setProfilePicture]);
+  }, []);
+
+  const updatePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      await account.updatePassword(newPassword, currentPassword);
+      return true;
+    } catch (error) {
+      console.error('Error updating password:', error);
+      return false;
+    }
+  }, []);
 
   const ensureSession = useCallback(async () => {
     console.log("AuthContext: ensureSession called. Current user:", user, "isLoading:", isLoading);
@@ -176,22 +257,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [refreshUser, setIsLoading]); // Added setIsLoading
+  }, [refreshUser]);
 
   const contextValue: AuthContextType = {
     user,
     isLoading,
     isAnonymous,
     profilePicture,
+    userProfile,
     setUser, 
     setIsAnonymous,
     setProfilePicture,
+    setUserProfile,
     refreshUser,
+    refreshUserProfile,
     signOut: handleSignOut,
     initiateGitHubLogin,
     initiateGoogleLogin,
     ensureSession,
-    convertSession
+    convertSession,
+    updatePassword
   };
 
   return (

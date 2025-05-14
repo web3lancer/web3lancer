@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import EmailOTPForm from '@/components/EmailOTPForm';
 import { ThemeAwareTextField } from '@/components/auth/ThemeAwareTextField';
 import { motion } from 'framer-motion';
+import { ProfileType } from "@/types";
 
 // Define a type for window.ethereum if it exists
 interface EthereumWindow extends Window {
@@ -40,7 +41,10 @@ export default function SignUpPage() {
     name: '',
     email: '',
     password: '',
+    username: '',
+    profileType: 'individual' as ProfileType,
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -58,6 +62,24 @@ export default function SignUpPage() {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
+
+    if (formData.password !== confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.username.trim()) {
+      setError("Username is required");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       let response;
@@ -437,6 +459,31 @@ export default function SignUpPage() {
                       }}
                     />
                     <ThemeAwareTextField
+                      label="Username"
+                      name="username"
+                      type="text"
+                      fullWidth
+                      margin="normal"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    />
+                    <ThemeAwareTextField
                       label="Email"
                       name="email"
                       type="email"
@@ -462,6 +509,38 @@ export default function SignUpPage() {
                       }}
                     />
                     <ThemeAwareTextField
+                      label="Profile Type"
+                      name="profileType"
+                      select
+                      fullWidth
+                      margin="normal"
+                      value={formData.profileType}
+                      onChange={handleChange}
+                      required
+                      SelectProps={{
+                        native: true,
+                      }}
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    >
+                      <option value="individual">Individual</option>
+                      <option value="company">Company</option>
+                      <option value="dao">DAO</option>
+                    </ThemeAwareTextField>
+                    <ThemeAwareTextField
                       label="Password"
                       name="password"
                       type="password"
@@ -469,6 +548,31 @@ export default function SignUpPage() {
                       margin="normal"
                       value={formData.password}
                       onChange={handleChange}
+                      required
+                      InputProps={{
+                        sx: {
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.15)' 
+                              : 'rgba(0, 0, 0, 0.15)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme => theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.25)' 
+                              : 'rgba(0, 0, 0, 0.25)',
+                          },
+                        }
+                      }}
+                    />
+                    <ThemeAwareTextField
+                      label="Confirm Password"
+                      name="confirmPassword"
+                      type="password"
+                      fullWidth
+                      margin="normal"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       InputProps={{
                         sx: {

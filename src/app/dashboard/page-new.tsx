@@ -4,8 +4,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext-new";
 import useProfile from "@/hooks/useProfile";
 import ProfileCard from "@/components/profile/ProfileCard";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
+
+// Temporary Loader component instead of using lucide-react
+function Loader({ className = "" }) {
+  return (
+    <div className={`animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary ${className}`}></div>
+  );
+}
 
 export default function Dashboard() {
   const { user, customUser } = useAuth();
@@ -14,7 +20,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader className="h-8 w-8" />
       </div>
     );
   }

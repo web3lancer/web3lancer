@@ -1,117 +1,87 @@
-import React, { useState } from 'react';
-import { Box, Typography, Avatar, Button, CircularProgress, Paper } from "@mui/material";
-import { motion } from "framer-motion";
-import { uploadFile, updateUserProfile } from '@/utils/api';
-
-const MotionPaper = motion(Paper);
+import { Profile } from "@/types";
+import Link from "next/link";
+import Image from "next/image";
 
 interface ProfileCardProps {
-  user: any;
-  imagePreview?: string | null;
+  profile: Profile;
+  className?: string;
 }
 
-export default function ProfileCard({ user, imagePreview: initialImagePreview }: ProfileCardProps) {
-
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(initialImagePreview || null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [existingFileId, setExistingFileId] = useState<string | null>(null);
-  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      setProfilePicture(file);
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (profilePicture && user) {
-      setIsUploading(true);
-      try {
-        const response = await uploadFile(
-          '67b889200019e3d3519d',
-          profilePicture, 
-          `users/${user.$id}/profile-pictures/${profilePicture.name}`,
-          (progress) => {
-            setUploadProgress(progress);
-          }
-        );
-        
-        // Update user profile with new profile picture
-        await updateUserProfile(user.$id, {
-          profilePicture: response.$id,
-          updatedAt: new Date().toISOString()
-        });
-        
-        console.log('Profile picture uploaded:', response);
-      } catch (error) {
-        console.error('Error uploading profile picture:', error);
-      } finally {
-        setIsUploading(false);
-        setUploadProgress(0);
-      }
-    }
-  };
-
+export default function ProfileCard({ profile, className = "" }: ProfileCardProps) {
   return (
-    <MotionPaper
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      sx={{ p: 3, borderRadius: 2 }}
-    >
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Avatar 
-          sx={{ width: 120, height: 120, mb: 2 }} 
-          src={imagePreview || undefined}
-        />
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          {user?.name || "User"}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          {user?.email || user?.walletId || "No contact info"}
-        </Typography>
-        
-        <input
-          accept="image/*"
-          type="file"
-          id="profile-picture-upload"
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-        <label htmlFor="profile-picture-upload">
-          <Button variant="outlined" component="span" sx={{ mb: 2 }}>
-            Select Image
-          </Button>
-        </label>
-        
-        {profilePicture && (
-          <Button 
-            variant="contained" 
-            onClick={handleUpload}
-            disabled={isUploading}
-            sx={{ mb: 1 }}
-          >
-            {isUploading ? `Uploading: ${uploadProgress}%` : 'Upload Picture'}
-          </Button>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden ${className}`}>
+      <div className="relative h-20 bg-gradient-to-r from-blue-500 to-indigo-600">
+        {profile.coverImageFileId && (
+          <Image 
+            src={`/api/profile/cover/${profile.coverImageFileId}`} 
+            alt="Cover" 
+            fill 
+            className="object-cover" 
+          />
         )}
-        {isUploading && (
-          <Box sx={{ width: '100%', mt: 1 }}>
-            <CircularProgress 
-              variant="determinate" 
-              value={uploadProgress} 
-              size={24}
-            />
-          </Box>
-        )}
-      </Box>
-    </MotionPaper>
+      </div>
+      
+      <div className="relative px-4 pb-4">
+        <div className="relative -top-10 flex justify-between items-start">
+          <div className="relative h-16 w-16 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-gray-200 dark:bg-gray-600">
+            {profile.avatarFileId ? (
+              <Image 
+                src={`/api/profile/avatar/${profile.avatarFileId}`} 
+                alt={profile.displayName} 
+                fill 
+                className="object-cover" 
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full w-full text-xl font-bold text-gray-500">
+                {profile.displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          
+          {profile.isVerified && (
+            <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-xs px-2 py-1 rounded-full mt-2 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Verified
+            </div>
+          )}
+        </div>
+        
+        <div className="-mt-6">
+          <Link href={`/profile/${profile.$id}`} className="hover:underline">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{profile.displayName}</h3>
+          </Link>
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{profile.username}</p>
+          
+          {profile.tagline && (
+            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{profile.tagline}</p>
+          )}
+          
+          <div className="mt-3 flex flex-wrap gap-1">
+            {profile.roles.map((role) => (
+              <span 
+                key={role} 
+                className="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+              >
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </span>
+            ))}
+            <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+              {profile.reputationScore} ⭐
+            </span>
+          </div>
+          
+          {profile.location && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              {profile.location}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
