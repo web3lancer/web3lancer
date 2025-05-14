@@ -1,12 +1,11 @@
 "use client";
 
 import { Drawer, List, ListItemText, ListItemIcon, Box, BottomNavigation, BottomNavigationAction, Divider, ListItemButton, useTheme, useMediaQuery, Avatar, Button, Typography, Menu, MenuItem, ListItem } from "@mui/material";
-import { Dashboard, Work, Bookmarks, Storefront, Person, People } from "@mui/icons-material";
+import { Dashboard, Work, Bookmarks, Storefront, Person, People, Groups, Loyalty, CampaignOutlined } from "@mui/icons-material";
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect, useMemo } from "react"; // Added useMemo
 import { useAuth } from '@/contexts/AuthContext';
-import SidebarAccountWidget from './SidebarAccountWidget';
 
 // Add ethereum window type declaration
 declare global {
@@ -39,6 +38,9 @@ export default function Sidebar() {
     { text: 'Dashboard', icon: Dashboard, path: '/dashboard' },
     { text: 'Projects', icon: Work, path: '/projects' },
     { text: 'Connect', icon: People, path: '/connect' },
+    { text: 'Groups', icon: Groups, path: '/groups' },
+    { text: 'Lancelot', icon: Loyalty, path: '/lancelot' },
+    { text: 'Ads', icon: CampaignOutlined, path: '/ads' },
     { text: 'Bookmarks', icon: Bookmarks, path: '/bookmarks' },
     { text: 'Profile', icon: Person, path: profilePath }, // Uses dynamic profile path
   ], [profilePath]);
@@ -178,21 +180,6 @@ export default function Sidebar() {
         </List>
       </motion.div>
       <Divider sx={{ bgcolor: 'rgba(255,255,255,0.1)', my: 1 }} />
-
-      {/* Account widget for desktop */}
-      <Box 
-        sx={{ 
-          px: 2, 
-          py: 2, 
-          mt: 'auto',
-          mx: 1,
-          mb: 2,
-          borderRadius: '8px',
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        }}
-      >
-        <SidebarAccountWidget />
-      </Box>
       
       {/* Copyright */}
       <Box sx={{ px: 2, py: 2, color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.75rem', textAlign: 'center' }}>
