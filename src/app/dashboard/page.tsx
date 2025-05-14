@@ -409,8 +409,8 @@ export default function DashboardPage() {
   const VisibilityIcon = visibilityOptions.find(option => option.value === selectedVisibility)?.icon || PublicIcon;
 
   return (
-    <Container maxWidth="lg" sx={{ mb: 6 }}>
-      <Grid container spacing={3}>
+    <Container maxWidth="lg" sx={{ pt: 0, mb: 6 }}>
+      <Grid container spacing={3} sx={{ mt: -1.5 }}>
         {/* Left sidebar - only on desktop */}
         {!isMobile && (
           <Grid item={true} xs={12} md={3} lg={2.5} sx={{ display: { xs: 'none', md: 'block' } }}>

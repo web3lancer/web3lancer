@@ -84,10 +84,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           right: { xs: 0, lg: (showSecondarySidebar && !isNotFoundPage) ? `${secondarySidebarWidth}px` : 0 },
           top: { xs: '84px', sm: '92px' },
           bottom: 0,
-          paddingLeft: { xs: 1 }, // Reduced from '12px'
-          paddingRight: { xs: 1 }, // Reduced from '12px'
+          paddingLeft: { xs: 1, md: 1.5 }, // Adjusted for md
+          paddingRight: { xs: 1, md: 1.5 }, // Adjusted for md
           paddingBottom: { xs: (showSidebar && !isNotFoundPage) ? '70px' : 0, md: 0 },
-          paddingTop: isHomePage ? 0 : { xs: 1, sm: 1.5 }, // Reduced from { xs: 2, sm: 3 }
+          paddingTop: isHomePage ? 0 : { xs: 1, sm: 1, md: 1.5 }, // Adjusted for sm and md
           transition: theme.transitions.create(
             ['left', 'right', 'width', 'background-color', 'color', 'padding'],
             {
@@ -108,7 +108,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       >
         {/* Inner padding for content */}
         <Box sx={{ 
-          p: { xs: 0, sm: 1, md: 2 }, // Reduced from p: 3
+          px: { xs: 0, sm: 0.5, md: 1 }, // Horizontal padding remains
+          pt: { xs: 0, sm: 0.5, md: 0 }, // Top padding set to 0 for md and up
+          pb: { xs: 0, sm: 0.5, md: 1 }, // Bottom padding can be adjusted if needed
           height: '100%',
           minHeight: '100vh', 
           display: 'flex',
