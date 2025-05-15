@@ -1,145 +1,252 @@
-import { NextRequest, NextResponse } from "next/server";
-import { addPaymentMethod, getUserPaymentMethods, updatePaymentMethod, deletePaymentMethod, setDefaultPaymentMethod } from "@/services/financeService";
-import { getProfileByUserId } from "@/utils/profile";
-import { validateSession } from "@/utils/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { databases, ID, Query } from '@/app/appwrite';
+import FinanceEnv from '@/lib/finance/financeEnv';
 
-export async function GET(req: NextRequest) {
-  try {
-    // Get user session
-    const session = await validateSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// Get environment variables
+const {
+  financeDatabase,
+  userPaymentMethodsCollection,
+} = FinanceEnv.getAll();
 
-    const userId = session.userId;
-    
-    // Get user profile
-    const userProfile = await getProfileByUserId(userId);
-    if (!userProfile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    // Get payment methods for the user's profile
-    const paymentMethods = await getUserPaymentMethods(userProfile.$id);
-    
-    return NextResponse.json({ paymentMethods });
-  } catch (error) {
-    console.error("Error getting payment methods:", error);
-    return NextResponse.json({ error: "Failed to get payment methods" }, { status: 500 });
-  }
+// Helper function to get user ID from session
+// In a real implementation, replace with your auth mechanism
+async function getUserId() {
+  // Mock user ID for demonstration
+  return "current-user-id";
 }
 
-export async function POST(req: NextRequest) {
+// GET - Fetch payment methods for the authenticated user
+export async function GET(request: NextRequest) {
   try {
-    // Get user session
-    const session = await validateSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.userId;
-    
-    // Get user profile
-    const userProfile = await getProfileByUserId(userId);
-    if (!userProfile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    // Get request body
-    const { paymentType, details, isDefault } = await req.json();
-    
-    // Validate inputs
-    if (!paymentType || !['card', 'bank_account', 'paypal', 'crypto'].includes(paymentType)) {
-      return NextResponse.json({ error: "Valid payment type is required" }, { status: 400 });
+    // Get user ID from auth
+    const userId = await getUserId();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    if (!details) {
-      return NextResponse.json({ error: "Payment details are required" }, { status: 400 });
+    // Get URL parameters
+    const searchParams = request.nextUrl.searchParams;
+    const paymentMethodId = searchParams.get('id');
+    
+    // If ID is provided, fetch specific payment method
+    if (paymentMethodId) {
+      const paymentMethod = await databases.getDocument(
+        financeDatabase,
+        userPaymentMethodsCollection,
+        paymentMethodId
+      );
+      
+      // Verify ownership
+      if (paymentMethod.userId !== userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      }
+      
+      return NextResponse.json(paymentMethod);
     }
-
-    // Create payment method
-    const paymentMethod = await addPaymentMethod(
-      userProfile.$id, 
-      paymentType as 'card' | 'bank_account' | 'paypal' | 'crypto',
-      details,
-      !!isDefault
+    
+    // Fetch all payment methods for user
+    const paymentMethods = await databases.listDocuments(
+      financeDatabase,
+      userPaymentMethodsCollection,
+      [
+        Query.equal("userId", userId)
+      ]
     );
     
-    return NextResponse.json({ paymentMethod }, { status: 201 });
+    return NextResponse.json(paymentMethods.documents);
+    
   } catch (error) {
-    console.error("Error creating payment method:", error);
-    return NextResponse.json({ error: "Failed to create payment method" }, { status: 500 });
+    console.error('Error fetching payment methods:', error);
+    return NextResponse.json({ error: 'Failed to fetch payment methods' }, { status: 500 });
   }
 }
 
-export async function PUT(req: NextRequest) {
+// POST - Create a new payment method
+export async function POST(request: NextRequest) {
   try {
-    // Get user session
-    const session = await validateSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Get user ID from auth
+    const userId = await getUserId();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.userId;
+    const data = await request.json();
     
-    // Get user profile
-    const userProfile = await getProfileByUserId(userId);
-    if (!userProfile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    // Validate required fields
+    if (!data.type || !data.name) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    // Get request body
-    const { paymentMethodId, isDefault, details } = await req.json();
     
-    // Validate inputs
-    if (!paymentMethodId) {
-      return NextResponse.json({ error: "Payment method ID is required" }, { status: 400 });
-    }
-
-    // Update payment method
-    const updateData: any = {};
-    if (details !== undefined) updateData.details = details;
-    if (isDefault !== undefined) {
-      if (isDefault) {
-        // Set as default payment method
-        await setDefaultPaymentMethod(userProfile.$id, paymentMethodId);
-      } else {
-        updateData.isDefault = false;
+    // If setting as default, unset any existing default
+    if (data.isDefault) {
+      const existingDefaults = await databases.listDocuments(
+        financeDatabase,
+        userPaymentMethodsCollection,
+        [
+          Query.equal("userId", userId),
+          Query.equal("isDefault", true)
+        ]
+      );
+      
+      // Update existing defaults to non-default
+      for (const method of existingDefaults.documents) {
+        await databases.updateDocument(
+          financeDatabase,
+          userPaymentMethodsCollection,
+          method.$id,
+          { isDefault: false }
+        );
       }
     }
-
-    const updatedPaymentMethod = await updatePaymentMethod(paymentMethodId, updateData);
     
-    return NextResponse.json({ paymentMethod: updatedPaymentMethod });
+    // Create new payment method
+    const paymentMethod = await databases.createDocument(
+      financeDatabase,
+      userPaymentMethodsCollection,
+      ID.unique(),
+      {
+        userId,
+        type: data.type,
+        name: data.name,
+        details: data.details || {},
+        isDefault: data.isDefault || false,
+        isActive: true,
+        createdAt: new Date().toISOString()
+      }
+    );
+    
+    return NextResponse.json(paymentMethod);
+    
   } catch (error) {
-    console.error("Error updating payment method:", error);
-    return NextResponse.json({ error: "Failed to update payment method" }, { status: 500 });
+    console.error('Error creating payment method:', error);
+    return NextResponse.json({ error: 'Failed to create payment method' }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest) {
+// PUT - Update an existing payment method
+export async function PUT(request: NextRequest) {
   try {
-    // Get user session
-    const session = await validateSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Get user ID from auth
+    const userId = await getUserId();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Get payment method ID from URL params
-    const url = new URL(req.url);
-    const searchParams = new URLSearchParams(url.search);
-    const paymentMethodId = searchParams.get('paymentMethodId');
+    
+    // Get URL parameters
+    const searchParams = request.nextUrl.searchParams;
+    const paymentMethodId = searchParams.get('id');
     
     if (!paymentMethodId) {
-      return NextResponse.json({ error: "Payment method ID is required" }, { status: 400 });
+      return NextResponse.json({ error: 'Payment method ID is required' }, { status: 400 });
     }
+    
+    // Get existing payment method
+    const existingMethod = await databases.getDocument(
+      financeDatabase,
+      userPaymentMethodsCollection,
+      paymentMethodId
+    );
+    
+    // Verify ownership
+    if (existingMethod.userId !== userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+    
+    const data = await request.json();
+    
+    // If setting as default, unset any existing default
+    if (data.isDefault) {
+      const existingDefaults = await databases.listDocuments(
+        financeDatabase,
+        userPaymentMethodsCollection,
+        [
+          Query.equal("userId", userId),
+          Query.equal("isDefault", true),
+          Query.notEqual("$id", paymentMethodId)
+        ]
+      );
+      
+      // Update existing defaults to non-default
+      for (const method of existingDefaults.documents) {
+        await databases.updateDocument(
+          financeDatabase,
+          userPaymentMethodsCollection,
+          method.$id,
+          { isDefault: false }
+        );
+      }
+    }
+    
+    // Update payment method
+    const updatedMethod = await databases.updateDocument(
+      financeDatabase,
+      userPaymentMethodsCollection,
+      paymentMethodId,
+      {
+        ...(data.name && { name: data.name }),
+        ...(data.type && { type: data.type }),
+        ...(data.details && { details: data.details }),
+        ...(data.isDefault !== undefined && { isDefault: data.isDefault }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+        updatedAt: new Date().toISOString()
+      }
+    );
+    
+    return NextResponse.json(updatedMethod);
+    
+  } catch (error) {
+    console.error('Error updating payment method:', error);
+    return NextResponse.json({ error: 'Failed to update payment method' }, { status: 500 });
+  }
+}
 
+// DELETE - Delete a payment method
+export async function DELETE(request: NextRequest) {
+  try {
+    // Get user ID from auth
+    const userId = await getUserId();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get URL parameters
+    const searchParams = request.nextUrl.searchParams;
+    const paymentMethodId = searchParams.get('id');
+    
+    if (!paymentMethodId) {
+      return NextResponse.json({ error: 'Payment method ID is required' }, { status: 400 });
+    }
+    
+    // Get existing payment method
+    const existingMethod = await databases.getDocument(
+      financeDatabase,
+      userPaymentMethodsCollection,
+      paymentMethodId
+    );
+    
+    // Verify ownership
+    if (existingMethod.userId !== userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+    
+    // Prevent deleting default payment method
+    if (existingMethod.isDefault) {
+      return NextResponse.json({ 
+        error: 'Cannot delete default payment method. Please set another method as default first.' 
+      }, { status: 400 });
+    }
+    
     // Delete payment method
-    await deletePaymentMethod(paymentMethodId);
+    await databases.deleteDocument(
+      financeDatabase,
+      userPaymentMethodsCollection,
+      paymentMethodId
+    );
     
     return NextResponse.json({ success: true });
+    
   } catch (error) {
-    console.error("Error deleting payment method:", error);
-    return NextResponse.json({ error: "Failed to delete payment method" }, { status: 500 });
+    console.error('Error deleting payment method:', error);
+    return NextResponse.json({ error: 'Failed to delete payment method' }, { status: 500 });
   }
 }

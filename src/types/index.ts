@@ -240,3 +240,61 @@ export interface UserSettings {
   timezone: string;
   currencyPreference: string;
 }
+
+// Finance-related types
+export interface Wallet {
+  $id: string;
+  userId: string;
+  name: string;
+  type: 'fiat' | 'crypto';
+  currency: string;
+  balance: number;
+  isDefault: boolean;
+  address?: string; // For crypto wallets
+  network?: string; // For crypto wallets (e.g., ETH mainnet, BSC, etc.)
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentMethod {
+  $id: string;
+  userId: string;
+  name: string;
+  type: 'bank_account' | 'credit_card' | 'crypto_address' | 'paypal' | 'other';
+  provider?: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  cardNumber?: string;
+  cardExpiry?: string;
+  cryptoAddress?: string;
+  cryptoNetwork?: string;
+  paypalEmail?: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Transaction {
+  $id: string;
+  userId: string;
+  walletId: string;
+  amount: number;
+  currency: string;
+  type: 'deposit' | 'withdrawal' | 'payment' | 'refund' | 'fee' | 'escrow' | 'release';
+  status: 'pending' | 'completed' | 'failed' | 'cancelled';
+  description?: string;
+  paymentMethodId?: string;
+  contractId?: string;
+  relatedTransactionId?: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+
+export interface EscrowTransaction extends Transaction {
+  fromWalletId: string;
+  toWalletId?: string; // If undefined, the funds are still in escrow
+  milestoneId?: string;
+  contractId: string;
+}

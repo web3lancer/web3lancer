@@ -53,6 +53,17 @@ export default function WalletsPage() {
       console.error('Error fetching transactions:', error);
     }
   };
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const response = await fetch('/api/payment-method');
+      if (!response.ok) throw new Error('Failed to fetch payment methods');
+      const data = await response.json();
+      setPaymentMethods(data);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+    }
+  };
   
   const fetchPaymentMethods = async () => {
     try {
@@ -145,6 +156,118 @@ export default function WalletsPage() {
     }
   };
 
+  const handleOpenDepositModal = (wallet: Wallet) => {
+    setCurrentWallet(wallet);
+    setIsDepositModalOpen(true);
+  };
+
+  const handleOpenWithdrawModal = (wallet: Wallet) => {
+    setCurrentWallet(wallet);
+    setIsWithdrawModalOpen(true);
+  };
+
+  const handleCloseDepositModal = () => {
+    setIsDepositModalOpen(false);
+    setCurrentWallet(null);
+  };
+
+  const handleCloseWithdrawModal = () => {
+    setIsWithdrawModalOpen(false);
+    setCurrentWallet(null);
+  };
+
+  const handleDeposit = async (data: {
+    amount: number;
+    walletId: string;
+    paymentMethodId?: string;
+    currency: string;
+    description?: string;
+  }) => {
+    setIsSubmitting(true);
+    try {
+      // In a real app, we would get userId from auth context
+      // For demo, we'll assume the user ID is available
+      const userId = user?.id;
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await fetch('/api/transaction/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          userId
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process deposit');
+      }
+      
+      // Refresh data
+      fetchWallets();
+      fetchTransactions();
+      handleCloseDepositModal();
+      
+      // Show success message
+      alert('Deposit successful!');
+    } catch (error) {
+      console.error('Error processing deposit:', error);
+      alert(error instanceof Error ? error.message : 'Failed to process deposit');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleWithdraw = async (data: {
+    amount: number;
+    walletId: string;
+    paymentMethodId?: string;
+    currency: string;
+    description?: string;
+  }) => {
+    setIsSubmitting(true);
+    try {
+      // In a real app, we would get userId from auth context
+      // For demo, we'll assume the user ID is available
+      const userId = user?.id;
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await fetch('/api/transaction/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          userId
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process withdrawal');
+      }
+      
+      // Refresh data
+      fetchWallets();
+      fetchTransactions();
+      handleCloseWithdrawModal();
+      
+      // Show success message
+      alert('Withdrawal successful!');
+    } catch (error) {
+      console.error('Error processing withdrawal:', error);
+      alert(error instanceof Error ? error.message : 'Failed to process withdrawal');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Get recent transactions for a specific wallet
   const getWalletTransactions = (walletId: string) => {
     return transactions
@@ -220,8 +343,8 @@ export default function WalletsPage() {
                   onEdit={() => handleOpenModal(wallet)}
                   onDelete={() => handleDeleteWallet(wallet.$id)}
                   onSetDefault={() => handleSetDefault(wallet.$id)}
-                  onDeposit={() => alert('Deposit functionality coming soon')}
-                  onWithdraw={() => alert('Withdrawal functionality coming soon')}
+                  onDeposit={(wallet) => handleOpenDepositModal(wallet)}
+                  onWithdraw={(wallet) => handleOpenWithdrawModal(wallet)}
                 />
               ))}
             </div>
@@ -265,6 +388,36 @@ export default function WalletsPage() {
           wallet={currentWallet || undefined}
           onSubmit={handleSubmitWallet}
           onCancel={handleCloseModal}
+          isSubmitting={isSubmitting}
+        />
+      </Modal>
+
+      {/* Deposit Modal */}
+      <Modal
+        isOpen={isDepositModalOpen}
+        onClose={handleCloseDepositModal}
+        title="Deposit Funds"
+      >
+        <DepositForm
+          wallets={currentWallet ? [currentWallet as Wallet] : wallets}
+          paymentMethods={paymentMethods}
+          onSubmit={handleDeposit}
+          onCancel={handleCloseDepositModal}
+          isSubmitting={isSubmitting}
+        />
+      </Modal>
+
+      {/* Withdrawal Modal */}
+      <Modal
+        isOpen={isWithdrawModalOpen}
+        onClose={handleCloseWithdrawModal}
+        title="Withdraw Funds"
+      >
+        <WithdrawalForm
+          wallets={currentWallet ? [currentWallet as Wallet] : wallets}
+          paymentMethods={paymentMethods}
+          onSubmit={handleWithdraw}
+          onCancel={handleCloseWithdrawModal}
           isSubmitting={isSubmitting}
         />
       </Modal>

@@ -7,8 +7,8 @@ interface WalletCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onSetDefault?: () => void;
-  onDeposit?: () => void;
-  onWithdraw?: () => void;
+  onDeposit?: (wallet: Wallet) => void;
+  onWithdraw?: (wallet: Wallet) => void;
 }
 
 const WalletCard: React.FC<WalletCardProps> = ({
@@ -72,7 +72,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
         <div className="flex space-x-2">
           {onDeposit && (
             <button
-              onClick={onDeposit}
+              onClick={() => onDeposit(wallet)}
               className="px-3 py-1 text-xs font-medium rounded bg-green-100 text-green-800 hover:bg-green-200"
             >
               Deposit
@@ -80,7 +80,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
           )}
           {onWithdraw && (
             <button
-              onClick={onWithdraw}
+              onClick={() => onWithdraw(wallet)}
               className="px-3 py-1 text-xs font-medium rounded bg-red-100 text-red-800 hover:bg-red-200"
             >
               Withdraw
