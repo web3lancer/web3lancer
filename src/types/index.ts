@@ -8,12 +8,16 @@ export * from './profiles';
 // Re-export all types
 export * from './profile';
 
+// Import and re-export all types from their respective files
+export * from './finance';
+
 // Index type exports
 
 export interface User {
   userId: string;
   email: string;
   name?: string;
+  profileId?: string;
 }
 
 export interface Profile {
@@ -22,22 +26,10 @@ export interface Profile {
   username: string;
   displayName: string;
   bio?: string;
+  email?: string;
+  avatarUrl?: string;
+  website?: string;
   skills?: string[];
-  roles: ('freelancer' | 'client' | 'admin')[];
-  verified?: boolean;
-  avatarFileId?: string;
-  coverFileId?: string;
-  socialLinks?: {
-    website?: string;
-    github?: string;
-    twitter?: string;
-    linkedin?: string;
-  };
-  contactInfo?: {
-    email?: string;
-    phone?: string;
-    address?: string;
-  };
   createdAt: string;
   updatedAt?: string;
 }

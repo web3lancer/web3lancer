@@ -1,557 +1,424 @@
-import { databases, ID, storage } from '@/utils/api';
-import {
-  FINANCE_DATABASE_ID,
-  USER_WALLETS_COLLECTION_ID,
-  PLATFORM_TRANSACTIONS_COLLECTION_ID,
-  USER_PAYMENT_METHODS_COLLECTION_ID,
-  ESCROW_TRANSACTIONS_COLLECTION_ID
-} from '@/lib/env';
+import { ID, Query } from "appwrite";
+import { databases, storage } from "@/app/api";
+import { Wallet, Transaction, PaymentMethod, EscrowTransaction } from "@/types";
+import FinanceEnv from "@/lib/financeEnv";
 
-/**
- * Finance Service
- * 
- * This service handles operations related to wallets, transactions, payment methods,
- * and escrow within the FinanceDB.
- */
+// Get the environment variables
+const {
+  financeDatabase: FINANCE_DATABASE_ID,
+  userWalletsCollection: USER_WALLETS_COLLECTION_ID,
+  platformTransactionsCollection: PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  userPaymentMethodsCollection: USER_PAYMENT_METHODS_COLLECTION_ID,
+  escrowTransactionsCollection: ESCROW_TRANSACTIONS_COLLECTION_ID
+} = FinanceEnv.getAll();
 
-// User Wallets
+class FinanceService {
+  // --- Wallet Management ---
 
-/**
- * Create a new wallet for a user
- */
-export async function createUserWallet(
-  profileId: string, 
-  walletAddress: string, 
-  walletType: 'ethereum' | 'solana' | 'xion' | 'internal', 
-  isPrimary: boolean = false,
-  nickname?: string
-) {
-  try {
-    const wallet = await databases.createDocument(
-      FINANCE_DATABASE_ID,
-      USER_WALLETS_COLLECTION_ID,
-      ID.unique(),
-      {
-        profileId,
-        walletAddress,
-        walletType,
-        isPrimary,
-        nickname: nickname || `${walletType.charAt(0).toUpperCase() + walletType.slice(1)} Wallet`,
-        createdAt: new Date().toISOString(),
-        lastVerifiedAt: null,
-        isVerified: false
-      }
-    );
-    
-    return wallet;
-  } catch (error) {
-    console.error('Error creating wallet:', error);
-    throw new Error(`Failed to create wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Get user wallets
- */
-export async function getUserWallets(profileId: string) {
-  try {
-    const response = await databases.listDocuments(
-      FINANCE_DATABASE_ID,
-      USER_WALLETS_COLLECTION_ID,
-      [databases.Query.equal('profileId', profileId)]
-    );
-    
-    return response.documents;
-  } catch (error) {
-    console.error('Error getting user wallets:', error);
-    throw new Error(`Failed to get user wallets: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Update wallet details
- */
-export async function updateWallet(walletId: string, data: {
-  nickname?: string;
-  isPrimary?: boolean;
-  isVerified?: boolean;
-  lastVerifiedAt?: string;
-}) {
-  try {
-    const updatedWallet = await databases.updateDocument(
-      FINANCE_DATABASE_ID,
-      USER_WALLETS_COLLECTION_ID,
-      walletId,
-      {
-        ...data,
-        updatedAt: new Date().toISOString()
-      }
-    );
-    
-    return updatedWallet;
-  } catch (error) {
-    console.error('Error updating wallet:', error);
-    throw new Error(`Failed to update wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Delete wallet
- */
-export async function deleteWallet(walletId: string) {
-  try {
-    await databases.deleteDocument(
-      FINANCE_DATABASE_ID,
-      USER_WALLETS_COLLECTION_ID,
-      walletId
-    );
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting wallet:', error);
-    throw new Error(`Failed to delete wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Set wallet as primary
- */
-export async function setPrimaryWallet(profileId: string, walletId: string) {
-  try {
-    // First, set all user wallets to non-primary
-    const wallets = await getUserWallets(profileId);
-    
-    for (const wallet of wallets) {
-      if (wallet.$id !== walletId && wallet.isPrimary) {
-        await updateWallet(wallet.$id, { isPrimary: false });
-      }
+  // Create a user wallet
+  async createWallet(walletData: Partial<Wallet>): Promise<Wallet | null> {
+    try {
+      const newWallet = await databases.createDocument(
+        FINANCE_DATABASE_ID,
+        USER_WALLETS_COLLECTION_ID,
+        ID.unique(),
+        {
+          // Set default values for required fields
+          balance: walletData.balance || 0,
+          currency: walletData.currency || 'USD',
+          isDefault: walletData.isDefault || false,
+          createdAt: new Date().toISOString(),
+          // Include all other fields from walletData
+          ...walletData
+        }
+      );
+      return newWallet as unknown as Wallet;
+    } catch (error) {
+      console.error("Error creating wallet:", error);
+      return null;
     }
-    
-    // Then set the selected wallet as primary
-    await updateWallet(walletId, { isPrimary: true });
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error setting primary wallet:', error);
-    throw new Error(`Failed to set primary wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
 
-/**
- * Verify wallet ownership through signature
- */
-export async function verifyWalletOwnership(walletId: string, signature: string, message: string) {
-  try {
-    // In a real implementation, this would verify the signature cryptographically
-    // For now, we'll just mark it as verified
-    
-    await updateWallet(walletId, { 
-      isVerified: true,
-      lastVerifiedAt: new Date().toISOString()
-    });
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error verifying wallet ownership:', error);
-    throw new Error(`Failed to verify wallet ownership: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-// Platform Transactions
-
-/**
- * Create a platform transaction
- */
-export async function createTransaction(
-  profileId: string,
-  type: 'deposit' | 'withdrawal' | 'fee' | 'escrow_funding' | 'escrow_release' | 'escrow_refund',
-  amount: number,
-  currency: string,
-  description: string,
-  relatedEntityId?: string, // e.g., contractId for escrow
-  walletId?: string
-) {
-  try {
-    const transaction = await databases.createDocument(
-      FINANCE_DATABASE_ID,
-      PLATFORM_TRANSACTIONS_COLLECTION_ID,
-      ID.unique(),
-      {
-        profileId,
-        transactionType: type,
-        amount,
-        currency,
-        description,
-        status: 'pending',
-        relatedEntityId: relatedEntityId || null,
-        walletId: walletId || null,
-        createdAt: new Date().toISOString(),
-        completedAt: null
-      }
-    );
-    
-    return transaction;
-  } catch (error) {
-    console.error('Error creating transaction:', error);
-    throw new Error(`Failed to create transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Get user transactions
- */
-export async function getUserTransactions(profileId: string, limit: number = 20, offset: number = 0) {
-  try {
-    const response = await databases.listDocuments(
-      FINANCE_DATABASE_ID,
-      PLATFORM_TRANSACTIONS_COLLECTION_ID,
-      [
-        databases.Query.equal('profileId', profileId),
-        databases.Query.orderDesc('createdAt'),
-        databases.Query.limit(limit),
-        databases.Query.offset(offset)
-      ]
-    );
-    
-    return response.documents;
-  } catch (error) {
-    console.error('Error getting user transactions:', error);
-    throw new Error(`Failed to get user transactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Update transaction status
- */
-export async function updateTransactionStatus(
-  transactionId: string,
-  status: 'pending' | 'completed' | 'failed' | 'cancelled',
-  txHash?: string
-) {
-  try {
-    const updatedData: any = {
-      status,
-      updatedAt: new Date().toISOString()
-    };
-    
-    if (status === 'completed') {
-      updatedData.completedAt = new Date().toISOString();
+  // Get wallet by ID
+  async getWallet(walletId: string): Promise<Wallet | null> {
+    try {
+      const wallet = await databases.getDocument(
+        FINANCE_DATABASE_ID,
+        USER_WALLETS_COLLECTION_ID,
+        walletId
+      );
+      return wallet as unknown as Wallet;
+    } catch (error) {
+      console.error("Error fetching wallet:", error);
+      return null;
     }
-    
-    if (txHash) {
-      updatedData.txHash = txHash;
+  }
+
+  // Get wallets by user ID
+  async getWalletsByUserId(userId: string): Promise<Wallet[]> {
+    try {
+      const wallets = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        USER_WALLETS_COLLECTION_ID,
+        [Query.equal("userId", userId)]
+      );
+
+      return wallets.documents as unknown as Wallet[];
+    } catch (error) {
+      console.error("Error fetching wallets by userId:", error);
+      return [];
     }
-    
-    const updatedTransaction = await databases.updateDocument(
-      FINANCE_DATABASE_ID,
-      PLATFORM_TRANSACTIONS_COLLECTION_ID,
-      transactionId,
-      updatedData
-    );
-    
-    return updatedTransaction;
-  } catch (error) {
-    console.error('Error updating transaction status:', error);
-    throw new Error(`Failed to update transaction status: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
 
-// User Payment Methods
+  // Get default wallet for a user
+  async getDefaultWallet(userId: string): Promise<Wallet | null> {
+    try {
+      const wallets = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        USER_WALLETS_COLLECTION_ID,
+        [
+          Query.equal("userId", userId),
+          Query.equal("isDefault", true)
+        ]
+      );
 
-/**
- * Add a payment method for a user
- */
-export async function addPaymentMethod(
-  profileId: string,
-  paymentType: 'card' | 'bank_account' | 'paypal' | 'crypto',
-  details: any,
-  isDefault: boolean = false
-) {
-  try {
-    // Store sensitive details securely (in a real app, would tokenize through a payment provider)
-    const paymentMethod = await databases.createDocument(
-      FINANCE_DATABASE_ID,
-      USER_PAYMENT_METHODS_COLLECTION_ID,
-      ID.unique(),
-      {
-        profileId,
-        paymentType,
-        details: JSON.stringify(details),
-        isDefault,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      if (wallets.documents.length > 0) {
+        return wallets.documents[0] as unknown as Wallet;
       }
-    );
-    
-    return paymentMethod;
-  } catch (error) {
-    console.error('Error adding payment method:', error);
-    throw new Error(`Failed to add payment method: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Get user payment methods
- */
-export async function getUserPaymentMethods(profileId: string) {
-  try {
-    const response = await databases.listDocuments(
-      FINANCE_DATABASE_ID,
-      USER_PAYMENT_METHODS_COLLECTION_ID,
-      [databases.Query.equal('profileId', profileId)]
-    );
-    
-    // Parse JSON details
-    return response.documents.map(doc => ({
-      ...doc,
-      details: JSON.parse(doc.details || '{}')
-    }));
-  } catch (error) {
-    console.error('Error getting user payment methods:', error);
-    throw new Error(`Failed to get user payment methods: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Update payment method details
- */
-export async function updatePaymentMethod(paymentMethodId: string, data: {
-  isDefault?: boolean;
-  details?: any;
-}) {
-  try {
-    const updatedData: any = {
-      updatedAt: new Date().toISOString()
-    };
-    
-    if (data.isDefault !== undefined) {
-      updatedData.isDefault = data.isDefault;
+      
+      return null;
+    } catch (error) {
+      console.error("Error fetching default wallet:", error);
+      return null;
     }
-    
-    if (data.details) {
-      updatedData.details = JSON.stringify(data.details);
+  }
+
+  // Update wallet
+  async updateWallet(walletId: string, walletData: Partial<Wallet>): Promise<Wallet | null> {
+    try {
+      const updatedWallet = await databases.updateDocument(
+        FINANCE_DATABASE_ID,
+        USER_WALLETS_COLLECTION_ID,
+        walletId,
+        {
+          ...walletData,
+          updatedAt: new Date().toISOString()
+        }
+      );
+      return updatedWallet as unknown as Wallet;
+    } catch (error) {
+      console.error("Error updating wallet:", error);
+      return null;
     }
-    
-    const updatedPaymentMethod = await databases.updateDocument(
-      FINANCE_DATABASE_ID,
-      USER_PAYMENT_METHODS_COLLECTION_ID,
-      paymentMethodId,
-      updatedData
-    );
-    
-    return {
-      ...updatedPaymentMethod,
-      details: JSON.parse(updatedPaymentMethod.details || '{}')
-    };
-  } catch (error) {
-    console.error('Error updating payment method:', error);
-    throw new Error(`Failed to update payment method: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
 
-/**
- * Delete payment method
- */
-export async function deletePaymentMethod(paymentMethodId: string) {
-  try {
-    await databases.deleteDocument(
-      FINANCE_DATABASE_ID,
-      USER_PAYMENT_METHODS_COLLECTION_ID,
-      paymentMethodId
-    );
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting payment method:', error);
-    throw new Error(`Failed to delete payment method: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Set payment method as default
- */
-export async function setDefaultPaymentMethod(profileId: string, paymentMethodId: string) {
-  try {
-    // First, set all user payment methods to non-default
-    const paymentMethods = await getUserPaymentMethods(profileId);
-    
-    for (const method of paymentMethods) {
-      if (method.$id !== paymentMethodId && method.isDefault) {
-        await updatePaymentMethod(method.$id, { isDefault: false });
-      }
+  // Delete wallet
+  async deleteWallet(walletId: string): Promise<boolean> {
+    try {
+      await databases.deleteDocument(
+        FINANCE_DATABASE_ID,
+        USER_WALLETS_COLLECTION_ID,
+        walletId
+      );
+      return true;
+    } catch (error) {
+      console.error("Error deleting wallet:", error);
+      return false;
     }
-    
-    // Then set the selected payment method as default
-    await updatePaymentMethod(paymentMethodId, { isDefault: true });
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error setting default payment method:', error);
-    throw new Error(`Failed to set default payment method: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
 
-// Escrow Transactions
+  // --- Transaction Management ---
 
-/**
- * Create an escrow transaction
- */
-export async function createEscrowTransaction(
-  contractId: string,
-  amount: number,
-  currency: string,
-  fundedByProfileId: string,
-  receiverProfileId: string,
-  milestoneId?: string
-) {
-  try {
-    const escrowTransaction = await databases.createDocument(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      ID.unique(),
-      {
-        contractId,
-        milestoneId: milestoneId || null,
-        amount,
-        currency,
-        fundedByProfileId,
-        receiverProfileId,
-        status: 'funded',
-        createdAt: new Date().toISOString(),
-        releasedAt: null,
-        refundedAt: null
+  // Record a new transaction
+  async createTransaction(transactionData: Partial<Transaction>): Promise<Transaction | null> {
+    try {
+      const newTransaction = await databases.createDocument(
+        FINANCE_DATABASE_ID,
+        PLATFORM_TRANSACTIONS_COLLECTION_ID,
+        ID.unique(),
+        {
+          // Set default values for required fields
+          amount: transactionData.amount || 0,
+          currency: transactionData.currency || 'USD',
+          type: transactionData.type || 'deposit',
+          status: transactionData.status || 'pending',
+          createdAt: new Date().toISOString(),
+          // Include all other fields from transactionData
+          ...transactionData
+        }
+      );
+      return newTransaction as unknown as Transaction;
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      return null;
+    }
+  }
+
+  // Get transaction by ID
+  async getTransaction(transactionId: string): Promise<Transaction | null> {
+    try {
+      const transaction = await databases.getDocument(
+        FINANCE_DATABASE_ID,
+        PLATFORM_TRANSACTIONS_COLLECTION_ID,
+        transactionId
+      );
+      return transaction as unknown as Transaction;
+    } catch (error) {
+      console.error("Error fetching transaction:", error);
+      return null;
+    }
+  }
+
+  // Get transactions by user ID
+  async getTransactionsByUserId(userId: string, limit: number = 20, offset: number = 0): Promise<Transaction[]> {
+    try {
+      const transactions = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        PLATFORM_TRANSACTIONS_COLLECTION_ID,
+        [
+          Query.equal("userId", userId),
+          Query.orderDesc("createdAt"),
+          Query.limit(limit),
+          Query.offset(offset)
+        ]
+      );
+
+      return transactions.documents as unknown as Transaction[];
+    } catch (error) {
+      console.error("Error fetching transactions by userId:", error);
+      return [];
+    }
+  }
+
+  // Update transaction status
+  async updateTransactionStatus(transactionId: string, status: Transaction['status']): Promise<Transaction | null> {
+    try {
+      const updatedTransaction = await databases.updateDocument(
+        FINANCE_DATABASE_ID,
+        PLATFORM_TRANSACTIONS_COLLECTION_ID,
+        transactionId,
+        {
+          status,
+          updatedAt: new Date().toISOString()
+        }
+      );
+      return updatedTransaction as unknown as Transaction;
+    } catch (error) {
+      console.error("Error updating transaction status:", error);
+      return null;
+    }
+  }
+
+  // --- Payment Method Management ---
+
+  // Add a payment method
+  async addPaymentMethod(paymentMethodData: Partial<PaymentMethod>): Promise<PaymentMethod | null> {
+    try {
+      const newPaymentMethod = await databases.createDocument(
+        FINANCE_DATABASE_ID,
+        USER_PAYMENT_METHODS_COLLECTION_ID,
+        ID.unique(),
+        {
+          // Set default values for required fields
+          type: paymentMethodData.type || 'card',
+          isDefault: paymentMethodData.isDefault || false,
+          createdAt: new Date().toISOString(),
+          // Include all other fields from paymentMethodData
+          ...paymentMethodData
+        }
+      );
+      return newPaymentMethod as unknown as PaymentMethod;
+    } catch (error) {
+      console.error("Error adding payment method:", error);
+      return null;
+    }
+  }
+
+  // Get payment method by ID
+  async getPaymentMethod(paymentMethodId: string): Promise<PaymentMethod | null> {
+    try {
+      const paymentMethod = await databases.getDocument(
+        FINANCE_DATABASE_ID,
+        USER_PAYMENT_METHODS_COLLECTION_ID,
+        paymentMethodId
+      );
+      return paymentMethod as unknown as PaymentMethod;
+    } catch (error) {
+      console.error("Error fetching payment method:", error);
+      return null;
+    }
+  }
+
+  // Get payment methods by user ID
+  async getPaymentMethodsByUserId(userId: string): Promise<PaymentMethod[]> {
+    try {
+      const paymentMethods = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        USER_PAYMENT_METHODS_COLLECTION_ID,
+        [Query.equal("userId", userId)]
+      );
+
+      return paymentMethods.documents as unknown as PaymentMethod[];
+    } catch (error) {
+      console.error("Error fetching payment methods by userId:", error);
+      return [];
+    }
+  }
+
+  // Get default payment method for a user
+  async getDefaultPaymentMethod(userId: string): Promise<PaymentMethod | null> {
+    try {
+      const paymentMethods = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        USER_PAYMENT_METHODS_COLLECTION_ID,
+        [
+          Query.equal("userId", userId),
+          Query.equal("isDefault", true)
+        ]
+      );
+
+      if (paymentMethods.documents.length > 0) {
+        return paymentMethods.documents[0] as unknown as PaymentMethod;
       }
-    );
-    
-    // Create a platform transaction to record the funding
-    await createTransaction(
-      fundedByProfileId,
-      'escrow_funding',
-      amount,
-      currency,
-      `Escrow funding for contract #${contractId}${milestoneId ? ` milestone #${milestoneId}` : ''}`,
-      contractId
-    );
-    
-    return escrowTransaction;
-  } catch (error) {
-    console.error('Error creating escrow transaction:', error);
-    throw new Error(`Failed to create escrow transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      return null;
+    } catch (error) {
+      console.error("Error fetching default payment method:", error);
+      return null;
+    }
   }
-}
 
-/**
- * Release escrow funds
- */
-export async function releaseEscrowFunds(escrowTransactionId: string) {
-  try {
-    const escrowTx = await databases.getDocument(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      escrowTransactionId
-    );
-    
-    // Update escrow transaction
-    const updatedEscrow = await databases.updateDocument(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      escrowTransactionId,
-      {
-        status: 'released',
-        releasedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+  // Update payment method
+  async updatePaymentMethod(paymentMethodId: string, paymentMethodData: Partial<PaymentMethod>): Promise<PaymentMethod | null> {
+    try {
+      const updatedPaymentMethod = await databases.updateDocument(
+        FINANCE_DATABASE_ID,
+        USER_PAYMENT_METHODS_COLLECTION_ID,
+        paymentMethodId,
+        {
+          ...paymentMethodData,
+          updatedAt: new Date().toISOString()
+        }
+      );
+      return updatedPaymentMethod as unknown as PaymentMethod;
+    } catch (error) {
+      console.error("Error updating payment method:", error);
+      return null;
+    }
+  }
+
+  // Delete payment method
+  async deletePaymentMethod(paymentMethodId: string): Promise<boolean> {
+    try {
+      await databases.deleteDocument(
+        FINANCE_DATABASE_ID,
+        USER_PAYMENT_METHODS_COLLECTION_ID,
+        paymentMethodId
+      );
+      return true;
+    } catch (error) {
+      console.error("Error deleting payment method:", error);
+      return false;
+    }
+  }
+
+  // --- Escrow Management ---
+
+  // Create escrow transaction
+  async createEscrowTransaction(escrowData: Partial<EscrowTransaction>): Promise<EscrowTransaction | null> {
+    try {
+      const newEscrow = await databases.createDocument(
+        FINANCE_DATABASE_ID,
+        ESCROW_TRANSACTIONS_COLLECTION_ID,
+        ID.unique(),
+        {
+          // Set default values for required fields
+          amount: escrowData.amount || 0,
+          currency: escrowData.currency || 'USD',
+          status: escrowData.status || 'pending',
+          createdAt: new Date().toISOString(),
+          // Include all other fields from escrowData
+          ...escrowData
+        }
+      );
+      return newEscrow as unknown as EscrowTransaction;
+    } catch (error) {
+      console.error("Error creating escrow transaction:", error);
+      return null;
+    }
+  }
+
+  // Get escrow transaction by ID
+  async getEscrowTransaction(escrowId: string): Promise<EscrowTransaction | null> {
+    try {
+      const escrow = await databases.getDocument(
+        FINANCE_DATABASE_ID,
+        ESCROW_TRANSACTIONS_COLLECTION_ID,
+        escrowId
+      );
+      return escrow as unknown as EscrowTransaction;
+    } catch (error) {
+      console.error("Error fetching escrow transaction:", error);
+      return null;
+    }
+  }
+
+  // Get escrow transactions by milestone ID
+  async getEscrowByMilestoneId(milestoneId: string): Promise<EscrowTransaction | null> {
+    try {
+      const escrows = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        ESCROW_TRANSACTIONS_COLLECTION_ID,
+        [Query.equal("milestoneId", milestoneId)]
+      );
+
+      if (escrows.documents.length > 0) {
+        return escrows.documents[0] as unknown as EscrowTransaction;
       }
-    );
-    
-    // Create a platform transaction to record the release
-    await createTransaction(
-      escrowTx.receiverProfileId,
-      'escrow_release',
-      escrowTx.amount,
-      escrowTx.currency,
-      `Escrow release for contract #${escrowTx.contractId}${escrowTx.milestoneId ? ` milestone #${escrowTx.milestoneId}` : ''}`,
-      escrowTx.contractId
-    );
-    
-    return updatedEscrow;
-  } catch (error) {
-    console.error('Error releasing escrow funds:', error);
-    throw new Error(`Failed to release escrow funds: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      return null;
+    } catch (error) {
+      console.error("Error fetching escrow by milestoneId:", error);
+      return null;
+    }
+  }
+
+  // Get escrow transactions by contract ID
+  async getEscrowsByContractId(contractId: string): Promise<EscrowTransaction[]> {
+    try {
+      const escrows = await databases.listDocuments(
+        FINANCE_DATABASE_ID,
+        ESCROW_TRANSACTIONS_COLLECTION_ID,
+        [Query.equal("contractId", contractId)]
+      );
+
+      return escrows.documents as unknown as EscrowTransaction[];
+    } catch (error) {
+      console.error("Error fetching escrows by contractId:", error);
+      return [];
+    }
+  }
+
+  // Update escrow transaction status
+  async updateEscrowStatus(escrowId: string, status: EscrowTransaction['status']): Promise<EscrowTransaction | null> {
+    try {
+      const updatedEscrow = await databases.updateDocument(
+        FINANCE_DATABASE_ID,
+        ESCROW_TRANSACTIONS_COLLECTION_ID,
+        escrowId,
+        {
+          status,
+          updatedAt: new Date().toISOString()
+        }
+      );
+      return updatedEscrow as unknown as EscrowTransaction;
+    } catch (error) {
+      console.error("Error updating escrow status:", error);
+      return null;
+    }
   }
 }
 
-/**
- * Refund escrow funds
- */
-export async function refundEscrowFunds(escrowTransactionId: string) {
-  try {
-    const escrowTx = await databases.getDocument(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      escrowTransactionId
-    );
-    
-    // Update escrow transaction
-    const updatedEscrow = await databases.updateDocument(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      escrowTransactionId,
-      {
-        status: 'refunded',
-        refundedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    );
-    
-    // Create a platform transaction to record the refund
-    await createTransaction(
-      escrowTx.fundedByProfileId,
-      'escrow_refund',
-      escrowTx.amount,
-      escrowTx.currency,
-      `Escrow refund for contract #${escrowTx.contractId}${escrowTx.milestoneId ? ` milestone #${escrowTx.milestoneId}` : ''}`,
-      escrowTx.contractId
-    );
-    
-    return updatedEscrow;
-  } catch (error) {
-    console.error('Error refunding escrow funds:', error);
-    throw new Error(`Failed to refund escrow funds: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Get escrow transactions for a contract
- */
-export async function getContractEscrowTransactions(contractId: string) {
-  try {
-    const response = await databases.listDocuments(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      [databases.Query.equal('contractId', contractId)]
-    );
-    
-    return response.documents;
-  } catch (error) {
-    console.error('Error getting contract escrow transactions:', error);
-    throw new Error(`Failed to get contract escrow transactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Get escrow transaction by milestone
- */
-export async function getMilestoneEscrowTransaction(milestoneId: string) {
-  try {
-    const response = await databases.listDocuments(
-      FINANCE_DATABASE_ID,
-      ESCROW_TRANSACTIONS_COLLECTION_ID,
-      [databases.Query.equal('milestoneId', milestoneId)]
-    );
-    
-    return response.documents.length > 0 ? response.documents[0] : null;
-  } catch (error) {
-    console.error('Error getting milestone escrow transaction:', error);
-    throw new Error(`Failed to get milestone escrow transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
+// Export single instance
+const financeService = new FinanceService();
+export default financeService;

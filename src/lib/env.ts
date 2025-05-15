@@ -236,3 +236,10 @@ export const API_ROUTES = {
   REVIEW: '/api/review',
   AUTH: '/api/auth',
 };
+
+// Environment constants for financial system
+export const FINANCE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_FINANCE_ID || 'finance_db';
+export const USER_WALLETS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_WALLETS_ID || 'user_wallets';
+export const PLATFORM_TRANSACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PLATFORM_TRANSACTIONS_ID || 'platform_transactions';
+export const USER_PAYMENT_METHODS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_PAYMENT_METHODS_ID || 'user_payment_methods';
+export const ESCROW_TRANSACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ESCROW_TRANSACTIONS_ID || 'escrow_transactions';
