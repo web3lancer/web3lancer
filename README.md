@@ -20,7 +20,7 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 
 ## ⛓️ On-Chain Capabilities
 
-Web3Lancer leverages **Stellar** blockchain technology to enable:
+Web3Lancer leverages **Solana** blockchain technology to enable:
 
 - **💸 Instant Cross-Border Payments** - Eliminate traditional banking delays and high fees
 - **🔄 Currency Conversion** - Seamless exchanges between different currencies
@@ -28,7 +28,7 @@ Web3Lancer leverages **Stellar** blockchain technology to enable:
 - **🛡️ Transaction Security** - Immutable records of all payment activities
 - **⚡ Low-Cost Microtransactions** - Enabling granular payment models for small tasks
 
-Stellar's fast, low-cost transaction infrastructure powers our payment system, making it possible for freelancers to receive compensation quickly regardless of geographic location.
+In addition, Stellar's fast, low-cost transaction infrastructure powers our payment system, making it possible for freelancers to receive compensation quickly regardless of geographic location.
 
 ### 🌟 Stellar-Powered Trust System
 
