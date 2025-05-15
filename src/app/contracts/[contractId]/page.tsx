@@ -56,151 +56,325 @@ export default function ContractPage({ params }: ContractPageProps) {
         setReviews(contractReviews);
         
       } catch (error) {
-        ]);
-        
-        setClientProfile(clientData);
-        setFreelancerProfile(freelancerData);
-        
-        // Fetch reviews for the project
-        if (contractData.projectId) {
-          const projectReviews = await profileService.getProjectReviews(contractData.projectId);
-          setReviews(projectReviews);
-          
-          // Fetch reviewer profiles
-          const reviewerIds = [...new Set(projectReviews.map(r => r.reviewerId))];
-          const profiles: Record<string, Profile> = {};
-          
-          await Promise.all(
-            reviewerIds.map(async (id) => {
-              const profile = await profileService.getProfileByUserId(id);
-              if (profile) {
-                profiles[id] = profile;
-              }
-            })
-          );
-          
-          setReviewerProfiles(profiles);
-        }
-      } catch (err) {
-        console.error('Error fetching contract details:', err);
-        setError('Failed to load contract details');
+        console.error('Error fetching contract details:', error);
+        setError('Failed to fetch contract details. Please try again later.');
       } finally {
         setLoading(false);
       }
+    }
+    
+    fetchContractData();
+  }, [contractId, user]);
+
+  const handleUpdateContractStatus = async (status: Contract['status']) => {
+    if (!contract) return;
+    
+    try {
+      const updatedContract = await contractService.updateContractStatus(contract.$id, status);
+      
+      if (updatedContract) {
+        setContract(updatedContract);
+      }
+    } catch (error) {
+      console.error('Error updating contract status:', error);
+      alert('Failed to update contract status. Please try again.');
+    }
+  };
+
+  const handleSubmitReview = async (reviewData: Partial<Review>) => {
+    try {
+      if (editingReview) {
+        // Update existing review
+        const updatedReview = await contractService.updateReview(
+          editingReview.$id,
+          reviewData
+        );
+        
+        if (updatedReview) {
+          setReviews(reviews.map(review => 
+            review.$id === updatedReview.$id ? updatedReview : review
+          ));
+          setEditingReview(null);
+        }
+      } else {
+        // Create new review
+        const newReview = await contractService.createReview(reviewData);
+        
+        if (newReview) {
+          setReviews([...reviews, newReview]);
+        }
+      }
+      
+      setShowReviewForm(false);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    }
+  };
+
+  const handleEditReview = (reviewId: string) => {
+    const reviewToEdit = reviews.find(review => review.$id === reviewId);
+    
+    if (reviewToEdit) {
+      setEditingReview(reviewToEdit);
+      setShowReviewForm(true);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+    
+    try {
+      const success = await contractService.deleteReview(reviewId);
+      
+      if (success) {
+        setReviews(reviews.filter(review => review.$id !== reviewId));
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      alert('Failed to delete review. Please try again.');
+    }
+  };
+
+  const canLeaveReview = () => {
+    if (!contract || !user) return false;
+    
+    // Check if user is part of this contract
+    if (contract.clientId !== user.userId && contract.freelancerId !== user.userId) {
+      return false;
+    }
+    
+    // Check if contract is completed
+    if (contract.status !== 'completed') {
+      return false;
+    }
+    
+    // Check if user has already left a review
+    return !reviews.some(review => review.reviewerId === user.userId);
+  };
+
+  const renderContractStatus = (status: Contract['status']) => {
+    const statusColors = {
+      draft: "bg-gray-100 text-gray-800",
+      active: "bg-green-100 text-green-800",
+      completed: "bg-blue-100 text-blue-800",
+      cancelled: "bg-red-100 text-red-800",
+      disputed: "bg-yellow-100 text-yellow-800",
     };
     
-    if (user?.userId) {
-      fetchContractDetails();
-    }
-  }, [contractId, user?.userId]);
-  
-  // Handle contract update
-  const handleContractUpdate = (updatedContract: Contract) => {
-    setContract(updatedContract);
+    return (
+      <span className={`px-2 py-1 text-sm font-medium rounded-full ${statusColors[status] || "bg-gray-100"}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
   };
-  
-  // Handle review submission
-  const handleReviewSubmitted = (review: Review) => {
-    setReviews(prev => [review, ...prev]);
-  };
-  
+
   if (loading) {
     return (
-      <div className="container mx-auto py-8 px-4 flex justify-center">
-        <Spinner size="lg" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-10">Loading contract details...</div>
       </div>
     );
   }
-  
+
   if (error) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="bg-red-100 text-red-700 p-4 rounded-md">
-          {error}
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-10 text-red-500">{error}</div>
+        <div className="text-center">
+          <Link href="/contracts" className="text-blue-600 hover:underline">
+            Return to Contracts
+          </Link>
         </div>
       </div>
     );
   }
-  
-  if (!contract || !user?.userId) {
+
+  if (!contract) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="bg-yellow-100 text-yellow-700 p-4 rounded-md">
-          Contract not found or you're not authorized to view it.
-        </div>
-        <div className="mt-4">
-          <button
-            onClick={() => router.push('/contracts')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Back to Contracts
-          </button>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-10">Contract not found.</div>
+        <div className="text-center">
+          <Link href="/contracts" className="text-blue-600 hover:underline">
+            Return to Contracts
+          </Link>
         </div>
       </div>
     );
   }
+
+  const isClient = contract.clientId === user?.userId;
+  const userRole = isClient ? 'client' : 'freelancer';
+  const otherPartyId = isClient ? contract.freelancerId : contract.clientId;
   
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <button
-          onClick={() => router.push('/contracts')}
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-        >
+        <Link href="/contracts" className="text-blue-600 hover:underline">
           ← Back to Contracts
-        </button>
+        </Link>
       </div>
       
-      <ContractDetails
-        contract={contract}
-        clientProfile={clientProfile || undefined}
-        freelancerProfile={freelancerProfile || undefined}
-        currentUserId={user.userId}
-        onContractUpdate={handleContractUpdate}
-      />
-      
-      {canAddMilestone && (
-        <div className="mt-6">
-          <AddMilestoneForm
-            contractId={contract.$id}
-            onMilestoneAdded={handleContractUpdate}
-          />
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">{contract.title}</h1>
+            <p className="text-gray-500">Contract ID: {contract.$id}</p>
+          </div>
+          <div>
+            {renderContractStatus(contract.status)}
+          </div>
         </div>
-      )}
-      
-      {contract.status === 'completed' && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            Reviews
-          </h2>
-          
-          {canSubmitReview && (
-            <div className="mb-6">
-              {isClient && freelancerProfile && (
-                <ReviewForm
-                  projectId={contract.projectId}
-                  reviewerId={user.userId}
-                  recipientId={contract.freelancerId}
-                  recipientName={freelancerProfile.displayName}
-                  onReviewSubmitted={handleReviewSubmitted}
-                />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Contract Details</h2>
+            <div className="space-y-2">
+              <p><span className="font-medium">Project ID:</span> {contract.projectId}</p>
+              <p><span className="font-medium">Budget:</span> ${contract.budget.toFixed(2)}</p>
+              {contract.duration && (
+                <p>
+                  <span className="font-medium">Duration:</span> {contract.duration.value} {contract.duration.unit}
+                </p>
               )}
-              
-              {isFreelancer && clientProfile && (
-                <ReviewForm
-                  projectId={contract.projectId}
-                  reviewerId={user.userId}
-                  recipientId={contract.clientId}
-                  recipientName={clientProfile.displayName}
-                  onReviewSubmitted={handleReviewSubmitted}
-                />
-              )}
+              <p>
+                <span className="font-medium">Start Date:</span> {contract.startDate ? formatDate(contract.startDate) : 'Not started'}
+              </p>
+              <p>
+                <span className="font-medium">End Date:</span> {contract.endDate ? formatDate(contract.endDate) : 'Not completed'}
+              </p>
             </div>
+          </div>
+          
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Parties</h2>
+            <div className="space-y-2">
+              <p>
+                <span className="font-medium">Client ID:</span> {contract.clientId} 
+                {isClient && ' (You)'}
+              </p>
+              <p>
+                <span className="font-medium">Freelancer ID:</span> {contract.freelancerId} 
+                {!isClient && ' (You)'}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-2">Description</h2>
+          <p className="text-gray-700 whitespace-pre-line">{contract.description}</p>
+        </div>
+        
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-2">Terms & Conditions</h2>
+          <p className="text-gray-700 whitespace-pre-line">{contract.terms}</p>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Link 
+            href={`/contracts/${contract.$id}/milestones`}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+          >
+            View Milestones
+          </Link>
+          
+          {/* Status Update Buttons */}
+          {isClient && contract.status === 'draft' && (
+            <>
+              <button
+                onClick={() => handleUpdateContractStatus('active')}
+                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+              >
+                Activate Contract
+              </button>
+              <button
+                onClick={() => handleUpdateContractStatus('cancelled')}
+                className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+              >
+                Cancel Contract
+              </button>
+            </>
           )}
           
-          <ReviewList reviews={reviews} reviewerProfiles={reviewerProfiles} />
+          {isClient && contract.status === 'active' && (
+            <>
+              <button
+                onClick={() => handleUpdateContractStatus('completed')}
+                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+              >
+                Mark as Completed
+              </button>
+              <button
+                onClick={() => handleUpdateContractStatus('cancelled')}
+                className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+              >
+                Cancel Contract
+              </button>
+            </>
+          )}
+          
+          {contract.status === 'active' && (
+            <button
+              onClick={() => handleUpdateContractStatus('disputed')}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-md text-sm font-medium hover:bg-yellow-700"
+            >
+              Raise Dispute
+            </button>
+          )}
         </div>
-      )}
+      </div>
+      
+      {/* Reviews Section */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-bold mb-4">Reviews</h2>
+        
+        {/* Review Form */}
+        {canLeaveReview() && !showReviewForm && (
+          <div className="mb-4">
+            <button
+              onClick={() => setShowReviewForm(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+            >
+              Leave a Review
+            </button>
+          </div>
+        )}
+        
+        {showReviewForm && (
+          <div className="mb-6">
+            <ReviewForm
+              contractId={contract.$id}
+              projectId={contract.projectId}
+              revieweeId={isClient ? contract.freelancerId : contract.clientId}
+              revieweeProfileId={isClient ? contract.freelancerProfileId : contract.clientProfileId}
+              existingReview={editingReview || undefined}
+              onSubmit={handleSubmitReview}
+              onCancel={() => {
+                setShowReviewForm(false);
+                setEditingReview(null);
+              }}
+            />
+          </div>
+        )}
+        
+        {/* Reviews List */}
+        {reviews.length === 0 ? (
+          <p className="text-gray-500">No reviews yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map(review => (
+              <ReviewCard
+                key={review.$id}
+                review={review}
+                isOwnReview={review.reviewerId === user?.userId}
+                onEdit={handleEditReview}
+                onDelete={handleDeleteReview}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
