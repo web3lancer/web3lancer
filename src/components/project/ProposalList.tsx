@@ -356,6 +356,30 @@ const ProposalList: React.FC<ProposalListProps> = ({
                     </div>
                   )}
                   
+                  {/* Accept Proposal Button */}
+                  {initialProject && selectedProposal && 
+                   initialProject.clientId === user?.userId && 
+                   initialProject.status === 'open' && 
+                   selectedProposal.status === 'pending' && (
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={() => {
+                          if (selectedProposal.$id) {
+                            setAcceptingProposal(selectedProposal.$id);
+                            handleAcceptProposal(selectedProposal.$id);
+                          }
+                        }}
+                        disabled={!!acceptingProposal}
+                        className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {acceptingProposal === selectedProposal.$id ? 'Accepting...' : 'Accept Proposal & Create Contract'}
+                      </button>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        Accepting this proposal will create a contract and change the project status to "In Progress".
+                      </p>
+                    </div>
+                  )}
+                  
                   {/* Freelancer Information */}
                   <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="text-md font-medium text-gray-900 dark:text-white mb-4">
