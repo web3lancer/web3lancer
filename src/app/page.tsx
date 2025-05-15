@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { Box, Fab, useTheme, Paper, Typography, Container } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { databases, ensureSession } from '../utils/api';
-import HeroSection from './home/sections/HeroSection';
-import StatisticsSection from './home/sections/StatisticsSection';
-import FeaturesSection from './home/sections/FeaturesSection';
-import FeaturedProjects from './home/sections/FeaturedProjects';
-import TestimonialsSection from './home/sections/TestimonialsSection';
-import DownloadSection from './home/sections/DownloadSection';
-import JobsSection from './home/sections/JobsSection';
-import CommunitySection from './home/sections/CommunitySection';
+import HeroSection from './home0/sections/HeroSection';
+import StatisticsSection from './home0/sections/StatisticsSection';
+import FeaturesSection from './home0/sections/FeaturesSection';
+import FeaturedProjects from './home0/sections/FeaturedProjects';
+import TestimonialsSection from './home0/sections/TestimonialsSection';
+import DownloadSection from './home0/sections/DownloadSection';
+import JobsSection from './home0/sections/JobsSection';
+import CommunitySection from './home0/sections/CommunitySection';
 
 // Placeholder for HowItWorksSection
 const HowItWorksSection: React.FC = () => (
