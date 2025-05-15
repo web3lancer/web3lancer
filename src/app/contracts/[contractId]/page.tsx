@@ -1,61 +1,61 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { contractService } from '@/services/contract.service';
-import { profileService } from '@/services/profile.service';
-import { Contract, Profile, Review } from '@/types';
-import { ContractDetails } from '@/components/contracts/ContractDetails';
-import { AddMilestoneForm } from '@/components/contracts/AddMilestoneForm';
-import { ReviewForm } from '@/components/contracts/ReviewForm';
-import { ReviewList } from '@/components/contracts/ReviewList';
-import { Spinner } from '@/components/ui/spinner';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import contractService from '@/services/contractService';
+import { Contract, Review } from '@/types';
+import { formatDate } from '@/lib/utils';
+import ReviewForm from '@/components/contracts/ReviewForm';
+import ReviewCard from '@/components/contracts/ReviewCard';
 
-export default function ContractDetailsPage() {
-  const { user } = useAuth();
-  const params = useParams();
+interface ContractPageProps {
+  params: {
+    contractId: string;
+  };
+}
+
+export default function ContractPage({ params }: ContractPageProps) {
+  const { contractId } = params;
   const router = useRouter();
-  const contractId = params.contractId as string;
+  const { user } = useAuth();
   
   const [contract, setContract] = useState<Contract | null>(null);
-  const [clientProfile, setClientProfile] = useState<Profile | null>(null);
-  const [freelancerProfile, setFreelancerProfile] = useState<Profile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewerProfiles, setReviewerProfiles] = useState<Record<string, Profile>>({});
+  const [showReviewForm, setShowReviewForm] = useState<boolean>(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Check if the current user is the client or freelancer of the contract
-  const isClient = user?.userId === contract?.clientId;
-  const isFreelancer = user?.userId === contract?.freelancerId;
-  const canSubmitReview = (isClient || isFreelancer) && contract?.status === 'completed';
-  const canAddMilestone = isClient && contract?.status === 'active';
-  
+
   useEffect(() => {
-    const fetchContractDetails = async () => {
-      if (!contractId) {
-        setError('Invalid contract ID');
-        setLoading(false);
-        return;
-      }
+    async function fetchContractData() {
+      if (!user || !contractId) return;
       
-      setLoading(true);
       try {
-        // Fetch contract
+        setLoading(true);
+        
+        // Fetch contract details
         const contractData = await contractService.getContract(contractId);
+        
         if (!contractData) {
-          setError('Contract not found');
-          setLoading(false);
+          setError('Contract not found.');
+          return;
+        }
+        
+        // Check if user is part of this contract
+        if (contractData.clientId !== user.userId && contractData.freelancerId !== user.userId) {
+          setError('You do not have permission to view this contract.');
           return;
         }
         
         setContract(contractData);
         
-        // Fetch profiles
-        const [clientData, freelancerData] = await Promise.all([
-          contractData.clientProfileId ? profileService.getProfileById(contractData.clientProfileId) : null,
-          contractData.freelancerProfileId ? profileService.getProfileById(contractData.freelancerProfileId) : null
+        // Fetch reviews for this contract
+        const contractReviews = await contractService.getReviewsByContractId(contractId);
+        setReviews(contractReviews);
+        
+      } catch (error) {
         ]);
         
         setClientProfile(clientData);

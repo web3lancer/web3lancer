@@ -192,22 +192,26 @@ export const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'h
 export const APPWRITE_PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '';
 
 // Database IDs
-export const PROFILE_DATABASE_ID = process.env.NEXT_PUBLIC_PROFILE_DATABASE_ID || 'web3lancer_db';
-export const PROJECT_DATABASE_ID = process.env.NEXT_PUBLIC_PROJECT_DATABASE_ID || 'web3lancer_db';
+export const PROFILE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_PROFILES_ID || 'profiles';
+export const PROJECT_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_JOBS_ID || 'jobs';
+export const FINANCE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_FINANCE_ID || 'finance';
+export const SOCIAL_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_SOCIAL_ID || 'social';
+export const CONTENT_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID || 'content';
 
 // Collection IDs
-export const PROFILES_COLLECTION_ID = process.env.NEXT_PUBLIC_PROFILES_COLLECTION_ID || 'profiles';
-export const VERIFICATION_COLLECTION_ID = process.env.NEXT_PUBLIC_VERIFICATION_COLLECTION_ID || 'verifications';
-export const PROJECTS_COLLECTION_ID = process.env.NEXT_PUBLIC_PROJECTS_COLLECTION_ID || 'projects';
-export const PROPOSALS_COLLECTION_ID = process.env.NEXT_PUBLIC_PROPOSALS_COLLECTION_ID || 'proposals';
-export const CONTRACTS_COLLECTION_ID = process.env.NEXT_PUBLIC_CONTRACTS_COLLECTION_ID || 'contracts';
-export const PAYMENTS_COLLECTION_ID = process.env.NEXT_PUBLIC_PAYMENTS_COLLECTION_ID || 'payments';
+export const PROFILES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_PROFILES_ID || 'user_profiles';
+export const VERIFICATION_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILE_VERIFICATIONS_ID || 'profile_verifications';
+export const PROJECTS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_POSTINGS_ID || 'job_postings';
+export const PROPOSALS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_PROPOSALS_ID || 'job_proposals';
+export const JOB_CONTRACTS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_CONTRACTS_ID || 'job_contracts';
+export const CONTRACT_MILESTONES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONTRACT_MILESTONES_ID || 'contract_milestones';
+export const USER_REVIEWS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_REVIEWS_ID || 'user_reviews';
 
 // Storage Bucket IDs
-export const PROFILE_AVATARS_BUCKET_ID = process.env.NEXT_PUBLIC_PROFILE_AVATARS_BUCKET_ID || 'profile_avatars';
-export const PROFILE_COVERS_BUCKET_ID = process.env.NEXT_PUBLIC_PROFILE_COVERS_BUCKET_ID || 'profile_covers';
-export const VERIFICATION_DOCUMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_VERIFICATION_DOCUMENTS_BUCKET_ID || 'verification_documents';
-export const PROJECT_ATTACHMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_PROJECT_ATTACHMENTS_BUCKET_ID || 'project_attachments';
+export const PROFILE_AVATARS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PROFILE_AVATARS_ID || 'profile_avatars';
+export const PROFILE_COVERS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_COVER_IMAGES_ID || 'profile_covers';
+export const VERIFICATION_DOCUMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_VERIFICATION_DOCUMENTS_PRIVATE_ID || 'verification_documents';
+export const PROJECT_ATTACHMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_JOB_ATTACHMENTS_ID || 'job_attachments';
 
 // Skills list for form selections
 export const AVAILABLE_SKILLS = [
@@ -228,5 +232,7 @@ export const API_ROUTES = {
   PROFILE: '/api/profile',
   PROJECT: '/api/project',
   PROPOSAL: '/api/proposal',
+  CONTRACT: '/api/contract',
+  REVIEW: '/api/review',
   AUTH: '/api/auth',
 };

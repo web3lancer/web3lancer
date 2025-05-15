@@ -121,16 +121,37 @@ export interface Contract {
     value: number;
     unit: 'hours' | 'days' | 'weeks' | 'months';
   };
-  milestones?: Array<{
-    title: string;
-    description?: string;
-    amount: number;
-    status: 'pending' | 'in_progress' | 'completed' | 'approved' | 'paid';
-    dueDate?: string;
-  }>;
   status: 'draft' | 'active' | 'completed' | 'cancelled' | 'disputed';
   startDate?: string;
   endDate?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Milestone {
+  $id: string;
+  contractId: string;
+  title: string;
+  description?: string;
+  amount: number;
+  status: 'pending' | 'in_progress' | 'submitted_for_approval' | 'approved' | 'rejected' | 'paid';
+  dueDate?: string;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+}
+
+export interface Review {
+  $id: string;
+  contractId: string;
+  projectId: string;
+  reviewerId: string;
+  reviewerProfileId: string;
+  revieweeId: string;
+  revieweeProfileId: string;
+  rating: number;
+  comment: string;
+  isAnonymous: boolean;
   createdAt: string;
   updatedAt?: string;
 }
