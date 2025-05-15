@@ -2,17 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import WalletCard from '@/components/finance/WalletCard';
 import WalletForm from '@/components/finance/WalletForm';
+import DepositForm from '@/components/finance/DepositForm';
+import WithdrawalForm from '@/components/finance/WithdrawalForm';
 import TransactionList from '@/components/finance/TransactionList';
 import Modal from '@/components/Modal';
-import { Wallet, Transaction } from '@/types';
+import { Wallet, Transaction, PaymentMethod } from '@/types';
 
 export default function WalletsPage() {
   const { user } = useAuthContext();
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [currentWallet, setCurrentWallet] = useState<Partial<Wallet> | null>(null);
   const [activeTab, setActiveTab] = useState<'wallets' | 'transactions'>('wallets');
 
@@ -20,6 +25,7 @@ export default function WalletsPage() {
     if (user) {
       fetchWallets();
       fetchTransactions();
+      fetchPaymentMethods();
     }
   }, [user]);
 
@@ -45,6 +51,17 @@ export default function WalletsPage() {
       setTransactions(data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+    }
+  };
+  
+  const fetchPaymentMethods = async () => {
+    try {
+      const response = await fetch('/api/payment-method');
+      if (!response.ok) throw new Error('Failed to fetch payment methods');
+      const data = await response.json();
+      setPaymentMethods(data);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
     }
   };
 
