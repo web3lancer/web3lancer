@@ -1,9 +1,14 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { useRouter } from "next/navigation";
 import { account, validateSession, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
 import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
-import { Models } from 'appwrite';
+import { Models, Storage, ID, Avatars } from 'appwrite';
+import { client } from "@/app/appwrite";
+import { useToast } from "@/components/ui/use-toast";
+import { APP_URL, PROFILE_AVATARS_BUCKET_ID, LEGACY_PROFILE_PICTURES_BUCKET_ID } from "@/lib/env";
+import profileService from "@/services/profileService";
 
 // Define UserProfile interface based on the ProfilesDB/user_profiles schema
 interface UserProfile {
@@ -52,6 +57,7 @@ interface AuthContextType {
   isAnonymous: boolean;
   profilePicture: string | null;
   userProfile: UserProfile | null; // Add userProfile to context
+  profilePictureIsLoading?: boolean;
   setUser: (user: Models.User<Models.Preferences> | null) => void;
   setIsAnonymous: (isAnonymous: boolean) => void;
   setProfilePicture: (url: string | null) => void;
@@ -64,6 +70,15 @@ interface AuthContextType {
   ensureSession: () => Promise<Models.User<Models.Preferences> | null>;
   convertSession: (email: string, password: string, name?: string) => Promise<Models.User<Models.Preferences>>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  // New methods from AuthContext-new
+  uploadImage?: (file: File) => Promise<void>;
+  login?: (email: string, password: string) => Promise<void>;
+  register?: (email: string, password: string, name: string, username: string, profileType?: string) => Promise<void>;
+  sendMagicLink?: (email: string) => Promise<void>;
+  verifyMagicLink?: (userId: string, secret: string) => Promise<void>;
+  sendVerificationEmail?: () => Promise<void>;
+  forgotPassword?: (email: string) => Promise<void>;
+  resetPassword?: (userId: string, secret: string, password: string, passwordAgain: string) => Promise<void>;
 }
 
 // Create a context with a default value
@@ -94,6 +109,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAnonymous, setIsAnonymous] = useState(false); // Initial state can be false, refreshUser will set it.
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profilePictureIsLoading, setProfilePictureIsLoading] = useState<boolean>(false);
+  
+  const router = useRouter();
+  const storage = new Storage(client);
+  const avatars = new Avatars(client);
+  const { toast } = useToast();
 
   const refreshUser = useCallback(async (): Promise<Models.User<Models.Preferences> | null> => {
     console.log("AuthContext: refreshUser called");
@@ -104,12 +125,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       setUser(currentUser);
       // Ensure isAnonymous is correctly set based on the currentUser object
-      setIsAnonymous(isAnonymousUser(currentUser)); 
-      
-      console.log(`AuthContext: User Name from currentUser: ${currentUser.name}`);
-      console.log(`AuthContext: User Email from currentUser: ${currentUser.email}`);
-      console.log("AuthContext: User Preferences from currentUser:", currentUser.prefs);
-
       try {
         const currentSession = await account.getSession('current');
         console.log("AuthContext: account.getSession('current') successful. Raw currentSession:", JSON.stringify(currentSession, null, 2));
