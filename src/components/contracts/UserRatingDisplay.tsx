@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { contractService } from '@/services/contract.service';
+import contractService from '@/services/contractService';
 
 interface UserRatingDisplayProps {
   userId: string;

@@ -1,6 +1,6 @@
 import { Contract } from '@/types';
 import { useState } from 'react';
-import { contractService } from '@/services/contract.service';
+import contractService from '@/services/contractService';
 import { toast } from 'react-hot-toast';
 
 interface MilestoneListProps {
