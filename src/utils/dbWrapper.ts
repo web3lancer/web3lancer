@@ -1,4 +1,15 @@
 import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from './api';
+import {
+  PROFILES_DATABASE_ID,
+  USER_PROFILES_COLLECTION_ID,
+  JOBS_DATABASE_ID,
+  JOB_POSTINGS_COLLECTION_ID,
+  FINANCE_DATABASE_ID,
+  USER_WALLETS_COLLECTION_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  USER_PAYMENT_METHODS_COLLECTION_ID,
+  ESCROW_TRANSACTIONS_COLLECTION_ID
+} from '@/lib/env';
 
 /**
  * A wrapper for database access that uses the correct database and collection IDs
@@ -9,16 +20,16 @@ import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from
 export const profiles = {
   get: async (userId: string) => {
     return await safeGetDocument(
-      process.env.DATABASES_USERS!,
-      process.env.COLLECTIONS_PROFILES!,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId
     );
   },
   
   list: async (queries: any[] = []) => {
     return await safeListDocuments(
-      process.env.DATABASES_USERS!,
-      process.env.COLLECTIONS_PROFILES!,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       queries
     );
   },
@@ -28,8 +39,8 @@ export const profiles = {
     await ensureSession();
     
     return await databases.createDocument(
-      process.env.DATABASES_USERS!,
-      process.env.COLLECTIONS_PROFILES!,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       ID.unique(),
       data
     );
@@ -40,8 +51,8 @@ export const profiles = {
     await ensureSession();
     
     return await databases.updateDocument(
-      process.env.DATABASES_USERS!,
-      process.env.COLLECTIONS_PROFILES!,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId,
       data
     );
@@ -52,8 +63,8 @@ export const profiles = {
     await ensureSession();
     
     return await databases.deleteDocument(
-      process.env.DATABASES_USERS!,
-      process.env.COLLECTIONS_PROFILES!,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId
     );
   }
@@ -63,16 +74,16 @@ export const profiles = {
 export const jobs = {
   get: async (jobId: string) => {
     return await safeGetDocument(
-      process.env.DATABASES_JOBS!,
-      process.env.COLLECTIONS_JOBS!,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       jobId
     );
   },
   
   list: async (queries: any[] = []) => {
     return await safeListDocuments(
-      process.env.DATABASES_JOBS!,
-      process.env.COLLECTIONS_JOBS!,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       queries
     );
   },
@@ -82,8 +93,8 @@ export const jobs = {
     await ensureSession();
     
     return await databases.createDocument(
-      process.env.DATABASES_JOBS!,
-      process.env.COLLECTIONS_JOBS!,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       ID.unique(),
       data
     );
@@ -94,8 +105,8 @@ export const jobs = {
     await ensureSession();
     
     return await databases.updateDocument(
-      process.env.DATABASES_JOBS!,
-      process.env.COLLECTIONS_JOBS!,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       jobId,
       data
     );
@@ -106,8 +117,8 @@ export const jobs = {
     await ensureSession();
     
     return await databases.deleteDocument(
-      process.env.DATABASES_JOBS!,
-      process.env.COLLECTIONS_JOBS!,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       jobId
     );
   }
