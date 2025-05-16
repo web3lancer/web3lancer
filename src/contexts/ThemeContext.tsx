@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import { getTheme } from '@/theme';
 import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes';
