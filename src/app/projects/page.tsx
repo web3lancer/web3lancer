@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, Alert, CircularProgress, Tabs, Tab } from "@mui/material";
 import { databases } from "@/utils/api";
 import { useAuth } from '@/contexts/AuthContext';
-import { APPWRITE_CONFIG } from "@/lib/env";
 import BrowseProjectsTab from "@/components/projects/BrowseProjectsTab";
 import PostJobTab from "@/components/projects/PostJobTab";
 import CreateProjectTab from "@/components/projects/CreateProjectTab";
@@ -67,8 +66,8 @@ export default function ProjectsPage() {
     setError(null);
     try {
       const response = await databases.listDocuments(
-        APPWRITE_CONFIG.DATABASES.JOBS,
-        APPWRITE_CONFIG.COLLECTIONS.JOBS
+        process.env.NEXT_PUBLIC_DATABASES_JOBS,
+        process.env.NEXT_PUBLIC_COLLECTIONS_JOBS
       );
       setJobs(response.documents);
     } catch (error) {
@@ -84,8 +83,8 @@ export default function ProjectsPage() {
     setError(null);
     try {
       const response = await databases.listDocuments(
-        APPWRITE_CONFIG.DATABASES.PROJECTS,
-        APPWRITE_CONFIG.COLLECTIONS.PROJECTS
+        process.env.NEXT_PUBLIC_DATABASES_PROJECTS,
+        process.env.NEXT_PUBLIC_COLLECTIONS_PROJECTS
       );
       setProjects(response.documents);
     } catch (error) {

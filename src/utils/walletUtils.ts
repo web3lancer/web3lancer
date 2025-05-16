@@ -1,6 +1,5 @@
 import { account, ID, databases } from './api';
 import { wallets } from './dbWrapper';
-import { APPWRITE_CONFIG } from '@/lib/env';
 
 /**
  * Wallet authentication and management utilities

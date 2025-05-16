@@ -1,6 +1,5 @@
 import { ID } from 'appwrite';
 import { databases } from '@/utils/api';
-import { APPWRITE_CONFIG } from '@/lib/env';
 import { generateWalletAddress } from '@/utils/walletUtils';
 
 /**
@@ -19,8 +18,8 @@ export async function createWallet(userId: string, walletType: string = 'custodi
     
     // Create the wallet document
     const wallet = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_WALLETS,
       ID.unique(),
       {
         userId,
@@ -51,8 +50,8 @@ export async function createWallet(userId: string, walletType: string = 'custodi
 export async function createBalance(walletId: string, currency: string, amount: number = 0) {
   try {
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_BALANCES,
       ID.unique(),
       {
         walletId,
@@ -73,8 +72,8 @@ export async function createBalance(walletId: string, currency: string, amount: 
 export async function getUserWallet(userId: string) {
   try {
     const response = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_WALLETS,
       [
         databases.Query.equal('userId', userId)
       ]

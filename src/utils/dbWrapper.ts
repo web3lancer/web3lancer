@@ -1,5 +1,4 @@
 import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from './api';
-import { APPWRITE_CONFIG } from '@/lib/env';
 
 /**
  * A wrapper for database access that uses the correct database and collection IDs
@@ -10,16 +9,16 @@ import { APPWRITE_CONFIG } from '@/lib/env';
 export const profiles = {
   get: async (userId: string) => {
     return await safeGetDocument(
-      APPWRITE_CONFIG.DATABASES.USERS!,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES!,
+      process.env.DATABASES_USERS!,
+      process.env.COLLECTIONS_PROFILES!,
       userId
     );
   },
   
   list: async (queries: any[] = []) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.USERS!,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES!,
+      process.env.DATABASES_USERS!,
+      process.env.COLLECTIONS_PROFILES!,
       queries
     );
   },
@@ -29,8 +28,8 @@ export const profiles = {
     await ensureSession();
     
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.USERS!,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES!,
+      process.env.DATABASES_USERS!,
+      process.env.COLLECTIONS_PROFILES!,
       ID.unique(),
       data
     );
@@ -41,8 +40,8 @@ export const profiles = {
     await ensureSession();
     
     return await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.USERS!,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES!,
+      process.env.DATABASES_USERS!,
+      process.env.COLLECTIONS_PROFILES!,
       userId,
       data
     );
@@ -53,8 +52,8 @@ export const profiles = {
     await ensureSession();
     
     return await databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASES.USERS!,
-      APPWRITE_CONFIG.COLLECTIONS.PROFILES!,
+      process.env.DATABASES_USERS!,
+      process.env.COLLECTIONS_PROFILES!,
       userId
     );
   }
@@ -64,16 +63,16 @@ export const profiles = {
 export const jobs = {
   get: async (jobId: string) => {
     return await safeGetDocument(
-      APPWRITE_CONFIG.DATABASES.JOBS!,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS!,
+      process.env.DATABASES_JOBS!,
+      process.env.COLLECTIONS_JOBS!,
       jobId
     );
   },
   
   list: async (queries: any[] = []) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.JOBS!,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS!,
+      process.env.DATABASES_JOBS!,
+      process.env.COLLECTIONS_JOBS!,
       queries
     );
   },
@@ -83,8 +82,8 @@ export const jobs = {
     await ensureSession();
     
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.JOBS!,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS!,
+      process.env.DATABASES_JOBS!,
+      process.env.COLLECTIONS_JOBS!,
       ID.unique(),
       data
     );
@@ -95,8 +94,8 @@ export const jobs = {
     await ensureSession();
     
     return await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.JOBS!,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS!,
+      process.env.DATABASES_JOBS!,
+      process.env.COLLECTIONS_JOBS!,
       jobId,
       data
     );
@@ -107,8 +106,8 @@ export const jobs = {
     await ensureSession();
     
     return await databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASES.JOBS!,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS!,
+      process.env.DATABASES_JOBS!,
+      process.env.COLLECTIONS_JOBS!,
       jobId
     );
   }
@@ -118,16 +117,16 @@ export const jobs = {
 export const wallets = {
   get: async (walletId: string) => {
     return await safeGetDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_WALLETS!,
       walletId
     );
   },
   
   listByUser: async (userId: string) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_WALLETS!,
       [{ equal: ['userId', userId] }]
     );
   },
@@ -137,8 +136,8 @@ export const wallets = {
     await ensureSession();
     
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_WALLETS!,
       ID.unique(),
       data
     );
@@ -149,8 +148,8 @@ export const wallets = {
     await ensureSession();
     
     return await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_WALLETS!,
       walletId,
       data
     );
@@ -161,8 +160,8 @@ export const wallets = {
     await ensureSession();
     
     return await databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_WALLETS!,
       walletId
     );
   }
@@ -172,8 +171,8 @@ export const wallets = {
 export const balances = {
   getByWalletAndCurrency: async (walletId: string, currency: string) => {
     const response = await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_BALANCES!,
       [
         { equal: ['walletId', walletId] },
         { equal: ['currency', currency] }
@@ -185,16 +184,16 @@ export const balances = {
   
   listByWallet: async (walletId: string) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_BALANCES!,
       [{ equal: ['walletId', walletId] }]
     );
   },
   
   create: async (data: any) => {
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_BALANCES!,
       ID.unique(),
       data
     );
@@ -202,8 +201,8 @@ export const balances = {
   
   update: async (balanceId: string, data: any) => {
     return await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_BALANCES!,
       balanceId,
       data
     );
@@ -214,16 +213,16 @@ export const balances = {
 export const transactions = {
   get: async (transactionId: string) => {
     return await safeGetDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS!,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS!,
+      process.env.DATABASES_TRANSACTIONS!,
+      process.env.COLLECTIONS_TRANSACTIONS!,
       transactionId
     );
   },
   
   listByUser: async (userId: string, limit = 10) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS!,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS!,
+      process.env.DATABASES_TRANSACTIONS!,
+      process.env.COLLECTIONS_TRANSACTIONS!,
       [
         { equal: ['userId', userId] },
         { limit }
@@ -233,8 +232,8 @@ export const transactions = {
   
   create: async (data: any) => {
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS!,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS!,
+      process.env.DATABASES_TRANSACTIONS!,
+      process.env.COLLECTIONS_TRANSACTIONS!,
       ID.unique(),
       data
     );
@@ -245,16 +244,16 @@ export const transactions = {
 export const paymentMethods = {
   listByUser: async (userId: string) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS!,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS!,
+      process.env.DATABASES_PAYMENT_METHODS!,
+      process.env.COLLECTIONS_PAYMENT_METHODS!,
       [{ equal: ['userId', userId] }]
     );
   },
   
   create: async (data: any) => {
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS!,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS!,
+      process.env.DATABASES_PAYMENT_METHODS!,
+      process.env.COLLECTIONS_PAYMENT_METHODS!,
       ID.unique(),
       data
     );
@@ -262,8 +261,8 @@ export const paymentMethods = {
   
   update: async (paymentMethodId: string, data: any) => {
     return await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS!,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS!,
+      process.env.DATABASES_PAYMENT_METHODS!,
+      process.env.COLLECTIONS_PAYMENT_METHODS!,
       paymentMethodId,
       data
     );
@@ -271,8 +270,8 @@ export const paymentMethods = {
   
   delete: async (paymentMethodId: string) => {
     return await databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS!,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS!,
+      process.env.DATABASES_PAYMENT_METHODS!,
+      process.env.COLLECTIONS_PAYMENT_METHODS!,
       paymentMethodId
     );
   }
@@ -282,16 +281,16 @@ export const paymentMethods = {
 export const cryptoTransactions = {
   listByWallet: async (walletId: string) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS!,
       [{ equal: ['walletId', walletId] }]
     );
   },
   
   create: async (data: any) => {
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET!,
-      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS!,
+      process.env.DATABASES_WALLET!,
+      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS!,
       ID.unique(),
       data
     );
@@ -302,16 +301,16 @@ export const cryptoTransactions = {
 export const bookmarks = {
   listByUser: async (userId: string) => {
     return await safeListDocuments(
-      APPWRITE_CONFIG.DATABASES.BOOKMARKS!,
-      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS!,
+      process.env.DATABASES_BOOKMARKS!,
+      process.env.COLLECTIONS_BOOKMARKS!,
       [{ equal: ['userId', userId] }]
     );
   },
   
   create: async (data: any) => {
     return await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.BOOKMARKS!,
-      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS!,
+      process.env.DATABASES_BOOKMARKS!,
+      process.env.COLLECTIONS_BOOKMARKS!,
       ID.unique(),
       data
     );
@@ -319,8 +318,8 @@ export const bookmarks = {
   
   delete: async (bookmarkId: string) => {
     return await databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASES.BOOKMARKS!,
-      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS!,
+      process.env.DATABASES_BOOKMARKS!,
+      process.env.COLLECTIONS_BOOKMARKS!,
       bookmarkId
     );
   }

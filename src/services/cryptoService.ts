@@ -380,8 +380,7 @@ export async function getUserCryptoPaymentMethods(userId: string) {
   try {
     const response = await databases.listDocuments(
       process.env.DATABASES_PAYMENT_METHODS,
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      process.env.COLLECTIONS_PAYMENT_METHODS,
       [
         databases.Query.equal('userId', userId), 
         databases.Query.equal('type', 'crypto')

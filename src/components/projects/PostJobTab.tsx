@@ -27,7 +27,6 @@ import StarRateIcon from '@mui/icons-material/StarRate';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { motion } from 'framer-motion';
 import { databases, ID } from "@/utils/api";
-import { APPWRITE_CONFIG } from "@/lib/env";
 
 // Skills data
 const AVAILABLE_SKILLS = [
@@ -142,8 +141,8 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
       };
 
       await databases.createDocument(
-        APPWRITE_CONFIG.DATABASES.JOBS,
-        APPWRITE_CONFIG.COLLECTIONS.JOBS,
+        process.env.NEXT_PUBLIC_DATABASE_ID,
+        process.env.NEXT_PUBLIC_COLLECTION_ID,
         ID.unique(),
         jobData
       );

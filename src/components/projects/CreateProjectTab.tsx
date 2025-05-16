@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Chip } from '@mui/material';
 import { databases, ID } from "@/utils/api";
-import { APPWRITE_CONFIG } from "@/lib/env";
 
 interface CreateProjectTabProps {
   user: any;
@@ -29,8 +28,8 @@ export default function CreateProjectTab({ user, onProjectCreated, setActiveTab 
   const handleCreateProject = async () => {
     try {
       const response = await databases.createDocument(
-        APPWRITE_CONFIG.DATABASES.PROJECTS,
-        APPWRITE_CONFIG.COLLECTIONS.PROJECTS,
+        process.env.NEXT_PUBLIC_DATABASES_PROJECTS,
+        process.env.NEXT_PUBLIC_COLLECTIONS_PROJECTS,
         ID.unique(),
         {
           title: projectTitle,

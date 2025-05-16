@@ -112,13 +112,12 @@ export async function recordTransaction(
   try {
     // Import necessary utilities
     const { databases, ID } = await import('@/utils/api');
-    const { APPWRITE_CONFIG } = await import('@/lib/env');
     
     // First, create a general transaction record
     const transactionId = ID.unique();
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS, // '67b8866c00265d466063'
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS, // '67b8867b001643b2585a'
+      process.env.DATABASES_TRANSACTIONS, // '67b8866c00265d466063'
+      process.env.COLLECTIONS_TRANSACTIONS, // '67b8867b001643b2585a'
       ID.unique(),
       {
         userId,
@@ -132,8 +131,8 @@ export async function recordTransaction(
     
     // Then create a detailed crypto transaction record
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET, // '67e629540014107023a2'
-      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS, // '67e62b6f0003ed0e4ecc'
+      process.env.DATABASES_WALLET, // '67e629540014107023a2'
+      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS, // '67e62b6f0003ed0e4ecc'
       ID.unique(),
       {
         cryptoTxId: ID.unique(),
@@ -165,12 +164,11 @@ export async function recordTransaction(
 async function getWalletIdForUser(userId: string): Promise<string> {
   try {
     const { databases, Query, ID } = await import('@/utils/api');
-    const { APPWRITE_CONFIG } = await import('@/lib/env');
     
     // Check if user already has a wallet
     const wallets = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_WALLETS,
       [Query.equal('userId', userId)]
     );
     
