@@ -52,6 +52,11 @@ class PostService {
           content,
           tags,
           media,
+          likesCount: 0,
+          commentsCount: 0,
+          bookmarksCount: 0,
+          viewsCount: 0,
+          repostsCount: 0,
           visibility: 'public', // Default to public
         }),
       });

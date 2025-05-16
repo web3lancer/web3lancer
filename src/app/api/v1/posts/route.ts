@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     
-    const { authorId, content, tags, mediaFileIds, visibility } = await request.json();
+    const { authorId, content, tags, media, visibility } = await request.json();
     
     // Create post document
     const post = await databases.createDocument(
@@ -86,10 +86,13 @@ export async function POST(request: NextRequest) {
         authorId,
         content,
         tags,
-        mediaFileIds,
-        visibility,
+        media,
         likesCount: 0,
         commentsCount: 0,
+        bookmarksCount: 0,
+        viewsCount: 0,
+        repostsCount: 0,
+        visibility,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }

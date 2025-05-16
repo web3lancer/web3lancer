@@ -86,7 +86,9 @@ interface Lance {
   media?: Media[];
   likes: number;
   comments: number;
-  shares: number;
+  reposts: number;
+  bookmarks: number;
+  views: number;
   createdAt: string;
   updatedAt?: string;
   visibility: 'public' | 'private' | 'followers' | 'following' | 'specific';
@@ -196,7 +198,9 @@ export default function DashboardPage() {
         media: doc.media || [],
         likes: doc.likesCount || 0,
         comments: doc.commentsCount || 0,
-        shares: doc.shares || 0,
+        reposts: doc.repostsCount || 0,
+        bookmarks: doc.bookmarksCount || 0,
+        views: doc.viewsCount || 0,
         createdAt: doc.$createdAt,
         updatedAt: doc.$updatedAt,
         visibility: doc.visibility || 'public',
@@ -332,7 +336,9 @@ export default function DashboardPage() {
           media,
           likesCount: 0,
           commentsCount: 0,
-          shares: 0,
+          bookmarksCount: 0,
+          viewsCount: 0,
+          repostsCount: 0,
           visibility: selectedVisibility,
           tags: (newPostContent.match(/#(\w+)/g) || []) as string[],
           userName: user?.name || 'Anonymous User',
@@ -347,9 +353,11 @@ export default function DashboardPage() {
         userId: doc.authorId,
         content: doc.content,
         media: doc.media,
-        likes: 0,
-        comments: 0,
-        shares: 0,
+        likes: doc.likesCount || 0,
+        comments: doc.commentsCount || 0,
+        reposts: doc.repostsCount || 0,
+        bookmarks: doc.bookmarksCount || 0,
+        views: doc.viewsCount || 0,
         createdAt: doc.$createdAt,
         updatedAt: doc.$updatedAt,
         visibility: doc.visibility,
@@ -768,7 +776,7 @@ export default function DashboardPage() {
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <RepeatIcon fontSize="small" />
                               <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                {lance.shares}
+                                {lance.reposts}
                               </Typography>
                             </Box>
                           </IconButton>
