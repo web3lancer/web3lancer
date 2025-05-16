@@ -31,7 +31,7 @@ class PortfolioService {
       if (files && files.length > 0) {
         const uploadPromises = files.map(file => 
           this.storage.createFile(
-            env.NEXT_PUBLIC_APPWRITE_BUCKET_PROJECT_MEDIA_ID,
+            env.PORTFOLIO_MEDIA_BUCKET_ID,
             ID.unique(),
             file
           )
@@ -99,7 +99,7 @@ class PortfolioService {
       if (files && files.length > 0) {
         const uploadPromises = files.map(file => 
           this.storage.createFile(
-            env.NEXT_PUBLIC_APPWRITE_BUCKET_PROJECT_MEDIA_ID,
+            env.PORTFOLIO_MEDIA_BUCKET_ID,
             ID.unique(),
             file
           )

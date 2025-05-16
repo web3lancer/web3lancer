@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import profileService from '@/services/profileService';
-import { Profile, ProfileVerification, VerificationType } from '@/types';
+import { Profile, VerificationType } from '@/types';
 
 /**
  * Hook for working with user profiles

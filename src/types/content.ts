@@ -5,7 +5,7 @@ export interface Post {
   $updatedAt: string;
   authorId: string; // UserProfile.$id
   content: string; // Text content of the post
-  mediaFileIds?: string[]; // Storage File IDs for images, videos
+  media?: { type: 'image' | 'video' | 'code'; fileId: string; thumbnailFileId?: string }[]; // Storage File objects for images, videos
   parentPostId?: string; // Post.$id, for comments/replies
   tags?: string[];
   visibility: 'public' | 'connections' | 'private';

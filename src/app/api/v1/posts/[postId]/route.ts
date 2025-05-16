@@ -41,6 +41,39 @@ export async function GET(request: NextRequest, { params }: Params) {
   }
 }
 
+// Create a post
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session?.userId) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    const { authorId, content, tags, media, visibility } = await request.json();
+    // Create post document
+    const post = await databases.createDocument(
+      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
+      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      ID.unique(),
+      {
+        authorId,
+        content,
+        tags,
+        media,
+        visibility,
+        likesCount: 0,
+        commentsCount: 0,
+        shares: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    );
+    return NextResponse.json(post);
+  } catch (error) {
+    console.error('Error creating post:', error);
+    return NextResponse.json({ message: 'Failed to create post' }, { status: 500 });
+  }
+}
+
 // Update a post
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
@@ -60,8 +93,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
     );
     
     // Verify that the user is the author of the post
-    // This would require looking up the user's profile ID and comparing it to post.authorId
-    // For this example, we're assuming the post.authorId is directly the user's ID from the session
     if (post.authorId !== session.userId) {
       return NextResponse.json({ message: 'Forbidden: Not the author of this post' }, { status: 403 });
     }
@@ -107,16 +138,15 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     }
     
     // Delete the post's media files if any
-    if (post.mediaFileIds && post.mediaFileIds.length > 0) {
-      for (const fileId of post.mediaFileIds) {
+    if (post.media && Array.isArray(post.media)) {
+      for (const mediaObj of post.media) {
         try {
           await storage.deleteFile(
-            env.NEXT_PUBLIC_APPWRITE_BUCKET_POST_MEDIA_ID,
-            fileId
+            env.POST_ATTACHMENTS_BUCKET_ID,
+            mediaObj.fileId
           );
         } catch (error) {
-          console.error(`Error deleting file ${fileId}:`, error);
-          // Continue with other files even if one fails
+          console.error(`Error deleting file ${mediaObj.fileId}:`, error);
         }
       }
     }

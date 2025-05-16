@@ -23,19 +23,22 @@ class PostService {
   ): Promise<Post> {
     try {
       // 1. Upload media files if any
-      let mediaFileIds: string[] = [];
+      let media: { type: 'image' | 'video' | 'code'; fileId: string; thumbnailFileId?: string }[] = [];
       
       if (files && files.length > 0) {
         const uploadPromises = files.map(file => 
           this.storage.createFile(
-            env.NEXT_PUBLIC_APPWRITE_BUCKET_POST_MEDIA_ID,
+            env.POST_ATTACHMENTS_BUCKET_ID,
             ID.unique(),
             file
           )
         );
         
         const uploadResults = await Promise.all(uploadPromises);
-        mediaFileIds = uploadResults.map(result => result.$id);
+        media = uploadResults.map(result => ({
+          type: result.mimeType && result.mimeType.startsWith('video') ? 'video' : 'image',
+          fileId: result.$id
+        }));
       }
       
       // 2. Create the post document
@@ -48,7 +51,7 @@ class PostService {
           authorId: profileId,
           content,
           tags,
-          mediaFileIds,
+          media,
           visibility: 'public', // Default to public
         }),
       });
@@ -88,20 +91,23 @@ class PostService {
   ): Promise<Post> {
     try {
       // 1. Upload new media files if any
-      let mediaFileIds: string[] = data.mediaFileIds || [];
+      let media: { type: 'image' | 'video' | 'code'; fileId: string; thumbnailFileId?: string }[] = data.media || [];
       
       if (files && files.length > 0) {
         const uploadPromises = files.map(file => 
           this.storage.createFile(
-            env.NEXT_PUBLIC_APPWRITE_BUCKET_POST_MEDIA_ID,
+            env.POST_ATTACHMENTS_BUCKET_ID,
             ID.unique(),
             file
           )
         );
         
         const uploadResults = await Promise.all(uploadPromises);
-        const newMediaFileIds = uploadResults.map(result => result.$id);
-        mediaFileIds = [...mediaFileIds, ...newMediaFileIds];
+        const newMedia = uploadResults.map(result => ({
+          type: result.mimeType && result.mimeType.startsWith('video') ? 'video' : 'image',
+          fileId: result.$id
+        }));
+        media = [...media, ...newMedia];
       }
       
       // 2. Update the post
@@ -112,7 +118,7 @@ class PostService {
         },
         body: JSON.stringify({
           ...data,
-          mediaFileIds,
+          media,
         }),
       });
       

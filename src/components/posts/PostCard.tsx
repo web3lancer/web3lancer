@@ -133,16 +133,16 @@ const PostCard: React.FC<PostCardProps> = ({
         </Typography>
         
         {/* Display post media if available */}
-        {post.mediaFileIds && post.mediaFileIds.length > 0 && (
+        {post.media && post.media.length > 0 && (
           <Box sx={{ mt: 2, borderRadius: 1, overflow: 'hidden' }}>
-            {post.mediaFileIds.map((mediaId, index) => (
+            {post.media.map((mediaId, index) => (
               <Box 
                 key={index} 
                 sx={{ 
                   position: 'relative',
                   width: '100%',
                   paddingTop: '56.25%', // 16:9 aspect ratio
-                  mb: index < post.mediaFileIds.length - 1 ? 1 : 0
+                  mb: index < post.media.length - 1 ? 1 : 0
                 }}
               >
                 <Image
