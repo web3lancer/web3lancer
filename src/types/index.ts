@@ -1,300 +1,35 @@
-import { Profile, VerificationRequest } from './profile';
-
-// Export all types
+// This file serves as the central export point for all type definitions
+// related to the new database schema.
 
 // ProfilesDB types
 export * from './profiles';
 
-// Re-export all types
-export * from './profile';
+// JobsDB types
+export * from './jobs';
 
-// Import and re-export all types from their respective files
+// FinanceDB types
 export * from './finance';
 
-// Index type exports
+// ContentDB types
+export * from './content';
 
-export interface User {
-  userId: string;
+// SocialDB types
+export * from './social';
+
+// GovernanceDB types
+export * from './governance';
+
+// ActivityDB types
+export * from './activity';
+
+// CoreDB types
+export * from './core';
+
+// Generic User type for AuthContext or similar, can be refined
+export interface AuthenticatedUser {
+  $id: string; // Appwrite User ID
   email: string;
-  name?: string;
-  profileId?: string;
-}
-
-export interface Profile {
-  $id: string;
-  userId: string;
-  username: string;
-  displayName: string;
-  bio?: string;
-  email?: string;
-  avatarUrl?: string;
-  website?: string;
-  skills?: string[];
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export type VerificationType = 'basic' | 'identity' | 'professional' | 'organization';
-
-export interface VerificationRequest {
-  $id: string;
-  userId: string;
-  profileId: string;
-  documentType: 'id' | 'passport' | 'license' | 'other';
-  documentFileId: string;
-  status: 'pending' | 'approved' | 'rejected';
-  notes?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Project {
-  $id: string;
-  title: string;
-  description: string;
-  skills: string[];
-  category?: string;
-  budget: {
-    min: number;
-    max: number;
-    currency: string;
-  };
-  duration?: {
-    value: number;
-    unit: 'hours' | 'days' | 'weeks' | 'months';
-  };
-  location?: string;
-  attachments?: string[];
-  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled';
-  visibility: 'public' | 'private' | 'invite';
-  clientId: string;
-  clientProfileId: string;
-  freelancerId?: string;
-  freelancerProfileId?: string;
-  contractId?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Proposal {
-  $id: string;
-  projectId: string;
-  freelancerId: string;
-  freelancerProfileId: string;
-  coverLetter: string;
-  proposedBudget?: number;
-  proposedDuration?: {
-    value: number;
-    unit: 'hours' | 'days' | 'weeks' | 'months';
-  };
-  milestones?: Array<{
-    title: string;
-    description?: string;
-    amount?: number;
-  }>;
-  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Contract {
-  $id: string;
-  projectId: string;
-  proposalId?: string;
-  clientId: string;
-  clientProfileId: string;
-  freelancerId: string;
-  freelancerProfileId: string;
-  title: string;
-  description: string;
-  terms: string;
-  budget: number;
-  duration?: {
-    value: number;
-    unit: 'hours' | 'days' | 'weeks' | 'months';
-  };
-  status: 'draft' | 'active' | 'completed' | 'cancelled' | 'disputed';
-  startDate?: string;
-  endDate?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Milestone {
-  $id: string;
-  contractId: string;
-  title: string;
-  description?: string;
-  amount: number;
-  status: 'pending' | 'in_progress' | 'submitted_for_approval' | 'approved' | 'rejected' | 'paid';
-  dueDate?: string;
-  createdAt: string;
-  updatedAt?: string;
-  completedAt?: string;
-}
-
-export interface Review {
-  $id: string;
-  contractId: string;
-  projectId: string;
-  reviewerId: string;
-  reviewerProfileId: string;
-  revieweeId: string;
-  revieweeProfileId: string;
-  rating: number;
-  comment: string;
-  isAnonymous: boolean;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Payment {
-  $id: string;
-  contractId: string;
-  projectId: string;
-  milestoneId?: string;
-  clientId: string;
-  freelancerId: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
-  transactionHash?: string;
-  paymentMethod?: 'crypto' | 'escrow' | 'card' | 'bank';
-  description?: string;
-  createdAt: string;
-  completedAt?: string;
-}
-
-export interface Review {
-  $id: string;
-  projectId: string;
-  reviewerId: string;
-  recipientId: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Message {
-  $id: string;
-  channelId: string;
-  senderId: string;
-  content: string;
-  attachments?: string[];
-  readBy: string[];
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface PaymentTransaction {
-  $id: string;
-  projectId: string;
-  senderId: string;
-  receiverId: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  type: 'milestone' | 'escrow' | 'refund' | 'withdrawal';
-  description?: string;
-  transactionHash?: string;
-  createdAt: string;
-  completedAt?: string;
-}
-
-export interface Notification {
-  $id: string;
-  userId: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  relatedEntityType?: string;
-  relatedEntityId?: string;
-  createdAt: string;
-  readAt?: string;
-}
-
-export interface Skill {
-  $id: string;
-  name: string;
-  category: string;
-  subCategory?: string;
-  popularity: number;
-}
-
-export interface Category {
-  $id: string;
-  name: string;
-  description?: string;
-  parentId?: string;
-}
-
-export interface UserSettings {
-  $id: string;
-  userId: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-  timezone: string;
-  currencyPreference: string;
-}
-
-// Finance-related types
-export interface Wallet {
-  $id: string;
-  userId: string;
-  name: string;
-  type: 'fiat' | 'crypto';
-  currency: string;
-  balance: number;
-  isDefault: boolean;
-  address?: string; // For crypto wallets
-  network?: string; // For crypto wallets (e.g., ETH mainnet, BSC, etc.)
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PaymentMethod {
-  $id: string;
-  userId: string;
-  name: string;
-  type: 'bank_account' | 'credit_card' | 'crypto_address' | 'paypal' | 'other';
-  provider?: string;
-  accountNumber?: string;
-  routingNumber?: string;
-  cardNumber?: string;
-  cardExpiry?: string;
-  cryptoAddress?: string;
-  cryptoNetwork?: string;
-  paypalEmail?: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Transaction {
-  $id: string;
-  userId: string;
-  walletId: string;
-  amount: number;
-  currency: string;
-  type: 'deposit' | 'withdrawal' | 'payment' | 'refund' | 'fee' | 'escrow' | 'release';
-  status: 'pending' | 'completed' | 'failed' | 'cancelled';
-  description?: string;
-  paymentMethodId?: string;
-  contractId?: string;
-  relatedTransactionId?: string;
-  metadata?: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
-}
-
-export interface EscrowTransaction extends Transaction {
-  fromWalletId: string;
-  toWalletId?: string; // If undefined, the funds are still in escrow
-  milestoneId?: string;
-  contractId: string;
+  name: string; // Appwrite User Name
+  profileId?: string; // Link to the user's document in user_profiles
+  // Add any other essential user details needed globally after authentication
 }
