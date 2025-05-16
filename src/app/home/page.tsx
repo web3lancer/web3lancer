@@ -93,9 +93,6 @@ interface Lance {
   updatedAt?: string;
   visibility: 'public' | 'private' | 'followers' | 'following' | 'specific';
   tags?: string[];
-  userProfilePic?: string;
-  userName?: string;
-  userHandle?: string;
   isLiked?: boolean;
   isBookmarked?: boolean;
 }
@@ -195,7 +192,7 @@ export default function DashboardPage() {
         $id: doc.$id,
         userId: doc.authorId,
         content: doc.content,
-        media: doc.media || [],
+        media: doc.media ? JSON.parse(doc.media) : [],
         likes: doc.likesCount || 0,
         comments: doc.commentsCount || 0,
         reposts: doc.repostsCount || 0,
@@ -205,9 +202,6 @@ export default function DashboardPage() {
         updatedAt: doc.$updatedAt,
         visibility: doc.visibility || 'public',
         tags: doc.tags,
-        userProfilePic: doc.userProfilePic,
-        userName: doc.userName,
-        userHandle: doc.userHandle,
         isLiked: doc.isLiked,
         isBookmarked: doc.isBookmarked
       }));
@@ -341,11 +335,6 @@ export default function DashboardPage() {
           repostsCount: 0,
           visibility: selectedVisibility,
           tags: (newPostContent.match(/#(\w+)/g) || []) as string[],
-          userName: user?.name || 'Anonymous User',
-          userHandle: user?.$id || 'anon',
-          userProfilePic: userProfilePic || undefined,
-          isLiked: false,
-          isBookmarked: false
         }
       );
       setLances(prev => [{
@@ -362,9 +351,6 @@ export default function DashboardPage() {
         updatedAt: doc.$updatedAt,
         visibility: doc.visibility,
         tags: doc.tags,
-        userProfilePic: doc.userProfilePic,
-        userName: doc.userName,
-        userHandle: doc.userHandle,
         isLiked: false,
         isBookmarked: false
       }, ...prev]);

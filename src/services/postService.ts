@@ -42,6 +42,10 @@ class PostService {
       }
       
       // 2. Create the post document
+      const mediaString = media.length > 0 ? JSON.stringify(media) : undefined;
+      if (mediaString && mediaString.length > 1000) {
+        throw new Error('Media attachments are too large. Please reduce the number or size of media files.');
+      }
       const response = await fetch('/api/v1/posts', {
         method: 'POST',
         headers: {
@@ -51,7 +55,7 @@ class PostService {
           authorId: profileId,
           content,
           tags,
-          media,
+          media: mediaString,
           likesCount: 0,
           commentsCount: 0,
           bookmarksCount: 0,
@@ -116,6 +120,10 @@ class PostService {
       }
       
       // 2. Update the post
+      const updateMediaString = media.length > 0 ? JSON.stringify(media) : undefined;
+      if (updateMediaString && updateMediaString.length > 1000) {
+        throw new Error('Media attachments are too large. Please reduce the number or size of media files.');
+      }
       const response = await fetch(`/api/v1/posts/${postId}`, {
         method: 'PUT',
         headers: {
@@ -123,7 +131,7 @@ class PostService {
         },
         body: JSON.stringify({
           ...data,
-          media,
+          media: updateMediaString,
         }),
       });
       
