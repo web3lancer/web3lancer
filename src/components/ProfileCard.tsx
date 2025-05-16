@@ -3,6 +3,7 @@ import { Box, Typography, Avatar, Button, CircularProgress, Paper } from "@mui/m
 import { motion } from "framer-motion";
 import { uploadFile, updateUserProfile } from '@/utils/api';
 import { useAuth } from "@/contexts/AuthContext";
+import { PROFILE_AVATARS_BUCKET_ID } from '@/lib/env';
 
 const MotionPaper = motion(Paper);
 
@@ -36,7 +37,7 @@ export default function ProfileCard({ user, imagePreview: initialImagePreview }:
       setIsUploading(true);
       try {
         const response = await uploadFile(
-          '67b889200019e3d3519d',
+          PROFILE_AVATARS_BUCKET_ID,
           profilePicture, 
           `users/${user.$id}/profile-pictures/${profilePicture.name}`,
           (progress) => {

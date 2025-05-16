@@ -25,6 +25,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useRouter } from "next/navigation";
 import { Query } from 'appwrite';
+import { USER_BOOKMARKS_COLLECTION_ID, JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID, USER_BOOKMARKS_DATABASE_ID } from '@/lib/env';
 
 const MotionCard = motion(Card);
 const MotionContainer = motion(Container);
@@ -65,8 +66,8 @@ export default function BookmarksPage() {
       try {
         // Use Query approach instead of string interpolation to prevent issues
         const response = await databases.listDocuments(
-          '67b885ed000038dd7ab9', 
-          '67b8860100311b7d7939', 
+          USER_BOOKMARKS_DATABASE_ID,
+          USER_BOOKMARKS_COLLECTION_ID,
           [Query.equal('userId', user.$id)]
         );
         
@@ -84,7 +85,7 @@ export default function BookmarksPage() {
 
     async function fetchJobs() {
       try {
-        const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
+        const response = await databases.listDocuments(JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID);
         setJobs(response.documents as unknown as Job[]);
       } catch (error) {
         console.error('Error fetching jobs:', error);
@@ -105,7 +106,7 @@ export default function BookmarksPage() {
 
   const removeBookmark = async (bookmarkId: string) => {
     try {
-      await databases.deleteDocument('67b885ed000038dd7ab9', '67b8860100311b7d7939', bookmarkId);
+      await databases.deleteDocument(USER_BOOKMARKS_DATABASE_ID, USER_BOOKMARKS_COLLECTION_ID, bookmarkId);
       setBookmarks(prev => prev.filter(b => b.$id !== bookmarkId));
     } catch (error) {
       console.error("Error removing bookmark:", error);

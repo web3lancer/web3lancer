@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Fab, useTheme, Paper, Typography, Container } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { databases, ensureSession } from '../utils/api';
+import { JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID } from '@/lib/env';
 import HeroSection from './home0/sections/HeroSection';
 import StatisticsSection from './home0/sections/StatisticsSection';
 import FeaturesSection from './home0/sections/FeaturesSection';
@@ -110,7 +111,7 @@ export default function HomePage() {
       });
       
       try {
-        const response = await databases.listDocuments('67af3ffe0011106c4575', '67b8f57b0018fe4fcde7');
+        const response = await databases.listDocuments(JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID);
         const fetchedJobs = response.documents.map((doc: any) => ({
           $id: doc.$id,
           title: doc.title || 'Untitled Job',
