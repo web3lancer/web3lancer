@@ -1,144 +1,144 @@
-import { AppwriteService, ID, Query } from '@/services/appwriteService';
-import { EnvService } from '@/services/envService';
-import { Skill, Category, PlatformSetting } from '@/types/system';
+import BaseService from './baseService';
+import { AppwriteService, ID, Query } from './appwriteService';
+import { EnvConfig } from '@/config/environment';
+import { SystemSetting, SystemMetric, SystemAuditLog } from '@/types/core';
 
 /**
- * System Service for managing platform settings, skills, and categories
- * Follows best practices from Cross-Cutting Concerns section
+ * SystemService - Handles system-wide settings and metrics
+ * 
+ * This service manages platform settings, performance metrics,
+ * and system audit logs.
  */
-class SystemService {
-  private databaseId: string;
-  private skillsCollectionId: string;
-  private categoriesCollectionId: string;
-  private settingsCollectionId: string;
-  
+class SystemService extends BaseService {
   constructor(
-    private appwrite: AppwriteService,
-    private env: EnvService<'core'>
+    protected appwrite: AppwriteService,
+    protected config: EnvConfig
   ) {
-    this.databaseId = this.env.databaseId;
-    this.skillsCollectionId = this.env.get('collectionAppSkills');
-    this.categoriesCollectionId = this.env.get('collectionAppCategories');
-    this.settingsCollectionId = this.env.get('collectionPlatformSettings');
+    super(appwrite, config);
   }
 
-  // Skills
-  async createSkill(data: { name: string; description?: string; isActive?: boolean }): Promise<Skill> {
-    return this.appwrite.createDocument<Skill>(
-      this.databaseId,
-      this.skillsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        isActive: data.isActive !== undefined ? data.isActive : true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+  // System Settings
+  async getSetting(key: string): Promise<SystemSetting | null> {
+    return this.handleRequest(
+      async () => {
+        const settings = await this.appwrite.listDocuments<SystemSetting>(
+          this.config.core.databaseId,
+          this.config.core.settingsCollectionId,
+          [Query.equal('key', key)]
+        );
+        
+        return settings.length > 0 ? settings[0] : null;
+      },
+      'getSetting'
     );
   }
 
-  async getSkill(skillId: string): Promise<Skill | null> {
-    return this.appwrite.getDocument<Skill>(
-      this.databaseId,
-      this.skillsCollectionId,
-      skillId
+  async getSettings(category?: string): Promise<SystemSetting[]> {
+    return this.handleRequest(
+      async () => {
+        const queries = category 
+          ? [Query.equal('category', category)] 
+          : [];
+        
+        return await this.appwrite.listDocuments<SystemSetting>(
+          this.config.core.databaseId,
+          this.config.core.settingsCollectionId,
+          queries
+        );
+      },
+      'getSettings'
     );
   }
 
-  async updateSkill(skillId: string, data: Partial<Skill>): Promise<Skill> {
-    return this.appwrite.updateDocument<Skill>(
-      this.databaseId,
-      this.skillsCollectionId,
-      skillId,
-      {
-        ...data,
-        updatedAt: new Date().toISOString()
-      }
+  async updateSetting(key: string, value: any): Promise<SystemSetting> {
+    return this.handleRequest(
+      async () => {
+        // First check if the setting exists
+        const existingSetting = await this.getSetting(key);
+        
+        if (existingSetting) {
+          // Update existing setting
+          return await this.appwrite.updateDocument<SystemSetting>(
+            this.config.core.databaseId,
+            this.config.core.settingsCollectionId,
+            existingSetting.$id,
+            { 
+              value,
+              updatedAt: new Date().toISOString()
+            }
+          );
+        } else {
+          // Create new setting if it doesn't exist
+          return await this.appwrite.createDocument<SystemSetting>(
+            this.config.core.databaseId,
+            this.config.core.settingsCollectionId,
+            ID.unique(),
+            {
+              key,
+              value,
+              category: 'general', // Default category
+              isPublic: false, // Default to private
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          );
+        }
+      },
+      'updateSetting'
     );
   }
 
-  async deleteSkill(skillId: string): Promise<void> {
-    return this.appwrite.deleteDocument(
-      this.databaseId,
-      this.skillsCollectionId,
-      skillId
+  async createSetting(setting: Omit<SystemSetting, '$id' | '$createdAt' | '$updatedAt'>): Promise<SystemSetting> {
+    return this.handleRequest(
+      async () => {
+        // Check if setting already exists
+        const existingSetting = await this.getSetting(setting.key);
+        
+        if (existingSetting) {
+          throw new Error(`Setting with key '${setting.key}' already exists`);
+        }
+        
+        return await this.appwrite.createDocument<SystemSetting>(
+          this.config.core.databaseId,
+          this.config.core.settingsCollectionId,
+          ID.unique(),
+          {
+            ...setting,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        );
+      },
+      'createSetting'
     );
   }
 
-  async listSkills(includeInactive = false): Promise<Skill[]> {
-    const queries = includeInactive ? [] : [Query.equal('isActive', true)];
-    return this.appwrite.listDocuments<Skill>(
-      this.databaseId,
-      this.skillsCollectionId,
-      queries
+  async deleteSetting(key: string): Promise<void> {
+    return this.handleRequest(
+      async () => {
+        const existingSetting = await this.getSetting(key);
+        
+        if (!existingSetting) {
+          throw new Error(`Setting with key '${key}' not found`);
+        }
+        
+        await this.appwrite.deleteDocument(
+          this.config.core.databaseId,
+          this.config.core.settingsCollectionId,
+          existingSetting.$id
+        );
+      },
+      'deleteSetting'
     );
   }
 
-  async searchSkills(searchTerm: string, includeInactive = false): Promise<Skill[]> {
-    const queries = [Query.search('name', searchTerm)];
-    if (!includeInactive) {
-      queries.push(Query.equal('isActive', true));
-    }
-    
-    return this.appwrite.listDocuments<Skill>(
-      this.databaseId,
-      this.skillsCollectionId,
-      queries
-    );
-  }
-
-  // Categories
-  async createCategory(data: {
-    name: string;
-    description?: string;
-    parentId?: string;
-    order?: number;
-    isActive?: boolean;
-  }): Promise<Category> {
-    return this.appwrite.createDocument<Category>(
-      this.databaseId,
-      this.categoriesCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        isActive: data.isActive !== undefined ? data.isActive : true,
-        order: data.order || 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    );
-  }
-
-  async getCategory(categoryId: string): Promise<Category | null> {
-    return this.appwrite.getDocument<Category>(
-      this.databaseId,
-      this.categoriesCollectionId,
-      categoryId
-    );
-  }
-
-  async updateCategory(categoryId: string, data: Partial<Category>): Promise<Category> {
-    return this.appwrite.updateDocument<Category>(
-      this.databaseId,
-      this.categoriesCollectionId,
-      categoryId,
-      {
-        ...data,
-        updatedAt: new Date().toISOString()
-      }
-    );
-  }
-
-  async deleteCategory(categoryId: string): Promise<void> {
-    return this.appwrite.deleteDocument(
-      this.databaseId,
-      this.categoriesCollectionId,
-      categoryId
-    );
-  }
-
-  async listCategories(includeInactive = false): Promise<Category[]> {
-    const queries = includeInactive ? [] : [Query.equal('isActive', true)];
+  // System Metrics
+  async recordMetric(metric: Omit<SystemMetric, '$id' | '$createdAt' | '$updatedAt'>): Promise<SystemMetric> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<SystemMetric>(
+          this.config.core.databaseId,
+          this.config.core.metricsCollectionId,
     queries.push(Query.orderAsc('order'));
     
     return this.appwrite.listDocuments<Category>(

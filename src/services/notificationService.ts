@@ -1,250 +1,300 @@
+import BaseService from './baseService';
 import { AppwriteService, ID, Query } from './appwriteService';
-import { EnvService } from './envService';
-import { Notification, AuditLog } from '@/types/activity';
+import { EnvConfig } from '@/config/environment';
+import { Notification, ActivityLog } from '@/types/activity';
 
 /**
- * Notification Service for managing user notifications and system audit logs
- * Follows best practices from Cross-Cutting Concerns section
+ * NotificationService - Handles user notifications and activity logs
+ * 
+ * This service manages the creation, retrieval, and management of
+ * user notifications and system activity logs.
  */
-class NotificationService {
-  private databaseId: string;
-  private notificationsCollectionId: string;
-  private auditLogsCollectionId: string;
-  
+class NotificationService extends BaseService {
   constructor(
-    private appwrite: AppwriteService,
-    private env: EnvService<'activity'>
+    protected appwrite: AppwriteService,
+    protected config: EnvConfig
   ) {
-    this.databaseId = this.env.databaseId;
-    this.notificationsCollectionId = this.env.get('collectionUserNotifications');
-    this.auditLogsCollectionId = this.env.get('collectionAuditLogs');
+    super(appwrite, config);
   }
 
   // Notifications
-  async createNotification(data: {
-    userId: string;
-    type: string;
-    title: string;
-    message: string;
-    relatedEntityId?: string;
-    relatedEntityType?: string;
-    metadata?: any;
-  }): Promise<Notification> {
-    return this.appwrite.createDocument<Notification>(
-      this.databaseId,
-      this.notificationsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        isRead: false,
-        createdAt: new Date().toISOString()
-      }
+  async createNotification(data: Omit<Notification, '$id' | '$createdAt' | '$updatedAt'>): Promise<Notification> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<Notification>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          ID.unique(),
+          data
+        );
+      },
+      'createNotification'
     );
   }
 
   async getNotification(notificationId: string): Promise<Notification | null> {
-    return this.appwrite.getDocument<Notification>(
-      this.databaseId,
-      this.notificationsCollectionId,
-      notificationId
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.getDocument<Notification>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          notificationId
+        );
+      },
+      'getNotification'
     );
   }
 
   async markNotificationAsRead(notificationId: string): Promise<Notification> {
-    return this.appwrite.updateDocument<Notification>(
-      this.databaseId,
-      this.notificationsCollectionId,
-      notificationId,
-      { isRead: true }
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.updateDocument<Notification>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          notificationId,
+          { isRead: true, readAt: new Date().toISOString() }
+        );
+      },
+      'markNotificationAsRead'
     );
   }
 
   async markAllNotificationsAsRead(userId: string): Promise<void> {
-    // This would be more efficiently done with a batched update operation
-    // For Appwrite, consider using a server-side function for better performance
-    const notifications = await this.getUserUnreadNotifications(userId);
-    
-    for (const notification of notifications) {
-      await this.markNotificationAsRead(notification.$id);
-    }
-  }
-
-  async deleteNotification(notificationId: string): Promise<void> {
-    return this.appwrite.deleteDocument(
-      this.databaseId,
-      this.notificationsCollectionId,
-      notificationId
+    return this.handleRequest(
+      async () => {
+        const unreadNotifications = await this.getUserUnreadNotifications(userId);
+        
+        // Update each unread notification
+        const updatePromises = unreadNotifications.map(notification => 
+          this.markNotificationAsRead(notification.$id)
+        );
+        
+        await Promise.all(updatePromises);
+      },
+      'markAllNotificationsAsRead'
     );
   }
 
-  async getUserNotifications(userId: string, limit = 20, offset = 0): Promise<Notification[]> {
-    return this.appwrite.listDocuments<Notification>(
-      this.databaseId,
-      this.notificationsCollectionId,
-      [
-        Query.equal('userId', userId),
-        Query.orderDesc('createdAt'),
-        Query.limit(limit),
-        Query.offset(offset)
-      ]
+  async getUserNotifications(userId: string, limit: number = 20): Promise<Notification[]> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<Notification>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          [
+            Query.equal('userId', userId),
+            Query.orderDesc('$createdAt'),
+            Query.limit(limit)
+          ]
+        );
+      },
+      'getUserNotifications'
     );
   }
 
   async getUserUnreadNotifications(userId: string): Promise<Notification[]> {
-    return this.appwrite.listDocuments<Notification>(
-      this.databaseId,
-      this.notificationsCollectionId,
-      [
-        Query.equal('userId', userId),
-        Query.equal('isRead', false),
-        Query.orderDesc('createdAt')
-      ]
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<Notification>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          [
+            Query.equal('userId', userId),
+            Query.equal('isRead', false),
+            Query.orderDesc('$createdAt')
+          ]
+        );
+      },
+      'getUserUnreadNotifications'
+    );
+  }
+
+  async deleteNotification(notificationId: string): Promise<void> {
+    return this.handleRequest(
+      async () => {
+        await this.appwrite.deleteDocument(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          notificationId
+        );
+      },
+      'deleteNotification'
     );
   }
 
   async getUnreadNotificationCount(userId: string): Promise<number> {
-    const response = await this.appwrite.listDocuments(
-      this.databaseId,
-      this.notificationsCollectionId,
-      [
-        Query.equal('userId', userId),
-        Query.equal('isRead', false),
-        Query.limit(0) // Just get the count, not the documents
-      ]
-    );
-    
-    return response.length;
-  }
-
-  // Audit Logs
-  async createAuditLog(data: {
-    userId: string;
-    action: string;
-    entityId?: string;
-    entityType?: string;
-    details?: any;
-    ipAddress?: string;
-    userAgent?: string;
-  }): Promise<AuditLog> {
-    return this.appwrite.createDocument<AuditLog>(
-      this.databaseId,
-      this.auditLogsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        timestamp: new Date().toISOString()
-      }
+    return this.handleRequest(
+      async () => {
+        const notifications = await this.appwrite.listDocuments<Notification>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          [
+            Query.equal('userId', userId),
+            Query.equal('isRead', false)
+          ]
+        );
+        
+        return notifications.length;
+      },
+      'getUnreadNotificationCount'
     );
   }
 
-  async getAuditLog(logId: string): Promise<AuditLog | null> {
-    return this.appwrite.getDocument<AuditLog>(
-      this.databaseId,
-      this.auditLogsCollectionId,
-      logId
+  // Activity Logs
+  async createActivityLog(data: Omit<ActivityLog, '$id' | '$createdAt' | '$updatedAt'>): Promise<ActivityLog> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<ActivityLog>(
+          this.config.activity.databaseId,
+          this.config.activity.logsCollectionId,
+          ID.unique(),
+          data
+        );
+      },
+      'createActivityLog'
     );
   }
 
-  async listAuditLogs(queries: string[] = []): Promise<AuditLog[]> {
-    return this.appwrite.listDocuments<AuditLog>(
-      this.databaseId,
-      this.auditLogsCollectionId,
-      queries
+  async getActivityLog(logId: string): Promise<ActivityLog | null> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.getDocument<ActivityLog>(
+          this.config.activity.databaseId,
+          this.config.activity.logsCollectionId,
+          logId
+        );
+      },
+      'getActivityLog'
     );
   }
 
-  async getUserAuditLogs(userId: string, limit = 100, offset = 0): Promise<AuditLog[]> {
-    return this.appwrite.listDocuments<AuditLog>(
-      this.databaseId,
-      this.auditLogsCollectionId,
-      [
-        Query.equal('userId', userId),
-        Query.orderDesc('timestamp'),
-        Query.limit(limit),
-        Query.offset(offset)
-      ]
+  async getUserActivityLogs(userId: string, limit: number = 20): Promise<ActivityLog[]> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<ActivityLog>(
+          this.config.activity.databaseId,
+          this.config.activity.logsCollectionId,
+          [
+            Query.equal('userId', userId),
+            Query.orderDesc('$createdAt'),
+            Query.limit(limit)
+          ]
+        );
+      },
+      'getUserActivityLogs'
     );
   }
 
-  async getEntityAuditLogs(entityId: string, entityType: string): Promise<AuditLog[]> {
-    return this.appwrite.listDocuments<AuditLog>(
-      this.databaseId,
-      this.auditLogsCollectionId,
-      [
-        Query.equal('entityId', entityId),
-        Query.equal('entityType', entityType),
-        Query.orderDesc('timestamp')
-      ]
+  async getItemActivityLogs(itemId: string, itemType: string): Promise<ActivityLog[]> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<ActivityLog>(
+          this.config.activity.databaseId,
+          this.config.activity.logsCollectionId,
+          [
+            Query.equal('itemId', itemId),
+            Query.equal('itemType', itemType),
+            Query.orderDesc('$createdAt')
+          ]
+        );
+      },
+      'getItemActivityLogs'
     );
   }
 
-  // Helper method to create commonly used notifications
-  async createJobProposalNotification(clientId: string, freelancerId: string, jobId: string, jobTitle: string): Promise<Notification> {
+  // Helper methods for common notifications
+  async notifyJobApplication(jobId: string, jobTitle: string, clientId: string, freelancerId: string, freelancerName: string): Promise<Notification> {
     return this.createNotification({
       userId: clientId,
-      type: 'job_proposal',
-      title: 'New Proposal Received',
-      message: `You have received a new proposal for your job: ${jobTitle}`,
-      relatedEntityId: jobId,
-      relatedEntityType: 'job',
-      metadata: {
-        freelancerId
-      }
+      type: 'job_application',
+      title: 'New Job Application',
+      message: `${freelancerName} has applied to your job: "${jobTitle}"`,
+      isRead: false,
+      itemId: jobId,
+      itemType: 'job',
+      relatedUserId: freelancerId,
+      actions: [
+        {
+          label: 'View Application',
+          url: `/jobs/${jobId}/proposals`
+        }
+      ]
     });
   }
 
-  async createProposalAcceptedNotification(freelancerId: string, jobId: string, jobTitle: string): Promise<Notification> {
+  async notifyProposalAccepted(proposalId: string, jobId: string, jobTitle: string, clientId: string, clientName: string, freelancerId: string): Promise<Notification> {
     return this.createNotification({
       userId: freelancerId,
       type: 'proposal_accepted',
       title: 'Proposal Accepted',
-      message: `Your proposal for job "${jobTitle}" has been accepted!`,
-      relatedEntityId: jobId,
-      relatedEntityType: 'job'
+      message: `${clientName} has accepted your proposal for "${jobTitle}"`,
+      isRead: false,
+      itemId: proposalId,
+      itemType: 'proposal',
+      relatedUserId: clientId,
+      actions: [
+        {
+          label: 'View Details',
+          url: `/jobs/${jobId}/proposals/${proposalId}`
+        }
+      ]
     });
   }
 
-  async createMilestoneCompletedNotification(clientId: string, contractId: string, milestoneName: string): Promise<Notification> {
+  async notifyMilestoneCompleted(milestoneId: string, contractId: string, milestoneTitle: string, clientId: string, freelancerId: string, freelancerName: string): Promise<Notification> {
     return this.createNotification({
       userId: clientId,
       type: 'milestone_completed',
       title: 'Milestone Completed',
-      message: `The milestone "${milestoneName}" has been marked as completed and is ready for your review.`,
-      relatedEntityId: contractId,
-      relatedEntityType: 'contract',
-      metadata: {
-        milestoneName
-      }
+      message: `${freelancerName} has marked the milestone "${milestoneTitle}" as completed`,
+      isRead: false,
+      itemId: milestoneId,
+      itemType: 'milestone',
+      relatedUserId: freelancerId,
+      actions: [
+        {
+          label: 'Review Submission',
+          url: `/contracts/${contractId}/milestones/${milestoneId}`
+        }
+      ]
     });
   }
 
-  async createPaymentReleasedNotification(freelancerId: string, amount: string, currency: string, contractId: string): Promise<Notification> {
+  async notifyPaymentReleased(milestoneId: string, contractId: string, amount: number, currency: string, clientId: string, clientName: string, freelancerId: string): Promise<Notification> {
     return this.createNotification({
       userId: freelancerId,
       type: 'payment_released',
       title: 'Payment Released',
-      message: `A payment of ${amount} ${currency} has been released to you.`,
-      relatedEntityId: contractId,
-      relatedEntityType: 'contract',
-      metadata: {
-        amount,
-        currency
-      }
+      message: `${clientName} has released ${amount} ${currency} for your milestone`,
+      isRead: false,
+      itemId: milestoneId,
+      itemType: 'milestone',
+      relatedUserId: clientId,
+      actions: [
+        {
+          label: 'View Details',
+          url: `/contracts/${contractId}/milestones/${milestoneId}`
+        }
+      ]
     });
   }
 
-  async createNewMessageNotification(receiverId: string, senderId: string, senderName: string, chatId: string): Promise<Notification> {
+  async notifyNewMessage(conversationId: string, senderId: string, senderName: string, receiverId: string, preview: string): Promise<Notification> {
     return this.createNotification({
       userId: receiverId,
       type: 'new_message',
       title: 'New Message',
-      message: `You have received a new message from ${senderName}.`,
-      relatedEntityId: chatId,
-      relatedEntityType: 'chat',
-      metadata: {
-        senderId,
-        senderName
-      }
+      message: `${senderName}: ${preview}`,
+      isRead: false,
+      itemId: conversationId,
+      itemType: 'conversation',
+      relatedUserId: senderId,
+      actions: [
+        {
+          label: 'Reply',
+          url: `/messages/${conversationId}`
+        }
+      ]
     });
   }
 }

@@ -1,92 +1,51 @@
-import { appwriteService } from './appwriteService';
-import { EnvService } from './envService';
-import ProfileService from './profileService';
-import JobService from './jobService';
-import ContentService from './contentService';
-import FinanceService from './financeService';
-import SocialService from './socialService';
-import GovernanceService from './governanceService';
-import NotificationService from './notificationService';
-import SystemService from './systemService';
+import { AppwriteService } from './appwriteService';
+import { defaultEnvConfig, EnvConfig } from '@/config/environment';
 
 /**
- * Service Factory - Creates and manages service instances to avoid duplication
- * Following the best practices from Cross-Cutting Concerns section
+ * ServiceFactory - Creates and manages application services
+ * 
+ * This factory ensures services are created with the correct configuration
+ * and simplifies dependency injection throughout the application.
  */
 class ServiceFactory {
-  private static instances: Record<string, any> = {};
+  private static instance: ServiceFactory;
+  private config: EnvConfig;
+  private appwriteService: AppwriteService;
+  
+  // Service instances cache
+  private serviceInstances: Map<string, any> = new Map();
 
-  /**
-   * Get or create a service instance
-   * @param serviceType The service class to instantiate
-   * @param args Arguments to pass to the service constructor
-   * @returns The service instance
-   */
-  static getService<T>(serviceType: new (...args: any[]) => T, ...args: any[]): T {
-    const serviceName = serviceType.name;
-    
-    if (!this.instances[serviceName]) {
-      this.instances[serviceName] = new serviceType(...args);
+  private constructor(config: EnvConfig = defaultEnvConfig) {
+    this.config = config;
+    this.appwriteService = new AppwriteService(config);
+  }
+
+  public static getInstance(config?: EnvConfig): ServiceFactory {
+    if (!ServiceFactory.instance) {
+      ServiceFactory.instance = new ServiceFactory(config);
     }
-    
-    return this.instances[serviceName];
+    return ServiceFactory.instance;
   }
 
-  /**
-   * Get the ProfileService instance
-   */
-  static getProfileService(): ProfileService {
-    return this.getService(ProfileService, appwriteService, new EnvService('profiles'));
+  // Get the Appwrite service with default config
+  public getAppwriteService(): AppwriteService {
+    return this.appwriteService;
   }
 
-  /**
-   * Get the JobService instance
-   */
-  static getJobService(): JobService {
-    return this.getService(JobService, appwriteService, new EnvService('jobs'));
+  // Generic method to get or create a service
+  public getService<T>(serviceKey: string, ServiceClass: new (appwrite: AppwriteService, config: EnvConfig) => T): T {
+    if (!this.serviceInstances.has(serviceKey)) {
+      this.serviceInstances.set(serviceKey, new ServiceClass(this.appwriteService, this.config));
+    }
+    return this.serviceInstances.get(serviceKey) as T;
   }
 
-  /**
-   * Get the ContentService instance
-   */
-  static getContentService(): ContentService {
-    return this.getService(ContentService, appwriteService, new EnvService('content'));
-  }
-
-  /**
-   * Get the FinanceService instance
-   */
-  static getFinanceService(): FinanceService {
-    return this.getService(FinanceService, appwriteService, new EnvService('finance'));
-  }
-
-  /**
-   * Get the SocialService instance
-   */
-  static getSocialService(): SocialService {
-    return this.getService(SocialService, appwriteService, new EnvService('social'));
-  }
-
-  /**
-   * Get the GovernanceService instance
-   */
-  static getGovernanceService(): GovernanceService {
-    return this.getService(GovernanceService, appwriteService, new EnvService('governance'));
-  }
-
-  /**
-   * Get the NotificationService instance
-   */
-  static getNotificationService(): NotificationService {
-    return this.getService(NotificationService, appwriteService, new EnvService('activity'));
-  }
-
-  /**
-   * Get the SystemService instance
-   */
-  static getSystemService(): SystemService {
-    return this.getService(SystemService, appwriteService, new EnvService('core'));
+  // Utility method to reset all services (useful for testing or logout)
+  public resetServices(): void {
+    this.serviceInstances.clear();
   }
 }
+
+export default ServiceFactory;
 
 export default ServiceFactory;

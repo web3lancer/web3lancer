@@ -1,189 +1,198 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { account } from '@/app/api';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppwriteService } from '@/services/appwriteService';
+import ServiceFactory from '@/services/serviceFactory';
+import ProfileService from '@/services/profileService';
 import { Models } from 'appwrite';
-import profileService from '@/services/profileService';
-import { Profile } from '@/types';
+import { UserProfile } from '@/types/profiles';
+import { useRouter } from 'next/router';
+import { EnvConfig, defaultEnvConfig } from '@/config/environment';
 
-interface User {
-  $id: string;
-  name?: string;
-  email: string;
-  userId: string;
-}
-
+// Define the context shape
 interface AuthContextType {
-  user: User | null;
-  profile: Profile | null;
+  user: Models.User<Models.Preferences> | null;
+  profile: UserProfile | null;
   isLoading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
-  isLoggedIn: boolean;
+  refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create the context with default values
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  profile: null,
+  isLoading: true,
+  error: null,
+  isAuthenticated: false,
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
+  refreshUser: async () => {},
+});
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+// Provider component that wraps the app
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  
+  const router = useRouter();
+  
+  // Get services from the factory
+  const serviceFactory = ServiceFactory.getInstance();
+  const appwriteService = serviceFactory.getAppwriteService();
+  const profileService = new ProfileService(appwriteService, defaultEnvConfig);
+  
+  // Helper method to set user and get their profile
+  const initializeUserAndProfile = async (newUser: Models.User<Models.Preferences>) => {
+    setUser(newUser);
+    
+    try {
+      // Fetch the user's profile
+      const userProfile = await profileService.getProfileByUserId(newUser.$id);
+      
+      if (!userProfile) {
+        // If profile doesn't exist, create a new one
+        const newProfile = await profileService.createProfile({
+          userId: newUser.$id,
+          username: newUser.name || `user${Math.floor(Math.random() * 10000)}`,
+          fullName: newUser.name || '',
+          email: newUser.email,
+          isFreelancer: false,
+          isEmployer: false,
+          skills: [],
+          onboardingCompleted: false
+        });
+        setProfile(newProfile);
+      } else {
+        setProfile(userProfile);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setError('Failed to fetch user profile');
+    }
+  };
 
-  // Check if user is logged in on mount
+  // Effect to check for existing session on mount
   useEffect(() => {
-    const checkSession = async () => {
+    const initAuth = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const currentUser = await account.get();
-        if (currentUser) {
-          // Add userId to user object for easier access
-          const userWithId = { ...currentUser, userId: currentUser.$id };
-          setUser(userWithId);
-          setIsLoggedIn(true);
-          
-          // Get user profile
-          try {
-            const userProfile = await profileService.getProfileByUserId(currentUser.$id);
-            setProfile(userProfile);
-            
-            // If no profile exists, create one
-            if (!userProfile) {
-              const newProfile = await profileService.createProfile({
-                userId: currentUser.$id,
-                displayName: currentUser.name || 'New User',
-                username: currentUser.name?.toLowerCase().replace(/\s+/g, '') || `user${Math.floor(Math.random() * 10000)}`,
-              });
-              setProfile(newProfile);
-            }
-          } catch (profileError) {
-            console.error('Error fetching profile:', profileError);
-          }
-        }
-      } catch (err) {
-        // No active session, user is not logged in
-        console.log('No active session');
+        const currentUser = await appwriteService.getCurrentUser();
+        await initializeUserAndProfile(currentUser);
+      } catch (error) {
         setUser(null);
         setProfile(null);
-        setIsLoggedIn(false);
+        console.log('No active session found');
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkSession();
+    initAuth();
   }, []);
 
-  // Login function
+  // Login method
   const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      await account.createSession(email, password);
-      const currentUser = await account.get();
-      
-      // Add userId to user object for easier access
-      const userWithId = { ...currentUser, userId: currentUser.$id };
-      setUser(userWithId);
-      setIsLoggedIn(true);
-      
-      // Get user profile
-      const userProfile = await profileService.getProfileByUserId(currentUser.$id);
-      setProfile(userProfile);
-      
-      // If no profile exists, create one
-      if (!userProfile) {
-        const newProfile = await profileService.createProfile({
-          userId: currentUser.$id,
-          displayName: currentUser.name || 'New User',
-          username: currentUser.name?.toLowerCase().replace(/\s+/g, '') || `user${Math.floor(Math.random() * 10000)}`,
-        });
-        setProfile(newProfile);
-      }
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      await appwriteService.createEmailSession(email, password);
+      const currentUser = await appwriteService.getCurrentUser();
+      await initializeUserAndProfile(currentUser);
+      router.push('/dashboard');
+    } catch (error: any) {
+      setError(error.message || 'Failed to login');
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Register function
+  // Register method
   const register = async (email: string, password: string, name: string) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Create user account
-      const newUser = await account.create('unique()', email, password, name);
-      
-      // Login the user after registration
-      await account.createSession(email, password);
-      const currentUser = await account.get();
-      
-      // Add userId to user object for easier access
-      const userWithId = { ...currentUser, userId: currentUser.$id };
-      setUser(userWithId);
-      setIsLoggedIn(true);
-      
-      // Create user profile
-      const newProfile = await profileService.createProfile({
-        userId: currentUser.$id,
-        displayName: name,
-        username: name.toLowerCase().replace(/\s+/g, '') || `user${Math.floor(Math.random() * 10000)}`,
-      });
-      
-      setProfile(newProfile);
-    } catch (err: any) {
-      console.error('Registration error:', err);
-      setError(err.message || 'Failed to register. Please try again.');
+      const newUser = await appwriteService.createAccount(email, password, name);
+      await appwriteService.createEmailSession(email, password);
+      await initializeUserAndProfile(newUser);
+      router.push('/onboarding');
+    } catch (error: any) {
+      setError(error.message || 'Failed to register');
+      console.error('Registration error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Logout function
+  // Logout method
   const logout = async () => {
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
-      await account.deleteSession('current');
+      await appwriteService.deleteSessions();
       setUser(null);
       setProfile(null);
-      setIsLoggedIn(false);
-    } catch (err: any) {
-      console.error('Logout error:', err);
-      setError(err.message || 'Failed to logout. Please try again.');
+      
+      // Reset all services to ensure clean state
+      serviceFactory.resetServices();
+      
+      router.push('/');
+    } catch (error: any) {
+      setError(error.message || 'Failed to logout');
+      console.error('Logout error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        isLoading,
-        error,
-        login,
-        register,
-        logout,
-        isLoggedIn
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  // Method to refresh user data
+  const refreshUser = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const currentUser = await appwriteService.getCurrentUser();
+      
+      // Fetch the latest profile
+      const userProfile = await profileService.getProfileByUserId(currentUser.$id);
+      
+      setUser(currentUser);
+      setProfile(userProfile);
+    } catch (error: any) {
+      console.error('Error refreshing user:', error);
+      // If session expired, logout
+      if (error.code === 401) {
+        await logout();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+  // Prepare the value object with all context properties and methods
+  const value = {
+    user,
+    profile,
+    isLoading,
+    error,
+    isAuthenticated: !!user,
+    login,
+    register,
+    logout,
+    refreshUser,
+  };
 
-export default AuthContext;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Custom hook to use the auth context
+export const useAuthContext = () => useContext(AuthContext);

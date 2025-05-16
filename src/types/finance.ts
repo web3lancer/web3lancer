@@ -145,3 +145,116 @@ export interface EscrowTransaction {
   notes?: string;
   processedAt?: string; // ISO Datetime when transaction reached final state
 }
+
+// Finance related types
+export interface UserWallet {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  userId: string; // UserProfile.$id of wallet owner
+  balance: number;
+  currency: string; // Default: 'USD'
+  onChainAddresses?: { [network: string]: string }; // Maps network to address
+  availableBalance?: number; // Balance that is available for withdrawal (not in escrow)
+  pendingBalance?: number; // Balance not yet settled
+  status: 'active' | 'suspended' | 'closed';
+  lastActivityAt?: string; // ISO Date string
+  isVerified: boolean; // True if wallet has passed KYC
+}
+
+export interface PaymentMethod {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  userId: string; // UserProfile.$id of payment method owner
+  type: 'credit_card' | 'bank_account' | 'crypto' | 'paypal' | 'other';
+  status: 'pending' | 'active' | 'expired' | 'disabled';
+  isDefault: boolean;
+  details: {
+    // For credit cards
+    cardLast4?: string;
+    cardType?: string;
+    expiryMonth?: string;
+    expiryYear?: string;
+    cardholderName?: string;
+    
+    // For bank accounts
+    accountLast4?: string;
+    bankName?: string;
+    accountType?: string;
+    routingNumber?: string;
+    
+    // For crypto
+    walletAddress?: string;
+    network?: string;
+    
+    // For PayPal
+    email?: string;
+  };
+  billingAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state?: string;
+    postalCode: string;
+    country: string;
+  };
+  processorToken?: string; // Token from payment processor
+  processorId?: string; // ID from payment processor
+  metadata?: { [key: string]: any }; // Additional payment processor metadata
+}
+
+export interface PlatformTransaction {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  userId: string; // UserProfile.$id of transaction owner
+  walletId: string; // UserWallet.$id
+  type: 'deposit' | 'withdrawal' | 'payment' | 'refund' | 'fee' | 'escrow_funding' | 'escrow_release';
+  method: 'credit_card' | 'bank_account' | 'crypto' | 'paypal' | 'platform_wallet' | 'other';
+  amount: number;
+  currency: string;
+  description: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'reversed';
+  paymentMethodId?: string; // PaymentMethod.$id if applicable
+  destination?: string; // For withdrawals, external destination
+  source?: string; // For deposits, external source
+  relatedId?: string; // ID of related entity (job, contract, etc.)
+  relatedType?: string; // Type of related entity
+  escrowId?: string; // EscrowTransaction.$id if applicable
+  processorId?: string; // ID from payment processor
+  processorResponse?: any; // Raw response from payment processor
+  initiatedAt?: string; // ISO Date string
+  completedAt?: string; // ISO Date string
+  failedAt?: string; // ISO Date string
+  reversedAt?: string; // ISO Date string
+  fees?: {
+    amount: number;
+    currency: string;
+    description: string;
+  }[];
+  metadata?: { [key: string]: any }; // Additional payment processor metadata
+}
+
+export interface EscrowTransaction {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  sourceWalletId: string; // UserWallet.$id of the funding wallet
+  sourceUserId: string; // UserProfile.$id of the funding user
+  amount: number;
+  currency: string;
+  purpose: string; // Description of what this escrow is for
+  status: 'pending' | 'funded' | 'released' | 'refunded' | 'disputed';
+  relatedId: string; // JobContract.$id or JobMilestone.$id
+  relatedType: string; // 'contract' or 'milestone'
+  transactionId?: string; // PlatformTransaction.$id that funded this escrow
+  releaseTransactionId?: string; // PlatformTransaction.$id when released
+  releasedToWalletId?: string; // UserWallet.$id where funds were released to
+  releasedAt?: string; // ISO Date string
+  refundedAt?: string; // ISO Date string
+  disputeId?: string; // Dispute.$id if disputed
+  terms?: string; // Terms of the escrow
+  expiresAt?: string; // ISO Date string for automatic release
+  metadata?: { [key: string]: any }; // Additional metadata
+}

@@ -1,259 +1,514 @@
+import BaseService from './baseService';
 import { AppwriteService, ID, Query } from './appwriteService';
-import { EnvService } from './envService';
-import { Wallet, Transaction, PaymentMethod, EscrowTransaction } from '@/types/finance';
+import { EnvConfig } from '@/config/environment';
+import { UserWallet, PaymentMethod, PlatformTransaction, EscrowTransaction } from '@/types/finance';
 
 /**
- * Finance Service for managing wallets, transactions, payment methods, and escrow
- * Follows best practices from Cross-Cutting Concerns section
+ * FinanceService - Handles all financial operations
+ * 
+ * This service manages wallets, transactions, payment methods, and escrow
+ * operations for the platform.
  */
-class FinanceService {
-  private databaseId: string;
-  private walletsCollectionId: string;
-  private transactionsCollectionId: string;
-  private paymentMethodsCollectionId: string;
-  private escrowTransactionsCollectionId: string;
-  
+class FinanceService extends BaseService {
   constructor(
-    private appwrite: AppwriteService,
-    private env: EnvService<'finance'>
+    protected appwrite: AppwriteService,
+    protected config: EnvConfig
   ) {
-    this.databaseId = this.env.databaseId;
-    this.walletsCollectionId = this.env.get('collectionUserWallets');
-    this.transactionsCollectionId = this.env.get('collectionPlatformTransactions');
-    this.paymentMethodsCollectionId = this.env.get('collectionUserPaymentMethods');
-    this.escrowTransactionsCollectionId = this.env.get('collectionEscrowTransactions');
+    super(appwrite, config);
   }
 
-  // Wallets
-  async createWallet(data: Omit<Wallet, '$id' | '$createdAt' | '$updatedAt'>): Promise<Wallet> {
-    return this.appwrite.createDocument<Wallet>(
-      this.databaseId,
-      this.walletsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        isVerified: false,
-        isPrimary: false
-      }
+  // User Wallets
+  async createWallet(data: Omit<UserWallet, '$id' | '$createdAt' | '$updatedAt'>): Promise<UserWallet> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<UserWallet>(
+          this.config.finance.databaseId,
+          this.config.finance.walletsCollectionId,
+          ID.unique(),
+          data
+        );
+      },
+      'createWallet'
     );
   }
 
-  async getWallet(walletId: string): Promise<Wallet | null> {
-    return this.appwrite.getDocument<Wallet>(
-      this.databaseId,
-      this.walletsCollectionId,
-      walletId
+  async getWallet(walletId: string): Promise<UserWallet | null> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.getDocument<UserWallet>(
+          this.config.finance.databaseId,
+          this.config.finance.walletsCollectionId,
+          walletId
+        );
+      },
+      'getWallet'
     );
   }
 
-  async updateWallet(walletId: string, data: Partial<Wallet>): Promise<Wallet> {
-    return this.appwrite.updateDocument<Wallet>(
-      this.databaseId,
-      this.walletsCollectionId,
-      walletId,
-      data
+  async getWalletByUserId(userId: string): Promise<UserWallet | null> {
+    return this.handleRequest(
+      async () => {
+        const wallets = await this.appwrite.listDocuments<UserWallet>(
+          this.config.finance.databaseId,
+          this.config.finance.walletsCollectionId,
+          [Query.equal('userId', userId)]
+        );
+        
+        return wallets.length > 0 ? wallets[0] : null;
+      },
+      'getWalletByUserId'
     );
   }
 
-  async deleteWallet(walletId: string): Promise<void> {
-    return this.appwrite.deleteDocument(
-      this.databaseId,
-      this.walletsCollectionId,
-      walletId
+  async updateWalletBalance(walletId: string, newBalance: number): Promise<UserWallet> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.updateDocument<UserWallet>(
+          this.config.finance.databaseId,
+          this.config.finance.walletsCollectionId,
+          walletId,
+          { balance: newBalance }
+        );
+      },
+      'updateWalletBalance'
     );
-  }
-
-  async listWallets(queries: string[] = []): Promise<Wallet[]> {
-    return this.appwrite.listDocuments<Wallet>(
-      this.databaseId,
-      this.walletsCollectionId,
-      queries
-    );
-  }
-
-  async getWalletsByProfile(profileId: string): Promise<Wallet[]> {
-    return this.listWallets([Query.equal('profileId', profileId)]);
-  }
-
-  async getPrimaryWallet(profileId: string): Promise<Wallet | null> {
-    const wallets = await this.listWallets([
-      Query.equal('profileId', profileId),
-      Query.equal('isPrimary', true)
-    ]);
-    
-    return wallets.length > 0 ? wallets[0] : null;
-  }
-
-  async setWalletAsPrimary(walletId: string): Promise<void> {
-    const wallet = await this.getWallet(walletId);
-    if (!wallet) throw new Error('Wallet not found');
-    
-    // First, unset the primary flag on all wallets for this profile
-    const wallets = await this.getWalletsByProfile(wallet.profileId);
-    for (const w of wallets) {
-      if (w.isPrimary && w.$id !== walletId) {
-        await this.updateWallet(w.$id, { isPrimary: false });
-      }
-    }
-    
-    // Then set this wallet as primary
-    await this.updateWallet(walletId, { isPrimary: true });
-  }
-
-  // Transactions
-  async createTransaction(data: Omit<Transaction, '$id' | '$createdAt' | '$updatedAt'>): Promise<Transaction> {
-    return this.appwrite.createDocument<Transaction>(
-      this.databaseId,
-      this.transactionsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        status: 'pending'
-      }
-    );
-  }
-
-  async getTransaction(transactionId: string): Promise<Transaction | null> {
-    return this.appwrite.getDocument<Transaction>(
-      this.databaseId,
-      this.transactionsCollectionId,
-      transactionId
-    );
-  }
-
-  async updateTransaction(transactionId: string, data: Partial<Transaction>): Promise<Transaction> {
-    return this.appwrite.updateDocument<Transaction>(
-      this.databaseId,
-      this.transactionsCollectionId,
-      transactionId,
-      data
-    );
-  }
-
-  async listTransactions(queries: string[] = []): Promise<Transaction[]> {
-    return this.appwrite.listDocuments<Transaction>(
-      this.databaseId,
-      this.transactionsCollectionId,
-      queries
-    );
-  }
-
-  async getTransactionsByProfile(profileId: string, limit = 10, offset = 0): Promise<Transaction[]> {
-    return this.listTransactions([
-      Query.equal('profileId', profileId),
-      Query.orderDesc('$createdAt'),
-      Query.limit(limit),
-      Query.offset(offset)
-    ]);
   }
 
   // Payment Methods
-  async createPaymentMethod(data: Omit<PaymentMethod, '$id' | '$createdAt' | '$updatedAt'>): Promise<PaymentMethod> {
-    return this.appwrite.createDocument<PaymentMethod>(
-      this.databaseId,
-      this.paymentMethodsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        isVerified: false,
-        isDefault: false
-      }
+  async addPaymentMethod(data: Omit<PaymentMethod, '$id' | '$createdAt' | '$updatedAt'>): Promise<PaymentMethod> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<PaymentMethod>(
+          this.config.finance.databaseId,
+          this.config.finance.paymentMethodsCollectionId,
+          ID.unique(),
+          data
+        );
+      },
+      'addPaymentMethod'
     );
   }
 
   async getPaymentMethod(paymentMethodId: string): Promise<PaymentMethod | null> {
-    return this.appwrite.getDocument<PaymentMethod>(
-      this.databaseId,
-      this.paymentMethodsCollectionId,
-      paymentMethodId
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.getDocument<PaymentMethod>(
+          this.config.finance.databaseId,
+          this.config.finance.paymentMethodsCollectionId,
+          paymentMethodId
+        );
+      },
+      'getPaymentMethod'
+    );
+  }
+
+  async listUserPaymentMethods(userId: string): Promise<PaymentMethod[]> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<PaymentMethod>(
+          this.config.finance.databaseId,
+          this.config.finance.paymentMethodsCollectionId,
+          [Query.equal('userId', userId)]
+        );
+      },
+      'listUserPaymentMethods'
     );
   }
 
   async updatePaymentMethod(paymentMethodId: string, data: Partial<PaymentMethod>): Promise<PaymentMethod> {
-    return this.appwrite.updateDocument<PaymentMethod>(
-      this.databaseId,
-      this.paymentMethodsCollectionId,
-      paymentMethodId,
-      data
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.updateDocument<PaymentMethod>(
+          this.config.finance.databaseId,
+          this.config.finance.paymentMethodsCollectionId,
+          paymentMethodId,
+          data
+        );
+      },
+      'updatePaymentMethod'
     );
   }
 
   async deletePaymentMethod(paymentMethodId: string): Promise<void> {
-    return this.appwrite.deleteDocument(
-      this.databaseId,
-      this.paymentMethodsCollectionId,
-      paymentMethodId
+    return this.handleRequest(
+      async () => {
+        await this.appwrite.deleteDocument(
+          this.config.finance.databaseId,
+          this.config.finance.paymentMethodsCollectionId,
+          paymentMethodId
+        );
+      },
+      'deletePaymentMethod'
     );
   }
 
-  async listPaymentMethods(queries: string[] = []): Promise<PaymentMethod[]> {
-    return this.appwrite.listDocuments<PaymentMethod>(
-      this.databaseId,
-      this.paymentMethodsCollectionId,
-      queries
+  // Platform Transactions
+  async createTransaction(data: Omit<PlatformTransaction, '$id' | '$createdAt' | '$updatedAt'>): Promise<PlatformTransaction> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<PlatformTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.transactionsCollectionId,
+          ID.unique(),
+          data
+        );
+      },
+      'createTransaction'
     );
   }
 
-  async getPaymentMethodsByProfile(profileId: string): Promise<PaymentMethod[]> {
-    return this.listPaymentMethods([Query.equal('profileId', profileId)]);
+  async getTransaction(transactionId: string): Promise<PlatformTransaction | null> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.getDocument<PlatformTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.transactionsCollectionId,
+          transactionId
+        );
+      },
+      'getTransaction'
+    );
   }
 
-  async setPaymentMethodAsDefault(paymentMethodId: string): Promise<void> {
-    const paymentMethod = await this.getPaymentMethod(paymentMethodId);
-    if (!paymentMethod) throw new Error('Payment method not found');
-    
-    // First, unset the default flag on all payment methods for this profile
-    const paymentMethods = await this.getPaymentMethodsByProfile(paymentMethod.profileId);
-    for (const pm of paymentMethods) {
-      if (pm.isDefault && pm.$id !== paymentMethodId) {
-        await this.updatePaymentMethod(pm.$id, { isDefault: false });
-      }
-    }
-    
-    // Then set this payment method as default
-    await this.updatePaymentMethod(paymentMethodId, { isDefault: true });
+  async listUserTransactions(userId: string, limit: number = 20): Promise<PlatformTransaction[]> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<PlatformTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.transactionsCollectionId,
+          [
+            Query.equal('userId', userId),
+            Query.orderDesc('$createdAt'),
+            Query.limit(limit)
+          ]
+        );
+      },
+      'listUserTransactions'
+    );
+  }
+
+  async updateTransactionStatus(transactionId: string, status: string, processorResponse?: any): Promise<PlatformTransaction> {
+    return this.handleRequest(
+      async () => {
+        const updateData: Partial<PlatformTransaction> = { 
+          status,
+          completedAt: ['completed', 'success', 'succeeded'].includes(status) ? new Date().toISOString() : undefined,
+          failedAt: ['failed', 'error', 'rejected'].includes(status) ? new Date().toISOString() : undefined,
+        };
+        
+        if (processorResponse) {
+          updateData.processorResponse = processorResponse;
+        }
+        
+        return await this.appwrite.updateDocument<PlatformTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.transactionsCollectionId,
+          transactionId,
+          updateData
+        );
+      },
+      'updateTransactionStatus'
+    );
   }
 
   // Escrow Transactions
   async createEscrowTransaction(data: Omit<EscrowTransaction, '$id' | '$createdAt' | '$updatedAt'>): Promise<EscrowTransaction> {
-    return this.appwrite.createDocument<EscrowTransaction>(
-      this.databaseId,
-      this.escrowTransactionsCollectionId,
-      ID.unique(),
-      {
-        ...data,
-        status: 'pending'
-      }
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<EscrowTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.escrowTransactionsCollectionId,
+          ID.unique(),
+          data
+        );
+      },
+      'createEscrowTransaction'
     );
   }
 
-  async getEscrowTransaction(escrowTransactionId: string): Promise<EscrowTransaction | null> {
-    return this.appwrite.getDocument<EscrowTransaction>(
-      this.databaseId,
-      this.escrowTransactionsCollectionId,
-      escrowTransactionId
-    );
-  }
-
-  async updateEscrowTransaction(escrowTransactionId: string, data: Partial<EscrowTransaction>): Promise<EscrowTransaction> {
-    return this.appwrite.updateDocument<EscrowTransaction>(
-      this.databaseId,
-      this.escrowTransactionsCollectionId,
-      escrowTransactionId,
-      data
+  async getEscrowTransaction(escrowId: string): Promise<EscrowTransaction | null> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.getDocument<EscrowTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.escrowTransactionsCollectionId,
+          escrowId
+        );
+      },
+      'getEscrowTransaction'
     );
   }
 
   async listEscrowTransactions(queries: string[] = []): Promise<EscrowTransaction[]> {
-    return this.appwrite.listDocuments<EscrowTransaction>(
-      this.databaseId,
-      this.escrowTransactionsCollectionId,
-      queries
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.listDocuments<EscrowTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.escrowTransactionsCollectionId,
+          queries
+        );
+      },
+      'listEscrowTransactions'
     );
   }
 
-  async getEscrowTransactionsByContract(contractId: string): Promise<EscrowTransaction[]> {
-    return this.listEscrowTransactions([Query.equal('contractId', contractId)]);
+  async updateEscrowStatus(escrowId: string, status: string, releasedToWalletId?: string): Promise<EscrowTransaction> {
+    return this.handleRequest(
+      async () => {
+        const updateData: Partial<EscrowTransaction> = { 
+          status,
+          releasedAt: status === 'released' ? new Date().toISOString() : undefined,
+        };
+        
+        if (releasedToWalletId && status === 'released') {
+          updateData.releasedToWalletId = releasedToWalletId;
+        }
+        
+        return await this.appwrite.updateDocument<EscrowTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.escrowTransactionsCollectionId,
+          escrowId,
+          updateData
+        );
+      },
+      'updateEscrowStatus'
+    );
+  }
+
+  // Financial Operations
+  async depositToWallet(walletId: string, amount: number, method: string, description?: string): Promise<PlatformTransaction> {
+    return this.handleRequest(
+      async () => {
+        // First, get the current wallet
+        const wallet = await this.getWallet(walletId);
+        
+        if (!wallet) {
+          throw new Error(`Wallet with ID ${walletId} not found`);
+        }
+        
+        // Create the transaction record
+        const transaction = await this.createTransaction({
+          userId: wallet.userId,
+          walletId: wallet.$id,
+          type: 'deposit',
+          method,
+          amount,
+          currency: wallet.currency,
+          description: description || `Deposit to wallet via ${method}`,
+          status: 'pending'
+        });
+        
+        // In a real implementation, you would process the deposit with a payment provider here
+        // For now, we'll simulate success
+        const updatedTransaction = await this.updateTransactionStatus(
+          transaction.$id, 
+          'completed'
+        );
+        
+        // Update wallet balance
+        await this.updateWalletBalance(
+          walletId, 
+          wallet.balance + amount
+        );
+        
+        return updatedTransaction;
+      },
+      'depositToWallet'
+    );
+  }
+
+  async withdrawFromWallet(walletId: string, amount: number, method: string, destination: string, description?: string): Promise<PlatformTransaction> {
+    return this.handleRequest(
+      async () => {
+        // First, get the current wallet
+        const wallet = await this.getWallet(walletId);
+        
+        if (!wallet) {
+          throw new Error(`Wallet with ID ${walletId} not found`);
+        }
+        
+        // Ensure sufficient balance
+        if (wallet.balance < amount) {
+          throw new Error(`Insufficient funds: available ${wallet.balance}, requested ${amount}`);
+        }
+        
+        // Create the transaction record
+        const transaction = await this.createTransaction({
+          userId: wallet.userId,
+          walletId: wallet.$id,
+          type: 'withdrawal',
+          method,
+          amount,
+          currency: wallet.currency,
+          description: description || `Withdrawal from wallet via ${method}`,
+          status: 'pending',
+          destination
+        });
+        
+        // In a real implementation, you would process the withdrawal with a payment provider here
+        // For now, we'll simulate success
+        const updatedTransaction = await this.updateTransactionStatus(
+          transaction.$id, 
+          'completed'
+        );
+        
+        // Update wallet balance
+        await this.updateWalletBalance(
+          walletId, 
+          wallet.balance - amount
+        );
+        
+        return updatedTransaction;
+      },
+      'withdrawFromWallet'
+    );
+  }
+
+  async createEscrow(
+    fromWalletId: string, 
+    amount: number, 
+    purpose: string, 
+    relatedId: string, 
+    relatedType: string
+  ): Promise<EscrowTransaction> {
+    return this.handleRequest(
+      async () => {
+        // Get the source wallet
+        const wallet = await this.getWallet(fromWalletId);
+        
+        if (!wallet) {
+          throw new Error(`Wallet with ID ${fromWalletId} not found`);
+        }
+        
+        // Ensure sufficient balance
+        if (wallet.balance < amount) {
+          throw new Error(`Insufficient funds: available ${wallet.balance}, requested ${amount}`);
+        }
+        
+        // Create transaction to move funds to escrow
+        const transaction = await this.createTransaction({
+          userId: wallet.userId,
+          walletId: wallet.$id,
+          type: 'escrow_funding',
+          method: 'platform_wallet',
+          amount,
+          currency: wallet.currency,
+          description: `Funds moved to escrow for ${purpose}`,
+          status: 'pending',
+          relatedId,
+          relatedType
+        });
+        
+        // Create escrow record
+        const escrow = await this.createEscrowTransaction({
+          sourceWalletId: wallet.$id,
+          sourceUserId: wallet.userId,
+          amount,
+          currency: wallet.currency,
+          purpose,
+          status: 'pending',
+          relatedId,
+          relatedType
+        });
+        
+        // Update transaction with escrow ID
+        await this.appwrite.updateDocument<PlatformTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.transactionsCollectionId,
+          transaction.$id,
+          { escrowId: escrow.$id }
+        );
+        
+        // Update escrow with transaction ID
+        await this.appwrite.updateDocument<EscrowTransaction>(
+          this.config.finance.databaseId,
+          this.config.finance.escrowTransactionsCollectionId,
+          escrow.$id,
+          { transactionId: transaction.$id }
+        );
+        
+        // Complete the transaction (in real impl this would be after confirmation)
+        await this.updateTransactionStatus(transaction.$id, 'completed');
+        
+        // Update the escrow status
+        await this.updateEscrowStatus(escrow.$id, 'funded');
+        
+        // Update wallet balance
+        await this.updateWalletBalance(fromWalletId, wallet.balance - amount);
+        
+        // Return the updated escrow
+        return await this.getEscrowTransaction(escrow.$id) as EscrowTransaction;
+      },
+      'createEscrow'
+    );
+  }
+
+  async releaseEscrow(escrowId: string, toWalletId: string): Promise<EscrowTransaction> {
+    return this.handleRequest(
+      async () => {
+        // Get the escrow record
+        const escrow = await this.getEscrowTransaction(escrowId);
+        
+        if (!escrow) {
+          throw new Error(`Escrow with ID ${escrowId} not found`);
+        }
+        
+        if (escrow.status !== 'funded') {
+          throw new Error(`Escrow must be in 'funded' status to release, current status: ${escrow.status}`);
+        }
+        
+        // Get the destination wallet
+        const toWallet = await this.getWallet(toWalletId);
+        
+        if (!toWallet) {
+          throw new Error(`Destination wallet with ID ${toWalletId} not found`);
+        }
+        
+        // Create transaction for escrow release
+        const transaction = await this.createTransaction({
+          userId: toWallet.userId,
+          walletId: toWallet.$id,
+          type: 'escrow_release',
+          method: 'platform_wallet',
+          amount: escrow.amount,
+          currency: escrow.currency,
+          description: `Funds released from escrow: ${escrow.purpose}`,
+          status: 'pending',
+          relatedId: escrow.relatedId,
+          relatedType: escrow.relatedType,
+          escrowId: escrow.$id
+        });
+        
+        // Complete the transaction
+        await this.updateTransactionStatus(transaction.$id, 'completed');
+        
+        // Update the escrow record
+        await this.updateEscrowStatus(escrowId, 'released', toWalletId);
+        
+        // Update destination wallet balance
+        await this.updateWalletBalance(toWalletId, toWallet.balance + escrow.amount);
+        
+        // Return the updated escrow
+        return await this.getEscrowTransaction(escrowId) as EscrowTransaction;
+      },
+      'releaseEscrow'
+    );
+  }
+
+  async formatCurrency(amount: number, currency: string = 'USD'): Promise<string> {
+    try {
+      // Use Intl.NumberFormat for consistent currency formatting
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amount);
+    } catch (error) {
+      console.error('Error formatting currency:', error);
+      // Fallback to basic formatting if Intl is not available
+      return `${currency} ${amount.toFixed(2)}`;
+    }
   }
 }
 
