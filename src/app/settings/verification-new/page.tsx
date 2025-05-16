@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, ChangeEvent } from "react";
-import { useAuth } from "@/contexts/AuthContext-new";
+import { useAuth } from "@/contexts/AuthContext";
 import useProfile from "@/hooks/useProfile";
 import { VerificationType } from "@/types";
 

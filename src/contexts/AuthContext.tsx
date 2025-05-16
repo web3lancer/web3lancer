@@ -5,34 +5,7 @@ import { useRouter } from "next/navigation";
 import { account, validateSession, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
 import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
 import { Models, Storage, ID, Avatars, Account } from 'appwrite';
-import { client }   const contextValue: AuthContextType = {
-    user,
-    isLoading,
-    isAnonymous,
-    profilePicture,
-    userProfile,
-    profilePictureIsLoading,
-    setUser, 
-    setIsAnonymous,
-    setProfilePicture,
-    setUserProfile,
-    refreshUser,
-    refreshUserProfile,
-    signOut: handleSignOut,
-    initiateGitHubLogin,
-    initiateGoogleLogin,
-    ensureSession,
-    convertSession,
-    updatePassword,
-    uploadImage,
-    login,
-    register,
-    sendMagicLink,
-    verifyMagicLink,
-    sendVerificationEmail,
-    forgotPassword,
-    resetPassword
-  };e";
+import { client } from '@/app/appwrite';
 import { useToast } from "@/components/ui/use-toast";
 import { APP_URL, PROFILE_AVATARS_BUCKET_ID, LEGACY_PROFILE_PICTURES_BUCKET_ID } from "@/lib/env";
 import profileService from "@/services/profileService";
@@ -97,7 +70,7 @@ interface AuthContextType {
   ensureSession: () => Promise<Models.User<Models.Preferences> | null>;
   convertSession: (email: string, password: string, name?: string) => Promise<Models.User<Models.Preferences>>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
-  // New methods from AuthContext-new
+  // New methods from AuthContext
   uploadImage?: (file: File) => Promise<void>;
   login?: (email: string, password: string) => Promise<void>;
   register?: (email: string, password: string, name: string, username: string, profileType?: string) => Promise<void>;
@@ -127,6 +100,15 @@ const AuthContext = createContext<AuthContextType>({
   ensureSession: async () => null,
   convertSession: async () => { throw new Error('convertSession not implemented in default context'); },
   updatePassword: async () => false,
+  // New methods from AuthContext
+  uploadImage: async () => {},
+  login: async () => {},
+  register: async () => {},
+  sendMagicLink: async () => {},
+  verifyMagicLink: async () => {},
+  sendVerificationEmail: async () => {},
+  forgotPassword: async () => {},
+  resetPassword: async () => {},
 });
 
 // Provider component that wraps the app
@@ -333,7 +315,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) {
       toast({
         title: "Error",
-        description: "Must be logged in to upload image!",
+        description: "You must be logged in to upload an image",
         variant: "destructive",
       });
       return;
@@ -342,95 +324,95 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setProfilePictureIsLoading(true);
     
     try {
-      // If we have a profile, update the avatar
-      if (userProfile) {
-        try {
-          // Delete any existing profile picture first
-          const files = await storage.listFiles(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID);
-          if (files.total > 0) {
-            const pictures = files.files.filter(
-              (file) => file.name.split(".")[0] === user.$id
-            );
-            if (pictures.length > 0) {
-              await storage.deleteFile(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID, pictures[0].$id);
-            }
+      // For profile service integration
+      if (userProfile && userProfile.$id) {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        // Call the profile service to upload avatar
+        const updatedProfile = await fetch(`/api/profile/avatar/${userProfile.$id}`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!updatedProfile.ok) {
+          throw new Error('Failed to upload profile picture');
+        }
+        
+        // Refresh the user profile to get the updated avatar
+        await refreshUserProfile();
+        
+        toast({
+          title: "Success",
+          description: "Profile picture updated successfully",
+        });
+      } else {
+        // Legacy storage upload
+        if (PROFILE_AVATARS_BUCKET_ID) {
+          // Check if user already has a picture and delete it
+          const { files } = await storage.listFiles(PROFILE_AVATARS_BUCKET_ID);
+          const pictures = files.filter(f => f.name === `profile-${user.$id}`);
+          
+          if (pictures.length > 0) {
+            await storage.deleteFile(PROFILE_AVATARS_BUCKET_ID, pictures[0].$id);
           }
           
-          // Upload new file
-          const filenameParts = file.name.split(".");
-          const fileExt = filenameParts[filenameParts.length - 1];
-          const filename = `${user.$id}.${fileExt}`;
-
-          // Make the file name the same as the user ID
-          const newFile = new File([file], filename, {
-            type: file.type,
-          });
-
+          // Upload the new picture
           const response = await storage.createFile(
-            PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID,
-            ID.unique(),
-            newFile
+            PROFILE_AVATARS_BUCKET_ID,
+            'unique()',
+            file,
+            [`user:${user.$id}`]
           );
           
-          // Update profile with new avatarFileId if possible
-          if (userProfile.$id && profileService.updateProfile) {
-            try {
-              const updatedProfile = await profileService.updateProfile(userProfile.$id, {
-                ...userProfile,
-                avatarFileId: response.$id
-              });
-              setUserProfile(updatedProfile as UserProfile);
-            } catch (e) {
-              console.error('Error updating profile with avatar ID:', e);
-            }
-          }
+          // Get the file view URL
+          const previewURL = storage.getFileView(PROFILE_AVATARS_BUCKET_ID, response.$id);
           
-          // Set profile picture URL
-          const previewURL = storage.getFileView(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID, response.$id);
-          setProfilePicture(previewURL.href);
+          // Update profile picture state
+          setProfilePicture(previewURL);
           
           toast({
             title: "Success",
-            description: "Profile picture updated!",
-            variant: "default",
+            description: "Profile picture updated successfully",
           });
-        } catch (error) {
-          console.error('Error updating profile avatar:', error);
-          toast({
-            title: "Error",
-            description: "Error uploading profile picture!",
-            variant: "destructive",
-          });
+        } else {
+          throw new Error('Storage bucket not configured');
         }
       }
     } catch (error) {
-      console.error('Error in uploadImage:', error);
+      console.error("Error uploading profile picture:", error);
       toast({
         title: "Error",
-        description: "Error uploading profile picture!",
+        description: "Failed to upload profile picture",
         variant: "destructive",
       });
     } finally {
       setProfilePictureIsLoading(false);
     }
-  }, [user, userProfile, storage, toast]);
+  }, [user, userProfile, storage, toast, refreshUserProfile]);
   
   // Email and password login
   const login = useCallback(async (email: string, password: string) => {
     try {
-      await account.createEmailSession(email, password);
+      // Create email session
+      const account = new Account(client);
+      await account.createSession(email, password);
+      
+      // Refresh user data
       await refreshUser();
-      router.push("/home");
+      
       toast({
         title: "Success",
-        description: "Logged in successfully!",
-        variant: "default",
+        description: "Logged in successfully",
       });
+      
+      // Navigate to dashboard
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Error in login:', error);
+      console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "Error logging in!",
+        description: error instanceof Error ? error.message : "Failed to login",
         variant: "destructive",
       });
     }
@@ -445,100 +427,142 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     profileType: string = 'individual'
   ) => {
     try {
-      const newUser = await account.create(ID.unique(), email, password, name);
-      await login(email, password);
+      // Create user account
+      const account = new Account(client);
+      await account.create('unique()', email, password, name);
+      
+      // Log in the user
+      await account.createSession(email, password);
+      
+      // Refresh user data
+      const userData = await refreshUser();
+      
+      if (userData && userData.$id) {
+        // Create user profile
+        try {
+          await fetch('/api/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              username,
+              profileType,
+              displayName: name,
+            }),
+          });
+        } catch (profileError) {
+          console.error("Error creating profile:", profileError);
+        }
+      }
+      
       toast({
         title: "Success",
-        description: "Registered successfully!",
-        variant: "default",
+        description: "Account created successfully",
       });
+      
+      // Navigate to dashboard
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Error in register:', error);
+      console.error("Registration error:", error);
       toast({
         title: "Error",
-        description: "Error registering!",
+        description: error instanceof Error ? error.message : "Failed to create account",
         variant: "destructive",
       });
     }
-  }, [login, toast]);
+  }, [refreshUser, router, toast]);
 
-  // Magic link authentication - using appwrite API methods correctly
+  // Magic link authentication
   const sendMagicLink = useCallback(async (email: string) => {
     try {
-      // For Appwrite versions that don't have createMagicURLSession, we need to use a workaround
-      // This might require the equivalent REST API call or a custom function
-      // For now, we'll use the regular email login if available
+      const account = new Account(client);
+      await account.createMagicURLSession('unique()', email, `${window.location.origin}/verify-magic-link`);
+      
       toast({
-        title: "Info",
-        description: "Magic link authentication not available in this version. Please use email/password login.",
-        variant: "default",
+        title: "Success",
+        description: "Magic link sent to your email",
       });
     } catch (error) {
-      console.error('Error in sendMagicLink:', error);
+      console.error("Magic link error:", error);
       toast({
         title: "Error",
-        description: "Error with authentication!",
+        description: error instanceof Error ? error.message : "Failed to send magic link",
         variant: "destructive",
       });
     }
   }, [toast]);
 
+  // Verify magic link
   const verifyMagicLink = useCallback(async (userId: string, secret: string) => {
     try {
-      // This method might need to be adjusted based on your Appwrite SDK version
-      // For older versions, this might not be available
+      const account = new Account(client);
+      await account.updateMagicURLSession(userId, secret);
+      
+      // Refresh user data
+      await refreshUser();
+      
       toast({
-        title: "Info",
-        description: "Magic link verification not available in this version. Please use email/password login.",
-        variant: "default",
+        title: "Success",
+        description: "Authentication successful",
       });
-      router.push("/signin");
+      
+      // Navigate to dashboard
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Error in verifyMagicLink:', error);
+      console.error("Magic link verification error:", error);
       toast({
         title: "Error",
-        description: "Error verifying authentication!",
+        description: error instanceof Error ? error.message : "Failed to verify magic link",
         variant: "destructive",
       });
+      
+      // Navigate to login page
+      router.push('/signin');
     }
-  }, [router, toast]);
+  }, [refreshUser, router, toast]);
 
+  // Send verification email
   const sendVerificationEmail = useCallback(async () => {
     try {
-      await account.createVerification(`${APP_URL}/verify-email`);
+      const account = new Account(client);
+      await account.createVerification(`${window.location.origin}/verify-email`);
+      
       toast({
         title: "Success",
-        description: "Verification email sent! Please check your email.",
-        variant: "default",
+        description: "Verification email sent",
       });
     } catch (error) {
-      console.error('Error in sendVerificationEmail:', error);
+      console.error("Verification email error:", error);
       toast({
         title: "Error",
-        description: "Error sending verification email!",
+        description: error instanceof Error ? error.message : "Failed to send verification email",
         variant: "destructive",
       });
     }
   }, [toast]);
 
+  // Forgot password
   const forgotPassword = useCallback(async (email: string) => {
     try {
-      await account.createRecovery(email, `${APP_URL}/reset-password`);
+      const account = new Account(client);
+      await account.createRecovery(email, `${window.location.origin}/reset-password`);
+      
       toast({
         title: "Success",
-        description: "Password reset email sent! Please check your email.",
-        variant: "default",
+        description: "Password reset link sent to your email",
       });
     } catch (error) {
-      console.error('Error in forgotPassword:', error);
+      console.error("Password recovery error:", error);
       toast({
         title: "Error",
-        description: "Error sending password reset email!",
+        description: error instanceof Error ? error.message : "Failed to send recovery email",
         variant: "destructive",
       });
     }
   }, [toast]);
 
+  // Reset password
   const resetPassword = useCallback(async (
     userId: string,
     secret: string,
@@ -548,25 +572,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (password !== passwordAgain) {
       toast({
         title: "Error",
-        description: "Passwords do not match!",
+        description: "Passwords do not match",
         variant: "destructive",
       });
       return;
     }
+    
     try {
-      // Check Appwrite SDK docs for the correct parameter order
-      await account.updateRecovery(userId, secret, password);
+      const account = new Account(client);
+      await account.updateRecovery(userId, secret, password, passwordAgain);
+      
       toast({
         title: "Success",
-        description: "Password reset successfully!",
-        variant: "default",
+        description: "Password has been reset successfully",
       });
-      router.push("/signin");
+      
+      // Navigate to login page
+      router.push('/signin');
     } catch (error) {
-      console.error('Error in resetPassword:', error);
+      console.error("Password reset error:", error);
       toast({
         title: "Error",
-        description: "Error resetting password!",
+        description: error instanceof Error ? error.message : "Failed to reset password",
         variant: "destructive",
       });
     }

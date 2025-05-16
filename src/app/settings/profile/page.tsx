@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
-import { useAuth } from "@/contexts/AuthContext-new";
+import { useAuth } from "@/contexts/AuthContext";
 import useProfile from "@/hooks/useProfile";
 import { Profile, ProfileType, SocialLinks } from "@/types";
 import { Loader2 } from "lucide-react";
