@@ -2,6 +2,8 @@
  * Transaction utilities for Web3Lancer
  */
 
+import { FINANCE_DATABASE_ID, PLATFORM_TRANSACTIONS_COLLECTION_ID, USER_WALLETS_COLLECTION_ID } from '@/lib/env';
+
 /**
  * Parse ether value to wei (as a hex string)
  * @param value Ether value as a string or number
@@ -116,8 +118,8 @@ export async function recordTransaction(
     // First, create a general transaction record
     const transactionId = ID.unique();
     await databases.createDocument(
-      process.env.DATABASES_TRANSACTIONS, // '67b8866c00265d466063'
-      process.env.COLLECTIONS_TRANSACTIONS, // '67b8867b001643b2585a'
+      FINANCE_DATABASE_ID, // Platform transactions database
+      PLATFORM_TRANSACTIONS_COLLECTION_ID, // Platform transactions collection
       ID.unique(),
       {
         userId,
@@ -131,8 +133,8 @@ export async function recordTransaction(
     
     // Then create a detailed crypto transaction record
     await databases.createDocument(
-      process.env.DATABASES_WALLET, // '67e629540014107023a2'
-      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS, // '67e62b6f0003ed0e4ecc'
+      FINANCE_DATABASE_ID, // Wallets database
+      USER_WALLETS_COLLECTION_ID, // Crypto transactions collection
       ID.unique(),
       {
         cryptoTxId: ID.unique(),
@@ -167,8 +169,8 @@ async function getWalletIdForUser(userId: string): Promise<string> {
     
     // Check if user already has a wallet
     const wallets = await databases.listDocuments(
-      process.env.DATABASES_WALLET,
-      process.env.COLLECTIONS_WALLETS,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       [Query.equal('userId', userId)]
     );
     
