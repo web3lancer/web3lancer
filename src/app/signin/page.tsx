@@ -60,7 +60,7 @@ export default function SignInPage() {
       const response = await signIn(formData.email, formData.password);
       if (response) {
         await refreshUser();
-        router.push('/dashboard');
+        router.push('/home');
       } else {
         setError('Sign in failed. Please check your credentials.');
       }
@@ -527,7 +527,7 @@ export default function SignInPage() {
               {signinMethod === 'otp' && (
                 <Fade in={signinMethod === 'otp'}>
                   <Box>
-                    <EmailOTPForm redirectPath="/dashboard" />
+                    <EmailOTPForm redirectPath="/home" />
                   </Box>
                 </Fade>
               )}

@@ -59,7 +59,7 @@ export default function AuthCallbackPage() {
         if (refreshedUser && refreshedUser.email) {
           console.log(`AuthCallbackPage: User session with email obtained (Attempt ${attemptCount.current}). Navigating...`);
           setIsProcessing(false); // Stop local processing state
-          router.push('/dashboard'); // Navigate immediately
+          router.push('/home'); // Navigate immediately
           return; // Stop further attempts/timeouts in this effect
         } else if (refreshedUser) {
           // User found, but no email yet (might be anonymous or OAuth still processing)

@@ -34,7 +34,7 @@ export default function VerifyMagicLink() {
         
         // Redirect to dashboard after successful authentication
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push('/home');
         }, 3000);
       } catch (error) {
         console.error('Error verifying magic link:', error);

@@ -93,7 +93,7 @@ export function WalletOptions() {
   React.useEffect(() => {
     if (status === 'success') {
       setConnecting(null);
-      router.push('/dashboard');
+      router.push('/home');
     } else if (status === 'error') {
       // Also reset the connecting state on error
       setConnecting(null);

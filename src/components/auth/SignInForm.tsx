@@ -37,7 +37,7 @@ export default function SignInForm() {
     try {
       const response = await signIn(formData.email, formData.password);
       if (response) {
-        router.push('/dashboard');
+        router.push('/home');
       }
     } catch (error) {
       console.error('Error signing in:', error);
@@ -257,7 +257,7 @@ export default function SignInForm() {
         
         {/* Email OTP form */}
         {signinMethod === 'otp' && (
-          <EmailOTPForm isSignIn redirectPath="/dashboard" />
+          <EmailOTPForm isSignIn redirectPath="/home" />
         )}
         
         <Box sx={{ mt: 3, textAlign: 'center' }}>

@@ -97,7 +97,7 @@ export default function SignUpPage() {
       if (response) {
         console.log('Signup/Conversion successful, redirecting...');
         await refreshUser();
-        router.push('/dashboard');
+        router.push('/home');
       } else {
         setError('Signup failed. Please try again.');
       }
@@ -675,7 +675,7 @@ export default function SignUpPage() {
               {signupMethod === 'otp' && (
                 <Fade in={signupMethod === 'otp'}>
                   <Box>
-                    <EmailOTPForm redirectPath="/dashboard" />
+                    <EmailOTPForm redirectPath="/home" />
                   </Box>
                 </Fade>
               )}

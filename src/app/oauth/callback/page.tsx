@@ -38,7 +38,7 @@ export default function OAuthCallback() {
             // Still redirect to dashboard even if profile creation fails
           }
           
-          router.push('/dashboard');
+          router.push('/home');
           return;
         }
         
@@ -66,7 +66,7 @@ export default function OAuthCallback() {
             
             // Force a session refresh to ensure all state is updated correctly
             await refreshUser();
-            router.push('/dashboard');
+            router.push('/home');
           } else {
             setError("Failed to authenticate with GitHub. Please try again.");
             setTimeout(() => router.push('/signin'), 3000);
@@ -83,7 +83,7 @@ export default function OAuthCallback() {
             } catch (profileError) {
               console.error('Error creating profile during retry:', profileError);
             }
-            router.push('/dashboard');
+            router.push('/home');
             return;
           }
           

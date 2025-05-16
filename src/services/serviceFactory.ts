@@ -1,4 +1,4 @@
-import AppwriteService from './appwriteService';
+import { AppwriteService } from './appwriteService';
 import { defaultEnvConfig, EnvConfig } from '@/config/environment';
 import SystemService from './systemService';
 import NotificationService from './notificationService';

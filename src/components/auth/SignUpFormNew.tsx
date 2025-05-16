@@ -42,7 +42,7 @@ export default function SignUpFormNew() {
       setError("");
       // Pass username and profile type to register function
       await register(email, password, name, username, profileType);
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error) {
       console.error("Registration error:", error);
       setError("Failed to register. Please try again.");

@@ -36,7 +36,7 @@ export default function VerifyEmail() {
         
         // Redirect to dashboard after successful verification
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push('/home');
         }, 3000);
       } catch (error) {
         console.error('Error verifying email:', error);

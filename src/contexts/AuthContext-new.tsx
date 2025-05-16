@@ -274,7 +274,7 @@ export function AuthProvider({
     try {
       await account.createEmailSession(email, password);
       await refreshUser();
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error) {
       console.log(error);
       toast({
@@ -311,7 +311,7 @@ export function AuthProvider({
     try {
       account.createOAuth2Session(
         "google",
-        `${APP_URL}/dashboard`,
+        `${APP_URL}/home`,
         `${APP_URL}/login`
       );
     } catch (error) {
@@ -345,7 +345,7 @@ export function AuthProvider({
     try {
       await account.updateMagicURLSession(userId, secret);
       await refreshUser();
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error) {
       console.log(error);
       toast({
@@ -441,7 +441,7 @@ export function AuthProvider({
     try {
       await account.updateMFA(code);
       await refreshUser();
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error) {
       console.log(error);
       toast({

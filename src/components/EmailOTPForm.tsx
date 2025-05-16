@@ -22,7 +22,7 @@ interface EmailOTPFormProps {
   redirectPath?: string;
 }
 
-export default function EmailOTPForm({ redirectPath = '/dashboard' }: EmailOTPFormProps) {
+export default function EmailOTPForm({ redirectPath = '/home' }: EmailOTPFormProps) {
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [enableSecurityPhrase, setEnableSecurityPhrase] = useState(true);

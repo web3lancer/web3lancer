@@ -1,11 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppwriteService } from '@/services/appwriteService';
 import ServiceFactory from '@/services/serviceFactory';
 import ProfileService from '@/services/profileService';
 import { Models } from 'appwrite';
 import { UserProfile } from '@/types/profiles';
 import { useRouter } from 'next/router';
-import { EnvConfig, defaultEnvConfig } from '@/config/environment';
+import { defaultEnvConfig } from '@/config/environment';
 
 // Define the context shape
 interface AuthContextType {
@@ -105,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await appwriteService.createEmailSession(email, password);
       const currentUser = await appwriteService.getCurrentUser();
       await initializeUserAndProfile(currentUser);
-      router.push('/dashboard');
+      router.push('/home');
     } catch (error: any) {
       setError(error.message || 'Failed to login');
       console.error('Login error:', error);
