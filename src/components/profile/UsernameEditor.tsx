@@ -19,6 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import { checkUsernameAvailability, updateUserProfile } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import { APP_URL } from '@/lib/env';
 
 interface UsernameEditorProps {
   userId: string;
@@ -164,7 +165,7 @@ const UsernameEditor = ({ userId, currentUsername }: UsernameEditorProps) => {
           <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
             Choose a unique username. This will be used in your profile URL:
             <Box component="span" fontWeight="bold" sx={{ ml: 0.5 }}>
-              {window.location.origin}/{username || 'your-username'}
+              {(APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')) + '/' + (username || 'your-username')}
             </Box>
           </Typography>
           

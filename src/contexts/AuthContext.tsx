@@ -477,8 +477,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const sendMagicLink = useCallback(async (email: string) => {
     try {
       const account = new Account(client);
-      await account.createMagicURLSession('unique()', email, `${window.location.origin}/verify-magic-link`);
-      
+      const baseUrl = APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+      await account.createMagicURLSession('unique()', email, `${baseUrl}/verify-magic-link`);
       toast({
         title: "Success",
         description: "Magic link sent to your email",
@@ -526,7 +526,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const sendVerificationEmail = useCallback(async () => {
     try {
       const account = new Account(client);
-      await account.createVerification(`${window.location.origin}/verify-email`);
+      const baseUrl = APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+      await account.createVerification(`${baseUrl}/verify-email`);
       
       toast({
         title: "Success",
@@ -546,7 +547,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const forgotPassword = useCallback(async (email: string) => {
     try {
       const account = new Account(client);
-      await account.createRecovery(email, `${window.location.origin}/reset-password`);
+      const baseUrl = APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+      await account.createRecovery(email, `${baseUrl}/reset-password`);
       
       toast({
         title: "Success",

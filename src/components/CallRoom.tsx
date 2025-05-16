@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from 'socket.io-client';
 import Peer from 'simple-peer';
+import { APP_URL } from '@/lib/env';
 
 interface CallRoomProps {
   callId: string;
@@ -149,7 +150,7 @@ export default function CallRoom({ callId, mode }: CallRoomProps) {
         </div>
       </div>
       <div style={{ marginTop: 24 }}>
-        <p>Share this link to invite others: <b>{typeof window !== 'undefined' ? window.location.href : ''}</b></p>
+        <p>Share this link to invite others: <b>{APP_URL ? APP_URL + `/connect/spaces/${mode}/${callId}` : (typeof window !== 'undefined' ? window.location.origin + `/connect/spaces/${mode}/${callId}` : '')}</b></p>
       </div>
     </div>
   );
