@@ -1,59 +1,60 @@
 // filepath: /home/nathfavour/Documents/code/web3lancer/web3lancer/src/types/governance.ts
 
 /**
- * Represents a dispute filed for a contract.
- * Corresponds to the `contract_disputes` collection in `GovernanceDB`.
+ * Types for Disputes and Governance
  */
-export interface Dispute {
-  $id: string; // Appwrite document ID
-  $createdAt: string;
-  $updatedAt: string;
-  creatorId: string; // UserProfile.$id
-  respondentId: string; // UserProfile.$id
-  relatedId: string; // Can be contractId, proposalId, etc.
-  relatedType: 'contract' | 'proposal' | 'payment' | 'other';
-  title: string;
-  description: string;
-  evidence?: string[]; // Array of file IDs or URLs
-  status: 'open' | 'under_review' | 'resolved' | 'closed';
-  resolution?: string;
-  resolutionDate?: string;
-  assignedToId?: string; // Admin/moderator assigned to the case
-}
 
-/**
- * Represents a vote cast on a dispute or a platform proposal.
- * Corresponds to the `dispute_votes` (or `governance_votes`) collection in `GovernanceDB`.
- */
-export interface GovernanceVote {
+export interface Dispute {
   $id: string;
   $createdAt: string;
   $updatedAt: string;
-  proposalId: string; // GovernanceProposal.$id
-  voterId: string; // UserProfile.$id
-  vote: 'for' | 'against' | 'abstain';
-  comment?: string;
+  contractId: string;
+  creatorId: string;
+  respondentId: string;
+  reason: string;
+  description: string;
+  evidenceFileIds?: string[];
+  requestedResolution: string;
+  status: 'pending_review' | 'under_review' | 'open' | 'resolved' | 'closed';
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+  votingStartsAt?: string;
+  votingEndsAt?: string;
+  resolution?: string;
 }
 
-/**
- * Represents a proposal for changes to the platform itself.
- * Corresponds to the `platform_proposals` collection in `GovernanceDB`.
- */
-export interface GovernanceProposal {
-  $id: string; // Appwrite document ID
+export interface DisputeVote {
+  $id: string;
   $createdAt: string;
   $updatedAt: string;
-  authorId: string; // UserProfile.$id
+  disputeId: string;
+  voterId: string;
+  vote: 'for_creator' | 'for_respondent' | 'abstain';
+  reason?: string;
+  votedAt: string;
+}
+
+export interface Proposal {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  creatorId: string;
   title: string;
   description: string;
-  category: 'platform_policy' | 'fee_structure' | 'feature_request' | 'other';
-  status: 'draft' | 'active' | 'voting' | 'approved' | 'rejected' | 'implemented';
-  votingStartDate?: string;
-  votingEndDate?: string;
+  proposalType: 'feature' | 'policy' | 'improvement' | 'other';
+  details: any;
+  status: 'draft' | 'open' | 'voting' | 'approved' | 'rejected' | 'implemented';
+  createdAt: string;
+  updatedAt: string;
+  votingStartsAt?: string;
+  votingEndsAt?: string;
   votesFor: number;
   votesAgainst: number;
   votesAbstain: number;
-  implementationDate?: string;
+  outcome?: 'passed' | 'failed';
+  implementationDetails?: string;
+  implementedAt?: string;
 }
 
 // Notification related types

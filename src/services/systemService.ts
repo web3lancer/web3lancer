@@ -1,139 +1,283 @@
-import { AppwriteService } from './appwriteService';
-import { 
-  CORE_DATABASE_ID,
-  SYSTEM_SETTINGS_COLLECTION_ID,
-  SYSTEM_METRICS_COLLECTION_ID,
-  SYSTEM_AUDIT_LOGS_COLLECTION_ID
-} from '@/lib/env';
-import { SystemSetting, SystemMetric, SystemAuditLog } from '@/types/governance';
-import { ID, Query } from 'appwrite';
+import { AppwriteService, ID, Query } from '@/services/appwriteService';
+import { EnvService } from '@/services/envService';
+import { Skill, Category, PlatformSetting } from '@/types/system';
 
+/**
+ * System Service for managing platform settings, skills, and categories
+ * Follows best practices from Cross-Cutting Concerns section
+ */
 class SystemService {
   private databaseId: string;
+  private skillsCollectionId: string;
+  private categoriesCollectionId: string;
   private settingsCollectionId: string;
-  private metricsCollectionId: string;
-  private auditLogsCollectionId: string;
-
-  constructor(private appwrite: AppwriteService) {
-    this.databaseId = CORE_DATABASE_ID;
-    this.settingsCollectionId = SYSTEM_SETTINGS_COLLECTION_ID;
-    this.metricsCollectionId = SYSTEM_METRICS_COLLECTION_ID;
-    this.auditLogsCollectionId = SYSTEM_AUDIT_LOGS_COLLECTION_ID;
+  
+  constructor(
+    private appwrite: AppwriteService,
+    private env: EnvService<'core'>
+  ) {
+    this.databaseId = this.env.databaseId;
+    this.skillsCollectionId = this.env.get('collectionAppSkills');
+    this.categoriesCollectionId = this.env.get('collectionAppCategories');
+    this.settingsCollectionId = this.env.get('collectionPlatformSettings');
   }
 
-  // System Settings
-  async getSetting(key: string): Promise<SystemSetting | null> {
-    try {
-      const settings = await this.appwrite.listDocuments<SystemSetting>(
-        this.databaseId,
-        this.settingsCollectionId,
-        [Query.equal('key', key)]
-      );
-      
-      return settings.length > 0 ? settings[0] : null;
-    } catch (error) {
-      console.error('Error fetching setting:', error);
-      return null;
-    }
-  }
-
-  async getPublicSettings(): Promise<SystemSetting[]> {
-    return this.appwrite.listDocuments<SystemSetting>(
+  // Skills
+  async createSkill(data: { name: string; description?: string; isActive?: boolean }): Promise<Skill> {
+    return this.appwrite.createDocument<Skill>(
       this.databaseId,
-      this.settingsCollectionId,
-      [Query.equal('isPublic', true)]
-    );
-  }
-
-  async updateSetting(key: string, value: string): Promise<SystemSetting | null> {
-    try {
-      const setting = await this.getSetting(key);
-      
-      if (!setting) return null;
-      
-      return this.appwrite.updateDocument<SystemSetting>(
-        this.databaseId,
-        this.settingsCollectionId,
-        setting.$id,
-        { value }
-      );
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      return null;
-    }
-  }
-
-  async createSetting(data: Omit<SystemSetting, '$id' | '$createdAt' | '$updatedAt'>): Promise<SystemSetting> {
-    return this.appwrite.createDocument<SystemSetting>(
-      this.databaseId,
-      this.settingsCollectionId,
-      ID.unique(),
-      data
-    );
-  }
-
-  // System Metrics
-  async recordMetric(metric: string, value: number, interval: SystemMetric['interval'] = 'daily'): Promise<SystemMetric> {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    return this.appwrite.createDocument<SystemMetric>(
-      this.databaseId,
-      this.metricsCollectionId,
+      this.skillsCollectionId,
       ID.unique(),
       {
-        metric,
-        value,
-        date: today,
-        interval
+        ...data,
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     );
   }
 
-  async getMetrics(metric: string, startDate?: string, endDate?: string, interval?: SystemMetric['interval']): Promise<SystemMetric[]> {
-    const queries: string[] = [Query.equal('metric', metric)];
-    
-    if (startDate) {
-      queries.push(Query.greaterThanEqual('date', startDate));
-    }
-    
-    if (endDate) {
-      queries.push(Query.lessThanEqual('date', endDate));
-    }
-    
-    if (interval) {
-      queries.push(Query.equal('interval', interval));
-    }
-    
-    queries.push(Query.orderAsc('date'));
-    
-    return this.appwrite.listDocuments<SystemMetric>(
+  async getSkill(skillId: string): Promise<Skill | null> {
+    return this.appwrite.getDocument<Skill>(
       this.databaseId,
-      this.metricsCollectionId,
+      this.skillsCollectionId,
+      skillId
+    );
+  }
+
+  async updateSkill(skillId: string, data: Partial<Skill>): Promise<Skill> {
+    return this.appwrite.updateDocument<Skill>(
+      this.databaseId,
+      this.skillsCollectionId,
+      skillId,
+      {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }
+    );
+  }
+
+  async deleteSkill(skillId: string): Promise<void> {
+    return this.appwrite.deleteDocument(
+      this.databaseId,
+      this.skillsCollectionId,
+      skillId
+    );
+  }
+
+  async listSkills(includeInactive = false): Promise<Skill[]> {
+    const queries = includeInactive ? [] : [Query.equal('isActive', true)];
+    return this.appwrite.listDocuments<Skill>(
+      this.databaseId,
+      this.skillsCollectionId,
       queries
     );
   }
 
-  // System Audit Logs
-  async createAuditLog(data: Omit<SystemAuditLog, '$id' | '$createdAt' | '$updatedAt'>): Promise<SystemAuditLog> {
-    return this.appwrite.createDocument<SystemAuditLog>(
+  async searchSkills(searchTerm: string, includeInactive = false): Promise<Skill[]> {
+    const queries = [Query.search('name', searchTerm)];
+    if (!includeInactive) {
+      queries.push(Query.equal('isActive', true));
+    }
+    
+    return this.appwrite.listDocuments<Skill>(
       this.databaseId,
-      this.auditLogsCollectionId,
-      ID.unique(),
-      data
+      this.skillsCollectionId,
+      queries
     );
   }
 
-  async listAuditLogs(queries: string[] = []): Promise<SystemAuditLog[]> {
-    const defaultQueries = [
-      ...queries,
-      Query.orderDesc('$createdAt')
-    ];
-    
-    return this.appwrite.listDocuments<SystemAuditLog>(
+  // Categories
+  async createCategory(data: {
+    name: string;
+    description?: string;
+    parentId?: string;
+    order?: number;
+    isActive?: boolean;
+  }): Promise<Category> {
+    return this.appwrite.createDocument<Category>(
       this.databaseId,
-      this.auditLogsCollectionId,
-      defaultQueries
+      this.categoriesCollectionId,
+      ID.unique(),
+      {
+        ...data,
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        order: data.order || 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     );
+  }
+
+  async getCategory(categoryId: string): Promise<Category | null> {
+    return this.appwrite.getDocument<Category>(
+      this.databaseId,
+      this.categoriesCollectionId,
+      categoryId
+    );
+  }
+
+  async updateCategory(categoryId: string, data: Partial<Category>): Promise<Category> {
+    return this.appwrite.updateDocument<Category>(
+      this.databaseId,
+      this.categoriesCollectionId,
+      categoryId,
+      {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }
+    );
+  }
+
+  async deleteCategory(categoryId: string): Promise<void> {
+    return this.appwrite.deleteDocument(
+      this.databaseId,
+      this.categoriesCollectionId,
+      categoryId
+    );
+  }
+
+  async listCategories(includeInactive = false): Promise<Category[]> {
+    const queries = includeInactive ? [] : [Query.equal('isActive', true)];
+    queries.push(Query.orderAsc('order'));
+    
+    return this.appwrite.listDocuments<Category>(
+      this.databaseId,
+      this.categoriesCollectionId,
+      queries
+    );
+  }
+
+  async getTopLevelCategories(includeInactive = false): Promise<Category[]> {
+    const queries = [Query.isNull('parentId')];
+    if (!includeInactive) {
+      queries.push(Query.equal('isActive', true));
+    }
+    queries.push(Query.orderAsc('order'));
+    
+    return this.appwrite.listDocuments<Category>(
+      this.databaseId,
+      this.categoriesCollectionId,
+      queries
+    );
+  }
+
+  async getSubcategories(parentId: string, includeInactive = false): Promise<Category[]> {
+    const queries = [Query.equal('parentId', parentId)];
+    if (!includeInactive) {
+      queries.push(Query.equal('isActive', true));
+    }
+    queries.push(Query.orderAsc('order'));
+    
+    return this.appwrite.listDocuments<Category>(
+      this.databaseId,
+      this.categoriesCollectionId,
+      queries
+    );
+  }
+
+  // Platform Settings
+  async getSetting(key: string): Promise<PlatformSetting | null> {
+    // We use key as the document ID for settings
+    try {
+      return await this.appwrite.getDocument<PlatformSetting>(
+        this.databaseId,
+        this.settingsCollectionId,
+        key
+      );
+    } catch (error) {
+      console.error(`Error getting setting ${key}:`, error);
+      return null;
+    }
+  }
+
+  async getSettingValue<T>(key: string, defaultValue: T): Promise<T> {
+    const setting = await this.getSetting(key);
+    return setting ? (setting.value as T) : defaultValue;
+  }
+
+  async updateSetting(key: string, value: any, description?: string): Promise<PlatformSetting> {
+    try {
+      // Try to get the setting first to see if it exists
+      const existing = await this.getSetting(key);
+      
+      if (existing) {
+        // Update existing setting
+        return this.appwrite.updateDocument<PlatformSetting>(
+          this.databaseId,
+          this.settingsCollectionId,
+          key,
+          {
+            value,
+            description: description || existing.description,
+            updatedAt: new Date().toISOString()
+          }
+        );
+      } else {
+        // Create new setting
+        return this.appwrite.createDocument<PlatformSetting>(
+          this.databaseId,
+          this.settingsCollectionId,
+          key, // Use key as the document ID
+          {
+            key,
+            value,
+            description: description || `Setting for ${key}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        );
+      }
+    } catch (error) {
+      console.error(`Error updating setting ${key}:`, error);
+      throw error;
+    }
+  }
+
+  async deleteSetting(key: string): Promise<void> {
+    return this.appwrite.deleteDocument(
+      this.databaseId,
+      this.settingsCollectionId,
+      key
+    );
+  }
+
+  async listSettings(): Promise<PlatformSetting[]> {
+    return this.appwrite.listDocuments<PlatformSetting>(
+      this.databaseId,
+      this.settingsCollectionId,
+      []
+    );
+  }
+
+  // Helper methods for common platform settings
+  async getCommissionRate(): Promise<number> {
+    return this.getSettingValue<number>('commission_rate', 0.05);
+  }
+
+  async getEscrowReleaseDelay(): Promise<number> {
+    return this.getSettingValue<number>('escrow_release_delay_hours', 24);
+  }
+
+  async getDisputeVotingPeriod(): Promise<number> {
+    return this.getSettingValue<number>('dispute_voting_period_days', 7);
+  }
+
+  async getProposalVotingThreshold(): Promise<number> {
+    return this.getSettingValue<number>('proposal_voting_threshold', 0.51);
+  }
+
+  async getMaintenanceMode(): Promise<boolean> {
+    return this.getSettingValue<boolean>('maintenance_mode', false);
+  }
+
+  async getMinimumWithdrawal(): Promise<Record<string, number>> {
+    return this.getSettingValue<Record<string, number>>('minimum_withdrawal', {
+      USD: 25,
+      EUR: 25,
+      ETH: 0.01,
+      BTC: 0.001
+    });
   }
 }
 
