@@ -1,353 +1,207 @@
-import { ID, Query } from "appwrite";
-import { databases, storage } from "@/app/api";
-import { Profile, VerificationRequest, VerificationType } from "@/types";
+import { AppwriteService, ID, Query } from './appwriteService';
+import { EnvService } from './envService';
 
-// Define collection and bucket IDs if they don't exist in env
-const VERIFICATION_REQUESTS_COLLECTION_ID = "verification_requests";
-const VERIFICATION_DOCUMENTS_BUCKET_ID = "verification_documents";
-
-// Import existing constants
-import {
-  PROFILES_DATABASE_ID,
-  USER_PROFILES_COLLECTION_ID,
-  PROFILE_AVATARS_BUCKET_ID,
-  COVER_IMAGES_BUCKET_ID
-} from "@/lib/env";
-
+/**
+ * Profile Service for managing user profiles
+ * Follows best practices from Cross-Cutting Concerns section
+ */
 class ProfileService {
-  // Create a new profile
-  async createProfile(profileData: Partial<Profile>): Promise<Profile | null> {
-    try {
-      const newProfile = await databases.createDocument(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
-        ID.unique(),
-        {
-          // Set default values for required fields
-          username: profileData.username || "user" + Math.random().toString(36).substring(2, 7),
-          displayName: profileData.displayName || profileData.username || "New User",
-          profileType: profileData.profileType || "individual",
-          roles: profileData.roles || ["freelancer"],
-          isVerified: false,
-          reputationScore: 0,
-          isActive: true,
-          socialLinks: profileData.socialLinks || {},
-          skills: profileData.skills || [],
-          // Include all other fields from profileData
-          ...profileData
-        }
-      );
-      return newProfile as unknown as Profile;
-    } catch (error) {
-      console.error("Error creating profile:", error);
-      return null;
-    }
+  private databaseId: string;
+  private profilesCollectionId: string;
+  private verificationsCollectionId: string;
+  private profileAvatarsBucketId: string;
+  private coverImagesBucketId: string;
+  private verificationDocumentsBucketId: string;
+
+  constructor(
+    private appwrite: AppwriteService,
+    private env: EnvService<'profiles'>
+  ) {
+    this.databaseId = this.env.databaseId;
+    this.profilesCollectionId = this.env.get('collectionUserProfiles');
+    this.verificationsCollectionId = this.env.get('collectionProfileVerifications');
+    this.profileAvatarsBucketId = this.env.get('bucketProfileAvatars');
+    this.coverImagesBucketId = this.env.get('bucketCoverImages');
+    this.verificationDocumentsBucketId = this.env.get('bucketVerificationDocumentsPrivate');
   }
 
-  // Get profile by ID
-  async getProfile(profileId: string): Promise<Profile | null> {
-    try {
-      const profile = await databases.getDocument(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
-        profileId
-      );
-      return profile as unknown as Profile;
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      return null;
-    }
-  }
-
-  // Get profile by userId
-  async getProfileByUserId(userId: string): Promise<Profile | null> {
-    try {
-      const profiles = await databases.listDocuments(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
-        [Query.equal("userId", userId)]
-      );
-
-      if (profiles.total > 0) {
-        return profiles.documents[0] as unknown as Profile;
+  /**
+   * Create a new user profile
+   * @param userId The Appwrite User ID
+   * @param data The profile data
+   * @returns The created profile
+   */
+  async createProfile(userId: string, data: any) {
+    return this.appwrite.createDocument(
+      this.databaseId,
+      this.profilesCollectionId,
+      ID.unique(),
+      {
+        userId,
+        ...data,
+        isVerified: false,
+        reputationScore: 0,
+        isActive: true
       }
-      return null;
-    } catch (error) {
-      console.error("Error fetching profile by userId:", error);
-      return null;
-    }
+    );
   }
 
-  // Get profile by username
-  async getProfileByUsername(username: string): Promise<Profile | null> {
-    try {
-      const profiles = await databases.listDocuments(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
-        [Query.equal("username", username)]
-      );
-
-      if (profiles.total > 0) {
-        return profiles.documents[0] as unknown as Profile;
-      }
-      return null;
-    } catch (error) {
-      console.error("Error fetching profile by username:", error);
-      return null;
-    }
+  /**
+   * Get a user profile by ID
+   * @param profileId The profile document ID
+   * @returns The profile or null if not found
+   */
+  async getProfile(profileId: string) {
+    return this.appwrite.getDocument(
+      this.databaseId,
+      this.profilesCollectionId,
+      profileId
+    );
   }
 
-  // Update profile
-  async updateProfile(profileId: string, profileData: Partial<Profile>): Promise<Profile | null> {
-    try {
-      const updatedProfile = await databases.updateDocument(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
+  /**
+   * Get a user profile by user ID
+   * @param userId The Appwrite User ID
+   * @returns The profile or null if not found
+   */
+  async getProfileByUserId(userId: string) {
+    const profiles = await this.appwrite.listDocuments(
+      this.databaseId,
+      this.profilesCollectionId,
+      [Query.equal('userId', userId)]
+    );
+
+    return profiles.length > 0 ? profiles[0] : null;
+  }
+
+  /**
+   * Update a user profile
+   * @param profileId The profile document ID
+   * @param data The profile data to update
+   * @returns The updated profile
+   */
+  async updateProfile(profileId: string, data: any) {
+    return this.appwrite.updateDocument(
+      this.databaseId,
+      this.profilesCollectionId,
+      profileId,
+      data
+    );
+  }
+
+  /**
+   * Delete a user profile
+   * @param profileId The profile document ID
+   */
+  async deleteProfile(profileId: string) {
+    return this.appwrite.deleteDocument(
+      this.databaseId,
+      this.profilesCollectionId,
+      profileId
+    );
+  }
+
+  /**
+   * List all user profiles
+   * @param queries Optional query parameters
+   * @returns Array of profiles
+   */
+  async listProfiles(queries: string[] = []) {
+    return this.appwrite.listDocuments(
+      this.databaseId,
+      this.profilesCollectionId,
+      queries
+    );
+  }
+
+  /**
+   * Upload a profile avatar
+   * @param file The avatar file
+   * @returns The file ID
+   */
+  async uploadAvatar(file: File) {
+    return this.appwrite.uploadFile(this.profileAvatarsBucketId, file);
+  }
+
+  /**
+   * Upload a profile cover image
+   * @param file The cover image file
+   * @returns The file ID
+   */
+  async uploadCoverImage(file: File) {
+    return this.appwrite.uploadFile(this.coverImagesBucketId, file);
+  }
+
+  /**
+   * Get the avatar preview URL
+   * @param fileId The avatar file ID
+   * @param width Optional width
+   * @param height Optional height
+   * @returns The avatar URL
+   */
+  async getAvatarPreview(fileId: string, width = 200, height = 200) {
+    return this.appwrite.getFilePreview(this.profileAvatarsBucketId, fileId, width, height);
+  }
+
+  /**
+   * Get the cover image preview URL
+   * @param fileId The cover image file ID
+   * @param width Optional width
+   * @param height Optional height
+   * @returns The cover image URL
+   */
+  async getCoverImagePreview(fileId: string, width = 800, height = 300) {
+    return this.appwrite.getFilePreview(this.coverImagesBucketId, fileId, width, height);
+  }
+
+  /**
+   * Submit a profile verification request
+   * @param profileId The profile ID
+   * @param type The verification type
+   * @param documents Array of verification document files
+   * @returns The created verification request
+   */
+  async submitVerificationRequest(profileId: string, type: string, documents: File[]) {
+    // Upload verification documents
+    const documentIds = [];
+    for (const document of documents) {
+      const fileId = await this.appwrite.uploadFile(this.verificationDocumentsBucketId, document);
+      documentIds.push(fileId);
+    }
+
+    // Create verification request
+    return this.appwrite.createDocument(
+      this.databaseId,
+      this.verificationsCollectionId,
+      ID.unique(),
+      {
         profileId,
-        profileData
-      );
-      return updatedProfile as unknown as Profile;
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      return null;
-    }
+        type,
+        documentIds,
+        status: 'pending',
+        submittedAt: new Date().toISOString()
+      }
+    );
   }
 
-  // Update profile avatar
-  async updateProfileAvatar(profileId: string, avatarFile: File): Promise<{ profile: Profile | null, fileId: string | null }> {
-    try {
-      // First get the profile
-      const profile = await this.getProfile(profileId);
-      if (!profile) {
-        throw new Error(`Profile with ID ${profileId} not found`);
-      }
+  /**
+   * Get a user's verification status
+   * @param profileId The profile ID
+   * @returns The verification status or null if not found
+   */
+  async getVerificationStatus(profileId: string) {
+    const verifications = await this.appwrite.listDocuments(
+      this.databaseId,
+      this.verificationsCollectionId,
+      [
+        Query.equal('profileId', profileId),
+        Query.orderDesc('$createdAt'),
+        Query.limit(1)
+      ]
+    );
 
-      // Delete old avatar if exists
-      if (profile.avatarFileId) {
-        try {
-          await storage.deleteFile(PROFILE_AVATARS_BUCKET_ID, profile.avatarFileId);
-        } catch (error) {
-          console.error("Error deleting old avatar:", error);
-        }
-      }
-
-      // Upload new avatar
-      const uploadedFile = await storage.createFile(
-        PROFILE_AVATARS_BUCKET_ID,
-        ID.unique(),
-        avatarFile
-      );
-
-      // Update profile with new avatar file ID
-      const updatedProfile = await this.updateProfile(profileId, {
-        avatarFileId: uploadedFile.$id
-      });
-
-      return {
-        profile: updatedProfile,
-        fileId: uploadedFile.$id
-      };
-    } catch (error) {
-      console.error("Error updating profile avatar:", error);
-      return { profile: null, fileId: null };
-    }
-  }
-
-  // Update profile cover image
-  async updateProfileCover(profileId: string, coverFile: File): Promise<{ profile: Profile | null, fileId: string | null }> {
-    try {
-      // First get the profile
-      const profile = await this.getProfile(profileId);
-      if (!profile) {
-        throw new Error(`Profile with ID ${profileId} not found`);
-      }
-
-      // Delete old cover if exists
-      if (profile.coverImageFileId) {
-        try {
-          await storage.deleteFile(COVER_IMAGES_BUCKET_ID, profile.coverImageFileId);
-        } catch (error) {
-          console.error("Error deleting old cover image:", error);
-        }
-      }
-
-      // Upload new cover
-      const uploadedFile = await storage.createFile(
-        COVER_IMAGES_BUCKET_ID,
-        ID.unique(),
-        coverFile
-      );
-
-      // Update profile with new cover file ID
-      const updatedProfile = await this.updateProfile(profileId, {
-        coverImageFileId: uploadedFile.$id
-      });
-
-      return {
-        profile: updatedProfile,
-        fileId: uploadedFile.$id
-      };
-    } catch (error) {
-      console.error("Error updating profile cover:", error);
-      return { profile: null, fileId: null };
-    }
-  }
-
-  // Get avatar URL
-  getProfileAvatarUrl(fileId: string): string {
-    return storage.getFileView(PROFILE_AVATARS_BUCKET_ID, fileId);
-  }
-
-  // Get cover image URL
-  getProfileCoverUrl(fileId: string): string {
-    return storage.getFileView(COVER_IMAGES_BUCKET_ID, fileId);
-  }
-
-  // Submit verification request
-  async submitVerification(
-    profileId: string, 
-    userId: string,
-    verificationType: VerificationType, 
-    documents: File[]
-  ): Promise<{ request: VerificationRequest | null, documentIds: string[] }> {
-    try {
-      // Upload all documents
-      const documentIds: string[] = [];
-      for (const doc of documents) {
-        const uploadedFile = await storage.createFile(
-          VERIFICATION_DOCUMENTS_BUCKET_ID,
-          ID.unique(),
-          doc
-        );
-        documentIds.push(uploadedFile.$id);
-      }
-
-      // Create verification request
-      const verificationRequest = await databases.createDocument(
-        PROFILES_DATABASE_ID,
-        VERIFICATION_REQUESTS_COLLECTION_ID,
-        ID.unique(),
-        {
-          profileId,
-          userId,
-          verificationType,
-          status: "pending",
-          documentIds,
-          // Add any additional metadata needed
-        }
-      );
-
-      return {
-        request: verificationRequest as unknown as VerificationRequest,
-        documentIds
-      };
-    } catch (error) {
-      console.error("Error submitting verification:", error);
-      return { request: null, documentIds: [] };
-    }
-  }
-
-  // Get verification requests for a profile
-  async getVerificationRequests(profileId: string): Promise<VerificationRequest[]> {
-    try {
-      const requests = await databases.listDocuments(
-        PROFILES_DATABASE_ID,
-        VERIFICATION_REQUESTS_COLLECTION_ID,
-        [Query.equal("profileId", profileId)]
-      );
-
-      return requests.documents as unknown as VerificationRequest[];
-    } catch (error) {
-      console.error("Error fetching verification requests:", error);
-      return [];
-    }
-  }
-
-  // Search profiles
-  async searchProfiles(searchTerm: string, limit: number = 10): Promise<Profile[]> {
-    try {
-      // Search by username, displayName, skills, etc.
-      const profiles = await databases.listDocuments(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
-        [
-          Query.search("displayName", searchTerm),
-          Query.limit(limit)
-        ]
-      );
-
-      return profiles.documents as unknown as Profile[];
-    } catch (error) {
-      console.error("Error searching profiles:", error);
-      return [];
-    }
-  }
-
-  // List profiles with filtering options
-  async listProfiles({
-    page = 1,
-    limit = 10,
-    profileType,
-    roles,
-    isVerified,
-    skills
-  }: {
-    page?: number;
-    limit?: number;
-    profileType?: string;
-    roles?: string[];
-    isVerified?: boolean;
-    skills?: string[];
-  }): Promise<{ profiles: Profile[]; total: number }> {
-    try {
-      const queries: string[] = [
-        Query.limit(limit),
-        Query.offset((page - 1) * limit)
-      ];
-
-      if (profileType) {
-        queries.push(Query.equal("profileType", profileType));
-      }
-
-      if (isVerified !== undefined) {
-        queries.push(Query.equal("isVerified", isVerified));
-      }
-
-      // Add more complex queries if needed
-
-      const response = await databases.listDocuments(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID,
-        queries
-      );
-
-      // Additional filtering for properties like roles and skills
-      // that might need more complex filtering than Appwrite queries allow
-      let filteredProfiles = response.documents as unknown as Profile[];
-
-      if (roles && roles.length > 0) {
-        filteredProfiles = filteredProfiles.filter(profile => 
-          profile.roles.some(role => roles.includes(role))
-        );
-      }
-
-      if (skills && skills.length > 0) {
-        filteredProfiles = filteredProfiles.filter(profile => 
-          profile.skills && profile.skills.some(skill => skills.includes(skill))
-        );
-      }
-
-      return {
-        profiles: filteredProfiles,
-        total: response.total
-      };
-    } catch (error) {
-      console.error("Error listing profiles:", error);
-      return { profiles: [], total: 0 };
-    }
+    return verifications.length > 0 ? verifications[0] : null;
   }
 }
 
-// Export single instance
-const profileService = new ProfileService();
-export default profileService;
+export default ProfileService;

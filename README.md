@@ -17,6 +17,7 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 - **🌐 Global Talent Pool** - Access expertise regardless of location
 - **🤝 Collaborative Workspace** - Built-in tools for seamless project management
 - **💰 Multi-currency Support** - Work and earn in your preferred currency (fiat or crypto)
+- **💰 Real time Support with Magic Block** - Features a fast real-time transaction system powered by magicblock.
 
 ## ⛓️ On-Chain Capabilities
 

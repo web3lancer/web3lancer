@@ -1,225 +1,289 @@
-import { Client, ID, Query, Databases, Storage } from 'appwrite';
-import { Connection, Bookmark } from '@/types/social'; 
-import * as env from '@/lib/env';
+import { AppwriteService, ID, Query } from './appwriteService';
+import { EnvService } from './envService';
+import { Connection, DirectMessage, GroupChat, GroupMessage } from '@/types/social';
 
+/**
+ * Social Service for managing user connections and messaging
+ * Follows best practices from Cross-Cutting Concerns section
+ */
 class SocialService {
-  private client: Client;
-  private databases: Databases;
-  private storage: Storage;
+  private databaseId: string;
+  private connectionsCollectionId: string;
+  private directMessagesCollectionId: string;
+  private groupChatsCollectionId: string;
+  private groupMessagesCollectionId: string;
+  private messageAttachmentsBucketId: string;
   
-  constructor() {
-    this.client = new Client();
-    this.client
-      .setEndpoint(env.ENDPOINT) 
-      .setProject(env.PROJECT_ID); 
-    this.databases = new Databases(this.client);
-    this.storage = new Storage(this.client);
+  constructor(
+    private appwrite: AppwriteService,
+    private env: EnvService<'social'>
+  ) {
+    this.databaseId = this.env.databaseId;
+    this.connectionsCollectionId = this.env.get('collectionUserConnections');
+    this.directMessagesCollectionId = this.env.get('collectionDirectMessages');
+    this.groupChatsCollectionId = this.env.get('collectionGroupChats');
+    this.groupMessagesCollectionId = this.env.get('collectionGroupChatMessages');
+    this.messageAttachmentsBucketId = this.env.get('bucketMessageAttachments');
   }
-  
-  // --- User Connections --- 
+
+  // User Connections
   async followUser(followerId: string, followingId: string): Promise<Connection> {
-    try {
-      const response = await this.databases.createDocument(
-        env.SOCIAL_DATABASE_ID,
-        env.USER_CONNECTIONS_COLLECTION_ID,
-        ID.unique(),
-        {
-          followerId,
-          followingId,
-          connectionType: 'follow',
-          status: 'active',
-        }
-      );
-      return response as unknown as Connection; // Cast to unknown first, then to Connection
-    } catch (error) {
-      console.error('Error in followUser:', error);
-      throw error;
-    }
+    return this.appwrite.createDocument<Connection>(
+      this.databaseId,
+      this.connectionsCollectionId,
+      ID.unique(),
+      {
+        followerId,
+        followingId,
+        connectionType: 'follow',
+        status: 'active'
+      }
+    );
   }
-  
+
   async unfollowUser(followerId: string, followingId: string): Promise<void> {
-    try {
-      const connections = await this.databases.listDocuments(
-        env.SOCIAL_DATABASE_ID,
-        env.USER_CONNECTIONS_COLLECTION_ID,
-        [
-          Query.equal('followerId', followerId),
-          Query.equal('followingId', followingId),
-          Query.equal('connectionType', 'follow'),
-        ]
+    const connections = await this.appwrite.listDocuments<Connection>(
+      this.databaseId,
+      this.connectionsCollectionId,
+      [
+        Query.equal('followerId', followerId),
+        Query.equal('followingId', followingId),
+        Query.equal('connectionType', 'follow')
+      ]
+    );
+
+    if (connections.length > 0) {
+      const connectionId = connections[0].$id;
+      await this.appwrite.deleteDocument(
+        this.databaseId,
+        this.connectionsCollectionId,
+        connectionId
       );
-      
-      if (connections.documents.length > 0) {
-        const connectionId = connections.documents[0].$id;
-        await this.databases.deleteDocument(
-          env.SOCIAL_DATABASE_ID,
-          env.USER_CONNECTIONS_COLLECTION_ID,
-          connectionId
-        );
-      }
-    } catch (error) {
-      console.error('Error in unfollowUser:', error);
-      throw error;
     }
   }
-  
+
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-    try {
-      const connections = await this.databases.listDocuments(
-        env.SOCIAL_DATABASE_ID,
-        env.USER_CONNECTIONS_COLLECTION_ID,
-        [
-          Query.equal('followerId', followerId),
-          Query.equal('followingId', followingId),
-          Query.equal('connectionType', 'follow'),
-          Query.equal('status', 'active'),
-        ]
-      );
-      return connections.documents.length > 0;
-    } catch (error) {
-      console.error('Error in isFollowing:', error);
-      return false; 
-    }
+    const connections = await this.appwrite.listDocuments<Connection>(
+      this.databaseId,
+      this.connectionsCollectionId,
+      [
+        Query.equal('followerId', followerId),
+        Query.equal('followingId', followingId),
+        Query.equal('connectionType', 'follow'),
+        Query.equal('status', 'active')
+      ]
+    );
+
+    return connections.length > 0;
   }
-  
+
   async getFollowers(profileId: string): Promise<Connection[]> {
-    try {
-      const response = await this.databases.listDocuments(
-        env.SOCIAL_DATABASE_ID,
-        env.USER_CONNECTIONS_COLLECTION_ID,
-        [
-          Query.equal('followingId', profileId),
-          Query.equal('connectionType', 'follow'),
-          Query.equal('status', 'active'),
-        ]
-      );
-      return response.documents as unknown as Connection[]; // Cast to unknown first
-    } catch (error) {
-      console.error('Error in getFollowers:', error);
-      throw error;
-    }
+    return this.appwrite.listDocuments<Connection>(
+      this.databaseId,
+      this.connectionsCollectionId,
+      [
+        Query.equal('followingId', profileId),
+        Query.equal('connectionType', 'follow'),
+        Query.equal('status', 'active')
+      ]
+    );
   }
-  
+
   async getFollowing(profileId: string): Promise<Connection[]> {
-    try {
-      const response = await this.databases.listDocuments(
-        env.SOCIAL_DATABASE_ID,
-        env.USER_CONNECTIONS_COLLECTION_ID,
-        [
-          Query.equal('followerId', profileId),
-          Query.equal('connectionType', 'follow'),
-          Query.equal('status', 'active'),
-        ]
-      );
-      return response.documents as unknown as Connection[]; // Cast to unknown first
-    } catch (error) {
-      console.error('Error in getFollowing:', error);
-      throw error;
-    }
+    return this.appwrite.listDocuments<Connection>(
+      this.databaseId,
+      this.connectionsCollectionId,
+      [
+        Query.equal('followerId', profileId),
+        Query.equal('connectionType', 'follow'),
+        Query.equal('status', 'active')
+      ]
+    );
   }
-  
-  async sendMessage(chatId: string, senderId: string, receiverId: string, messageContent: string, attachments?: File[]): Promise<any> {
-    try {
-      let attachmentFileIds: string[] = [];
-      if (attachments && attachments.length > 0) {
-        for (const file of attachments) {
-          const uploadedFile = await this.storage.createFile(
-            env.MESSAGE_ATTACHMENTS_BUCKET_ID, 
-            ID.unique(),
-            file
-          );
-          attachmentFileIds.push(uploadedFile.$id);
-        }
+
+  // Direct Messaging
+  async sendDirectMessage(chatId: string, senderId: string, receiverId: string, messageContent: string, attachments?: File[]): Promise<DirectMessage> {
+    let attachmentFileIds: string[] = [];
+
+    if (attachments && attachments.length > 0) {
+      for (const file of attachments) {
+        const fileId = await this.appwrite.uploadFile(this.messageAttachmentsBucketId, file);
+        attachmentFileIds.push(fileId);
       }
-      const response = await this.databases.createDocument(
-        env.SOCIAL_DATABASE_ID,
-        env.DIRECT_MESSAGES_COLLECTION_ID,
-        ID.unique(),
-        {
-          chatId,
-          senderId,
-          receiverId, 
-          messageContent,
-          mediaFileIds: attachmentFileIds.length > 0 ? attachmentFileIds : undefined,
-          isRead: false,
-        }
-      );
-      return response;
-    } catch (error) {
-      console.error('Error sending message:', error);
-      throw error;
     }
-  }
 
-  async getMessages(chatId: string, limit = 25, offset = 0): Promise<any[]> {
-    try {
-      const response = await this.databases.listDocuments(
-        env.SOCIAL_DATABASE_ID,
-        env.DIRECT_MESSAGES_COLLECTION_ID,
-        [
-          Query.equal('chatId', chatId),
-          Query.orderDesc('$createdAt'),
-          Query.limit(limit),
-          Query.offset(offset),
-        ]
-      );
-      return response.documents;
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      throw error;
-    }
-  }
-
-  async addBookmark(profileId: string, itemId: string, itemType: Bookmark['itemType']): Promise<Bookmark> {
-    try {
-      const response = await this.databases.createDocument(
-        env.CONTENT_DATABASE_ID, 
-        env.USER_BOOKMARKS_COLLECTION_ID,
-        ID.unique(),
-        {
-          profileId,
-          itemId,
-          itemType,
-        }
-      );
-      return response as unknown as Bookmark; // Cast to unknown first
-    } catch (error) {
-      console.error('Error adding bookmark:', error);
-      throw error;
-    }
-  }
-
-  async removeBookmark(bookmarkId: string): Promise<void> {
-    try {
-      await this.databases.deleteDocument(
-        env.CONTENT_DATABASE_ID,
-        env.USER_BOOKMARKS_COLLECTION_ID,
-        bookmarkId
-      );
-    } catch (error) {
-      console.error('Error removing bookmark:', error);
-      throw error;
-    }
-  }
-
-  async getUserBookmarks(profileId: string, itemType?: Bookmark['itemType']): Promise<Bookmark[]> {
-    try {
-      const queries: string[] = [Query.equal('profileId', profileId)];
-      if (itemType) {
-        queries.push(Query.equal('itemType', itemType));
+    return this.appwrite.createDocument<DirectMessage>(
+      this.databaseId,
+      this.directMessagesCollectionId,
+      ID.unique(),
+      {
+        chatId,
+        senderId,
+        receiverId,
+        messageContent,
+        mediaFileIds: attachmentFileIds.length > 0 ? attachmentFileIds : undefined,
+        isRead: false,
+        isDeleted: false
       }
-      const response = await this.databases.listDocuments(
-        env.CONTENT_DATABASE_ID,
-        env.USER_BOOKMARKS_COLLECTION_ID,
-        queries
-      );
-      return response.documents as unknown as Bookmark[]; // Cast to unknown first
-    } catch (error) {
-      console.error('Error fetching user bookmarks:', error);
-      throw error;
+    );
+  }
+
+  async getDirectMessages(chatId: string, limit = 25, offset = 0): Promise<DirectMessage[]> {
+    return this.appwrite.listDocuments<DirectMessage>(
+      this.databaseId,
+      this.directMessagesCollectionId,
+      [
+        Query.equal('chatId', chatId),
+        Query.equal('isDeleted', false),
+        Query.orderDesc('$createdAt'),
+        Query.limit(limit),
+        Query.offset(offset)
+      ]
+    );
+  }
+
+  async markDirectMessageAsRead(messageId: string): Promise<DirectMessage> {
+    return this.appwrite.updateDocument<DirectMessage>(
+      this.databaseId,
+      this.directMessagesCollectionId,
+      messageId,
+      { isRead: true }
+    );
+  }
+
+  async deleteDirectMessage(messageId: string): Promise<DirectMessage> {
+    // Soft delete - set isDeleted flag
+    return this.appwrite.updateDocument<DirectMessage>(
+      this.databaseId,
+      this.directMessagesCollectionId,
+      messageId,
+      { isDeleted: true }
+    );
+  }
+
+  // Group Chats
+  async createGroupChat(name: string, creatorId: string, memberIds: string[] = []): Promise<GroupChat> {
+    const allMembers = new Set([creatorId, ...memberIds]);
+    
+    return this.appwrite.createDocument<GroupChat>(
+      this.databaseId,
+      this.groupChatsCollectionId,
+      ID.unique(),
+      {
+        name,
+        creatorId,
+        memberIds: Array.from(allMembers),
+        adminIds: [creatorId],
+        isActive: true
+      }
+    );
+  }
+
+  async getGroupChat(groupId: string): Promise<GroupChat | null> {
+    return this.appwrite.getDocument<GroupChat>(
+      this.databaseId,
+      this.groupChatsCollectionId,
+      groupId
+    );
+  }
+
+  async getUserGroupChats(userId: string): Promise<GroupChat[]> {
+    return this.appwrite.listDocuments<GroupChat>(
+      this.databaseId,
+      this.groupChatsCollectionId,
+      [
+        Query.search('memberIds', userId),
+        Query.equal('isActive', true)
+      ]
+    );
+  }
+
+  async addGroupChatMember(groupId: string, userId: string): Promise<GroupChat> {
+    const groupChat = await this.getGroupChat(groupId);
+    
+    if (!groupChat) {
+      throw new Error('Group chat not found');
     }
+    
+    const memberIds = new Set([...groupChat.memberIds, userId]);
+    
+    return this.appwrite.updateDocument<GroupChat>(
+      this.databaseId,
+      this.groupChatsCollectionId,
+      groupId,
+      { memberIds: Array.from(memberIds) }
+    );
+  }
+
+  async removeGroupChatMember(groupId: string, userId: string): Promise<GroupChat> {
+    const groupChat = await this.getGroupChat(groupId);
+    
+    if (!groupChat) {
+      throw new Error('Group chat not found');
+    }
+    
+    const memberIds = groupChat.memberIds.filter(id => id !== userId);
+    
+    return this.appwrite.updateDocument<GroupChat>(
+      this.databaseId,
+      this.groupChatsCollectionId,
+      groupId,
+      { memberIds }
+    );
+  }
+
+  async sendGroupMessage(groupId: string, senderId: string, messageContent: string, attachments?: File[]): Promise<GroupMessage> {
+    let attachmentFileIds: string[] = [];
+
+    if (attachments && attachments.length > 0) {
+      for (const file of attachments) {
+        const fileId = await this.appwrite.uploadFile(this.messageAttachmentsBucketId, file);
+        attachmentFileIds.push(fileId);
+      }
+    }
+
+    return this.appwrite.createDocument<GroupMessage>(
+      this.databaseId,
+      this.groupMessagesCollectionId,
+      ID.unique(),
+      {
+        groupId,
+        senderId,
+        messageContent,
+        mediaFileIds: attachmentFileIds.length > 0 ? attachmentFileIds : undefined,
+        isDeleted: false
+      }
+    );
+  }
+
+  async getGroupMessages(groupId: string, limit = 25, offset = 0): Promise<GroupMessage[]> {
+    return this.appwrite.listDocuments<GroupMessage>(
+      this.databaseId,
+      this.groupMessagesCollectionId,
+      [
+        Query.equal('groupId', groupId),
+        Query.equal('isDeleted', false),
+        Query.orderDesc('$createdAt'),
+        Query.limit(limit),
+        Query.offset(offset)
+      ]
+    );
+  }
+
+  async deleteGroupMessage(messageId: string): Promise<GroupMessage> {
+    // Soft delete - set isDeleted flag
+    return this.appwrite.updateDocument<GroupMessage>(
+      this.databaseId,
+      this.groupMessagesCollectionId,
+      messageId,
+      { isDeleted: true }
+    );
+  }
+
+  // File methods
+  async getMessageAttachmentUrl(fileId: string): Promise<URL> {
+    return this.appwrite.getFileView(this.messageAttachmentsBucketId, fileId);
   }
 }
 
-const socialService = new SocialService();
-export default socialService;
+export default SocialService;

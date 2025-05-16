@@ -1,15 +1,11 @@
-import { AppwriteService } from './appwriteService';
-import {
-    CONTENT_DATABASE_ID,
-    USER_POSTS_COLLECTION_ID,
-    USER_PORTFOLIOS_COLLECTION_ID,
-    USER_ARTICLES_COLLECTION_ID,
-    USER_BOOKMARKS_COLLECTION_ID,
-    POST_INTERACTIONS_COLLECTION_ID
-} from '@/lib/env';
+import { AppwriteService, ID, Query } from './appwriteService';
+import { EnvService } from './envService';
 import { Post, Portfolio, Article, Bookmark, PostInteraction } from '@/types/content';
-import { ID, Query } from 'appwrite';
 
+/**
+ * Content Service for managing user-generated content
+ * Follows best practices from Cross-Cutting Concerns section
+ */
 class ContentService {
   private databaseId: string;
   private postsCollectionId: string;
@@ -17,14 +13,21 @@ class ContentService {
   private articlesCollectionId: string;
   private bookmarksCollectionId: string;
   private postInteractionsCollectionId: string;
-
-  constructor(private appwrite: AppwriteService) {
-    this.databaseId = CONTENT_DATABASE_ID;
-    this.postsCollectionId = USER_POSTS_COLLECTION_ID;
-    this.portfoliosCollectionId = USER_PORTFOLIOS_COLLECTION_ID;
-    this.articlesCollectionId = USER_ARTICLES_COLLECTION_ID;
-    this.bookmarksCollectionId = USER_BOOKMARKS_COLLECTION_ID;
-    this.postInteractionsCollectionId = POST_INTERACTIONS_COLLECTION_ID;
+  private postMediaBucketId: string;
+  private portfolioMediaBucketId: string;
+  
+  constructor(
+    private appwrite: AppwriteService,
+    private env: EnvService<'content'>
+  ) {
+    this.databaseId = this.env.databaseId;
+    this.postsCollectionId = this.env.get('collectionUserPosts');
+    this.portfoliosCollectionId = this.env.get('collectionUserPortfolios');
+    this.articlesCollectionId = this.env.get('collectionUserArticles');
+    this.bookmarksCollectionId = this.env.get('collectionUserBookmarks');
+    this.postInteractionsCollectionId = this.env.get('collectionPostInteractions');
+    this.postMediaBucketId = this.env.get('bucketPostMedia');
+    this.portfolioMediaBucketId = this.env.get('bucketPortfolioMedia');
   }
 
   // Posts
@@ -37,8 +40,7 @@ class ContentService {
   }
 
   async listPosts(queries: string[] = []): Promise<Post[]> {
-    const response = await this.appwrite.listDocuments<{ documents: Post[] }>(this.databaseId, this.postsCollectionId, queries);
-    return response.documents;
+    return this.appwrite.listDocuments<Post>(this.databaseId, this.postsCollectionId, queries);
   }
 
   async updatePost(postId: string, data: Partial<Post>): Promise<Post> {
@@ -59,8 +61,7 @@ class ContentService {
   }
 
   async listPortfolios(queries: string[] = []): Promise<Portfolio[]> {
-    const response = await this.appwrite.listDocuments<{ documents: Portfolio[] }>(this.databaseId, this.portfoliosCollectionId, queries);
-    return response.documents;
+    return this.appwrite.listDocuments<Portfolio>(this.databaseId, this.portfoliosCollectionId, queries);
   }
 
   async updatePortfolio(portfolioId: string, data: Partial<Portfolio>): Promise<Portfolio> {
@@ -81,8 +82,7 @@ class ContentService {
   }
 
   async listArticles(queries: string[] = []): Promise<Article[]> {
-    const response = await this.appwrite.listDocuments<{ documents: Article[] }>(this.databaseId, this.articlesCollectionId, queries);
-    return response.documents;
+    return this.appwrite.listDocuments<Article>(this.databaseId, this.articlesCollectionId, queries);
   }
 
   async updateArticle(articleId: string, data: Partial<Article>): Promise<Article> {
@@ -103,14 +103,10 @@ class ContentService {
   }
 
   async listBookmarks(queries: string[] = []): Promise<Bookmark[]> {
-    // Ensure the user can only list their own bookmarks, typically by adding Query.equal('profileId', currentUserProfileId)
-    // This logic should be handled either here by passing userId or in the calling function.
-    const response = await this.appwrite.listDocuments<{ documents: Bookmark[] }>(this.databaseId, this.bookmarksCollectionId, queries);
-    return response.documents;
+    return this.appwrite.listDocuments<Bookmark>(this.databaseId, this.bookmarksCollectionId, queries);
   }
 
   async deleteBookmark(bookmarkId: string): Promise<void> {
-    // Add permission check to ensure user can only delete their own bookmark
     return this.appwrite.deleteDocument(this.databaseId, this.bookmarksCollectionId, bookmarkId);
   }
   
@@ -120,26 +116,51 @@ class ContentService {
   }
 
   async listPostInteractions(queries: string[] = []): Promise<PostInteraction[]> {
-    const response = await this.appwrite.listDocuments<{ documents: PostInteraction[] }>(this.databaseId, this.postInteractionsCollectionId, queries);
-    return response.documents;
+    return this.appwrite.listDocuments<PostInteraction>(this.databaseId, this.postInteractionsCollectionId, queries);
   }
 
-  async deletePostInteraction(interactionId: string, userId: string): Promise<void> {
-    // Optional: Add a check to ensure the user deleting the interaction is the one who created it.
-    // This might involve fetching the interaction first, checking userId, then deleting.
-    // Or, rely on Appwrite permissions.
+  async deletePostInteraction(interactionId: string): Promise<void> {
     return this.appwrite.deleteDocument(this.databaseId, this.postInteractionsCollectionId, interactionId);
   }
 
   async getPostInteraction(userId: string, postId: string, interactionType: PostInteraction['interactionType']): Promise<PostInteraction | null> {
-    const queries = [
+    const interactions = await this.appwrite.listDocuments<PostInteraction>(
+      this.databaseId, 
+      this.postInteractionsCollectionId, 
+      [
         Query.equal('userId', userId),
         Query.equal('postId', postId),
         Query.equal('interactionType', interactionType),
         Query.limit(1)
-    ];
-    const response = await this.appwrite.listDocuments<{ documents: PostInteraction[] }>(this.databaseId, this.postInteractionsCollectionId, queries);
-    return response.documents.length > 0 ? response.documents[0] : null;
+      ]
+    );
+    
+    return interactions.length > 0 ? interactions[0] : null;
+  }
+
+  // File Upload Methods
+  async uploadPostMedia(file: File): Promise<string> {
+    return this.appwrite.uploadFile(this.postMediaBucketId, file);
+  }
+
+  async uploadPortfolioMedia(file: File): Promise<string> {
+    return this.appwrite.uploadFile(this.portfolioMediaBucketId, file);
+  }
+
+  async getPostMediaPreview(fileId: string, width = 800, height = 600): Promise<URL> {
+    return this.appwrite.getFilePreview(this.postMediaBucketId, fileId, width, height);
+  }
+
+  async getPortfolioMediaPreview(fileId: string, width = 800, height = 600): Promise<URL> {
+    return this.appwrite.getFilePreview(this.portfolioMediaBucketId, fileId, width, height);
+  }
+
+  async deletePostMedia(fileId: string): Promise<void> {
+    return this.appwrite.deleteFile(this.postMediaBucketId, fileId);
+  }
+
+  async deletePortfolioMedia(fileId: string): Promise<void> {
+    return this.appwrite.deleteFile(this.portfolioMediaBucketId, fileId);
   }
 }
 
