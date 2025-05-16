@@ -14,7 +14,8 @@ import {
   ACTIVITY_DATABASE_ID,
   USER_NOTIFICATIONS_COLLECTION_ID,
   USER_PORTFOLIOS_COLLECTION_ID, // Assuming projects map to portfolios
-  USER_PAYMENT_METHODS_COLLECTION_ID
+  USER_PAYMENT_METHODS_COLLECTION_ID,
+  USER_CONNECTIONS_COLLECTION_ID, // Added for social connections
 } from '@/lib/env';
 
 // Initialize client according to Appwrite docs
@@ -214,8 +215,8 @@ async function createMagicURLToken(email: string) {
     // Try to find if user with this email already exists
     try {
       const users = await databases.listDocuments(
-        APPWRITE_CONFIG.DATABASES.USERS,
-        APPWRITE_CONFIG.COLLECTIONS.PROFILES,
+        PROFILES_DATABASE_ID,
+        USER_PROFILES_COLLECTION_ID,
         [Query.equal('email', email)]
       );
       
@@ -524,12 +525,12 @@ async function createMfaEmailVerification() {
  */
 async function getUserProfile(userId: string): Promise<Models.Document | null> { // Add return type
   try {
-    const profile = await databases.getDocument(
+    const response = await databases.getDocument(
       PROFILES_DATABASE_ID,
       USER_PROFILES_COLLECTION_ID,
       userId
     );
-    return profile;
+    return response;
   } catch (error) {
     if ((error as AppwriteException).code === 404) {
       console.log(`Profile not found for user ID: ${userId}`);
@@ -597,26 +598,31 @@ async function createUserProfile(userId: string, userData: Models.User<Models.Pr
       }
     }
 
-    const profileData: { [key: string]: any } = {
-      userId: userId, // Explicitly set userId attribute in the document
+    const profileData: any = {
+      userId: userId,
+      email: userData.email,
       name: userData.name || '',
-      email: userData.email || '',
-      username: username || '', // Add username
-      profilePicture: '', // Initialize or get from userData if available
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      username: username || userId, // Default username to userId if not provided
+      emailVerification: userData.emailVerification,
+      prefs: userData.prefs,
+      // Initialize other fields as needed
+      bio: '',
       skills: [],
-      bio: ''
+      portfolioUrl: '',
+      avatarFileId: '', // Placeholder for avatar file ID
+      coverImageFileId: '', // Placeholder for cover image file ID
+      isVerified: false,
+      lastLoginAt: new Date().toISOString(),
+      joinedAt: new Date().toISOString(),
     };
 
-    // Use the userId as the documentId for the profile document
-    const profile = await databases.createDocument(
+    const response = await databases.createDocument(
       PROFILES_DATABASE_ID,
       USER_PROFILES_COLLECTION_ID,
-      userId, // Use user's ID as document ID for the profile
+      userId, // Use Appwrite user ID as document ID for profile
       profileData
     );
-    return profile;
+    return response;
   } catch (error: any) {
     // Handle specific error for unique constraint violation on username if applicable
     if (error.code === 409) { // Appwrite conflict error code
@@ -643,16 +649,13 @@ async function updateUserProfile(userId: string, data: any) {
       }
     }
 
-    const profile = await databases.updateDocument(
+    const response = await databases.updateDocument(
       PROFILES_DATABASE_ID,
       USER_PROFILES_COLLECTION_ID,
-      userId, // Document ID is the user's ID
-      {
-        ...data,
-        updatedAt: new Date().toISOString()
-      }
+      userId,
+      data
     );
-    return profile;
+    return response;
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw error;
@@ -718,15 +721,8 @@ async function addTransaction(userId: string, amount: number, type: string, stat
     const response = await databases.createDocument(
       FINANCE_DATABASE_ID,
       PLATFORM_TRANSACTIONS_COLLECTION_ID,
-      ID.unique(),
-      {
-        userId,
-        amount,
-        type,
-        createdAt: new Date().toISOString(),
-        status,
-        transactionId,
-      }
+      transactionId, // Assuming transactionId is unique and can be used as document ID
+      { userId, amount, type, status, createdAt: new Date().toISOString() }
     );
     console.log('Transaction added successfully:', response);
     return response;
@@ -743,7 +739,8 @@ async function fetchJobs() {
   try {
     const response = await databases.listDocuments(
       JOBS_DATABASE_ID,
-      JOB_POSTINGS_COLLECTION_ID,
+      JOB_POSTINGS_COLLECTION_ID
+      // Add queries as needed, e.g., [Query.orderDesc('createdAt')]
     );
     return response;
   } catch (error) {
@@ -1080,6 +1077,21 @@ async function ensureValidOAuthToken() {
  */
 async function addUser(email: string, password: string, name: string) {
   try {
+    const response = await account.create(ID.unique(), email, password, name);
+    console.log('User added successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error adding user:', error);
+    throw new Error(`Failed to add user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Utility functions for safe document retrieval
+ */
+
+/**
+ * Safely get a document with error handling
  * @param databaseId Database ID
  * @param collectionId Collection ID
  * @param documentId Document ID
