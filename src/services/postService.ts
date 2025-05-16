@@ -55,7 +55,7 @@ class PostService {
           authorId: profileId,
           content,
           tags,
-          media: mediaString,
+          media: media.length > 0 ? JSON.stringify(media) : undefined,
           likesCount: 0,
           commentsCount: 0,
           bookmarksCount: 0,
@@ -131,7 +131,7 @@ class PostService {
         },
         body: JSON.stringify({
           ...data,
-          media: updateMediaString,
+          media: media.length > 0 ? JSON.stringify(media) : undefined,
         }),
       });
       

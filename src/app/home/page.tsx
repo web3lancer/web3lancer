@@ -327,7 +327,7 @@ export default function DashboardPage() {
         {
           authorId: user?.$id,
           content: newPostContent,
-          media,
+          media: media.length > 0 ? JSON.stringify(media) : undefined,
           likesCount: 0,
           commentsCount: 0,
           bookmarksCount: 0,
@@ -341,7 +341,7 @@ export default function DashboardPage() {
         $id: doc.$id,
         userId: doc.authorId,
         content: doc.content,
-        media: doc.media,
+        media: doc.media ? JSON.parse(doc.media) : [],
         likes: doc.likesCount || 0,
         comments: doc.commentsCount || 0,
         reposts: doc.repostsCount || 0,

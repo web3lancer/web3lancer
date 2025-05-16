@@ -78,10 +78,6 @@ export async function POST(request: NextRequest) {
     const { authorId, content, tags, media, visibility } = await request.json();
     
     // Create post document
-    const mediaString = media && Array.isArray(media) ? JSON.stringify(media) : undefined;
-    if (mediaString && mediaString.length > 1000) {
-      return NextResponse.json({ message: 'Media attachments are too large. Please reduce the number or size of media files.' }, { status: 400 });
-    }
     const post = await databases.createDocument(
       env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
       env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
@@ -90,7 +86,7 @@ export async function POST(request: NextRequest) {
         authorId,
         content,
         tags,
-        media: mediaString,
+        media: media && Array.isArray(media) ? JSON.stringify(media) : media,
         likesCount: 0,
         commentsCount: 0,
         bookmarksCount: 0,
