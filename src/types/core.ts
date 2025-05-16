@@ -46,3 +46,58 @@ export interface PlatformSetting {
   isEditableByAdmin: boolean; // Whether admins can change this setting via an admin panel
   group?: string; // Optional grouping for settings in an admin UI (e.g., "Fees", "Features")
 }
+
+// Core system data types
+export interface SystemSetting {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  key: string;
+  value: any;
+  category: string; // e.g., 'general', 'appearance', 'billing', 'email', etc.
+  description?: string;
+  isPublic: boolean; // Whether this setting is exposed to client-side
+  dataType?: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  createdAt?: string; // ISO Date string
+  updatedAt?: string; // ISO Date string
+  createdById?: string; // UserProfile.$id of admin
+  schema?: any; // JSON schema for validation
+}
+
+export interface SystemMetric {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  name: string;
+  value: number;
+  unit?: string;
+  timestamp: string; // ISO Date string
+  tags?: { [key: string]: string };
+  dimensions?: {
+    name: string;
+    value: string;
+  }[];
+  metadata?: { [key: string]: any };
+}
+
+export interface SystemAuditLog {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
+  userId: string; // UserProfile.$id of the user who performed the action
+  action: string; // e.g., 'create', 'update', 'delete', 'login', 'logout', etc.
+  resourceType: string; // e.g., 'user', 'job', 'contract', 'setting', etc.
+  resourceId?: string; // ID of the affected resource
+  description: string;
+  timestamp: string; // ISO Date string
+  ipAddress?: string;
+  userAgent?: string;
+  changes?: {
+    field: string;
+    oldValue?: any;
+    newValue?: any;
+  }[];
+  metadata?: { [key: string]: any };
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  isSystemGenerated: boolean;
+}

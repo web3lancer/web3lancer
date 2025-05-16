@@ -139,145 +139,209 @@ class SystemService extends BaseService {
         return await this.appwrite.createDocument<SystemMetric>(
           this.config.core.databaseId,
           this.config.core.metricsCollectionId,
-    queries.push(Query.orderAsc('order'));
-    
-    return this.appwrite.listDocuments<Category>(
-      this.databaseId,
-      this.categoriesCollectionId,
-      queries
-    );
-  }
-
-  async getTopLevelCategories(includeInactive = false): Promise<Category[]> {
-    const queries = [Query.isNull('parentId')];
-    if (!includeInactive) {
-      queries.push(Query.equal('isActive', true));
-    }
-    queries.push(Query.orderAsc('order'));
-    
-    return this.appwrite.listDocuments<Category>(
-      this.databaseId,
-      this.categoriesCollectionId,
-      queries
-    );
-  }
-
-  async getSubcategories(parentId: string, includeInactive = false): Promise<Category[]> {
-    const queries = [Query.equal('parentId', parentId)];
-    if (!includeInactive) {
-      queries.push(Query.equal('isActive', true));
-    }
-    queries.push(Query.orderAsc('order'));
-    
-    return this.appwrite.listDocuments<Category>(
-      this.databaseId,
-      this.categoriesCollectionId,
-      queries
-    );
-  }
-
-  // Platform Settings
-  async getSetting(key: string): Promise<PlatformSetting | null> {
-    // We use key as the document ID for settings
-    try {
-      return await this.appwrite.getDocument<PlatformSetting>(
-        this.databaseId,
-        this.settingsCollectionId,
-        key
-      );
-    } catch (error) {
-      console.error(`Error getting setting ${key}:`, error);
-      return null;
-    }
-  }
-
-  async getSettingValue<T>(key: string, defaultValue: T): Promise<T> {
-    const setting = await this.getSetting(key);
-    return setting ? (setting.value as T) : defaultValue;
-  }
-
-  async updateSetting(key: string, value: any, description?: string): Promise<PlatformSetting> {
-    try {
-      // Try to get the setting first to see if it exists
-      const existing = await this.getSetting(key);
-      
-      if (existing) {
-        // Update existing setting
-        return this.appwrite.updateDocument<PlatformSetting>(
-          this.databaseId,
-          this.settingsCollectionId,
-          key,
+          ID.unique(),
           {
-            value,
-            description: description || existing.description,
-            updatedAt: new Date().toISOString()
+            ...metric,
+            timestamp: metric.timestamp || new Date().toISOString()
           }
         );
-      } else {
-        // Create new setting
-        return this.appwrite.createDocument<PlatformSetting>(
-          this.databaseId,
-          this.settingsCollectionId,
-          key, // Use key as the document ID
+      },
+      'recordMetric'
+    );
+  }
+
+  async getMetrics(metricName: string, startDate?: string, endDate?: string, limit: number = 100): Promise<SystemMetric[]> {
+    return this.handleRequest(
+      async () => {
+        let queries = [
+          Query.equal('name', metricName),
+          Query.orderDesc('timestamp'),
+          Query.limit(limit)
+        ];
+        
+        if (startDate) {
+          queries.push(Query.greaterThanEqual('timestamp', startDate));
+        }
+        
+        if (endDate) {
+          queries.push(Query.lessThanEqual('timestamp', endDate));
+        }
+        
+        return await this.appwrite.listDocuments<SystemMetric>(
+          this.config.core.databaseId,
+          this.config.core.metricsCollectionId,
+          queries
+        );
+      },
+      'getMetrics'
+    );
+  }
+
+  async getLatestMetric(metricName: string): Promise<SystemMetric | null> {
+    return this.handleRequest(
+      async () => {
+        const metrics = await this.appwrite.listDocuments<SystemMetric>(
+          this.config.core.databaseId,
+          this.config.core.metricsCollectionId,
+          [
+            Query.equal('name', metricName),
+            Query.orderDesc('timestamp'),
+            Query.limit(1)
+          ]
+        );
+        
+        return metrics.length > 0 ? metrics[0] : null;
+      },
+      'getLatestMetric'
+    );
+  }
+
+  // System Audit Logs
+  async logAuditEvent(log: Omit<SystemAuditLog, '$id' | '$createdAt' | '$updatedAt'>): Promise<SystemAuditLog> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<SystemAuditLog>(
+          this.config.core.databaseId,
+          this.config.core.auditLogsCollectionId,
+          ID.unique(),
           {
-            key,
-            value,
-            description: description || `Setting for ${key}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            ...log,
+            timestamp: log.timestamp || new Date().toISOString()
           }
         );
-      }
-    } catch (error) {
-      console.error(`Error updating setting ${key}:`, error);
-      throw error;
-    }
-  }
-
-  async deleteSetting(key: string): Promise<void> {
-    return this.appwrite.deleteDocument(
-      this.databaseId,
-      this.settingsCollectionId,
-      key
+      },
+      'logAuditEvent'
     );
   }
 
-  async listSettings(): Promise<PlatformSetting[]> {
-    return this.appwrite.listDocuments<PlatformSetting>(
-      this.databaseId,
-      this.settingsCollectionId,
-      []
+  async getAuditLogs(
+    options: {
+      userId?: string;
+      action?: string;
+      resourceType?: string;
+      resourceId?: string;
+      startDate?: string;
+      endDate?: string;
+      limit?: number;
+    } = {}
+  ): Promise<SystemAuditLog[]> {
+    return this.handleRequest(
+      async () => {
+        let queries: string[] = [Query.orderDesc('timestamp')];
+        
+        if (options.userId) {
+          queries.push(Query.equal('userId', options.userId));
+        }
+        
+        if (options.action) {
+          queries.push(Query.equal('action', options.action));
+        }
+        
+        if (options.resourceType) {
+          queries.push(Query.equal('resourceType', options.resourceType));
+        }
+        
+        if (options.resourceId) {
+          queries.push(Query.equal('resourceId', options.resourceId));
+        }
+        
+        if (options.startDate) {
+          queries.push(Query.greaterThanEqual('timestamp', options.startDate));
+        }
+        
+        if (options.endDate) {
+          queries.push(Query.lessThanEqual('timestamp', options.endDate));
+        }
+        
+        queries.push(Query.limit(options.limit || 50));
+        
+        return await this.appwrite.listDocuments<SystemAuditLog>(
+          this.config.core.databaseId,
+          this.config.core.auditLogsCollectionId,
+          queries
+        );
+      },
+      'getAuditLogs'
     );
   }
 
-  // Helper methods for common platform settings
-  async getCommissionRate(): Promise<number> {
-    return this.getSettingValue<number>('commission_rate', 0.05);
+  // Platform Health Methods
+  async getPlatformStatus(): Promise<{ 
+    isHealthy: boolean; 
+    services: { 
+      name: string; 
+      status: 'up' | 'down' | 'degraded'; 
+      latency?: number; 
+    }[]; 
+    lastUpdated: string; 
+  }> {
+    return this.handleRequest(
+      async () => {
+        // In a real implementation, this would check various services
+        // For now, we'll return a mock status
+        return {
+          isHealthy: true,
+          services: [
+            { name: 'database', status: 'up', latency: 10 },
+            { name: 'storage', status: 'up', latency: 15 },
+            { name: 'authentication', status: 'up', latency: 5 },
+            { name: 'payment_processing', status: 'up', latency: 20 }
+          ],
+          lastUpdated: new Date().toISOString()
+        };
+      },
+      'getPlatformStatus'
+    );
   }
 
-  async getEscrowReleaseDelay(): Promise<number> {
-    return this.getSettingValue<number>('escrow_release_delay_hours', 24);
+  // Feature Flag Support
+  async getFeatureFlag(flagName: string, defaultValue: boolean = false): Promise<boolean> {
+    return this.handleRequest(
+      async () => {
+        const setting = await this.getSetting(`feature_flag_${flagName}`);
+        return setting ? setting.value === true : defaultValue;
+      },
+      'getFeatureFlag'
+    );
   }
 
-  async getDisputeVotingPeriod(): Promise<number> {
-    return this.getSettingValue<number>('dispute_voting_period_days', 7);
+  async setFeatureFlag(flagName: string, enabled: boolean): Promise<SystemSetting> {
+    return this.handleRequest(
+      async () => {
+        return await this.updateSetting(`feature_flag_${flagName}`, enabled);
+      },
+      'setFeatureFlag'
+    );
   }
 
-  async getProposalVotingThreshold(): Promise<number> {
-    return this.getSettingValue<number>('proposal_voting_threshold', 0.51);
+  // System Configuration Helpers
+  async getAppConfig(): Promise<Record<string, any>> {
+    return this.handleRequest(
+      async () => {
+        const configSettings = await this.getSettings('app_config');
+        
+        // Convert settings array to object
+        return configSettings.reduce((config: Record<string, any>, setting) => {
+          config[setting.key] = setting.value;
+          return config;
+        }, {});
+      },
+      'getAppConfig'
+    );
   }
 
-  async getMaintenanceMode(): Promise<boolean> {
-    return this.getSettingValue<boolean>('maintenance_mode', false);
-  }
-
-  async getMinimumWithdrawal(): Promise<Record<string, number>> {
-    return this.getSettingValue<Record<string, number>>('minimum_withdrawal', {
-      USD: 25,
-      EUR: 25,
-      ETH: 0.01,
-      BTC: 0.001
-    });
+  async updateAppConfig(config: Record<string, any>): Promise<void> {
+    return this.handleRequest(
+      async () => {
+        // Update each setting
+        const updatePromises = Object.entries(config).map(([key, value]) => 
+          this.updateSetting(key, value)
+        );
+        
+        await Promise.all(updatePromises);
+      },
+      'updateAppConfig'
+    );
   }
 }
 

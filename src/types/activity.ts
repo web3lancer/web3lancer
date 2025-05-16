@@ -1,4 +1,4 @@
-// filepath: /home/nathfavour/Documents/code/web3lancer/web3lancer/src/types/activity.ts
+import { AppwriteDocument } from '@/services/appwriteService';
 
 /**
  * Types for the Activity database
@@ -58,45 +58,97 @@ export interface NotificationContent {
 }
 
 // Activity related types
-export interface Notification {
-  $id: string;
-  $createdAt: string;
-  $updatedAt: string;
-  userId: string; // UserProfile.$id of the notification recipient
-  type: string; // e.g., 'job_application', 'message', 'milestone_completed', etc.
+export interface Notification extends AppwriteDocument {
+  userId: string; // User ID who receives the notification
   title: string;
   message: string;
+  type: string; // 'job_application', 'message', 'payment', etc.
   isRead: boolean;
-  readAt?: string; // ISO Date string
-  itemId?: string; // ID of related item
-  itemType?: string; // Type of related item
-  relatedUserId?: string; // UserProfile.$id of user related to this notification
-  actions?: {
-    label: string;
-    url: string;
-  }[];
-  expiresAt?: string; // ISO Date string
-  priority?: 'low' | 'normal' | 'high' | 'urgent';
-  isSystem?: boolean; // Whether this is a system notification vs user-specific
+  readAt?: string; // ISO date string when notification was read
+  referenceType?: string; // 'job', 'contract', 'message', etc.
+  referenceId?: string; // ID of the reference object
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  actions?: NotificationAction[];
+  expiresAt?: string; // ISO date string for when notification expires
+  metadata?: Record<string, any>;
 }
 
-export interface ActivityLog {
-  $id: string;
-  $createdAt: string;
-  $updatedAt: string;
-  userId: string; // UserProfile.$id of the user who performed the action
-  action: string; // e.g., 'create_job', 'submit_proposal', 'complete_milestone', etc.
-  description: string;
-  itemId?: string; // ID of related item
-  itemType?: string; // Type of related item
-  metadata?: { [key: string]: any }; // Additional contextual data
-  ipAddress?: string;
+/**
+ * Notification Action
+ * Represents an action button that can be displayed with a notification
+ */
+export interface NotificationAction {
+  label: string;
+  url: string;
+  type?: 'primary' | 'secondary' | 'danger';
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Activity Log
+ * Records user actions on the platform
+ */
+export interface ActivityLog extends AppwriteDocument {
+  userId: string; // User who performed the action
+  action: string; // The action that was performed
+  timestamp: string; // ISO date string
+  details?: string;
+  ip?: string;
   userAgent?: string;
-  location?: {
-    country?: string;
-    city?: string;
-  };
-  isSystem?: boolean; // Whether this is a system-initiated action
+  resourceType?: string; // 'job', 'contract', 'payment', etc.
+  resourceId?: string; // ID of the resource
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Reminder
+ * Scheduled reminders for users
+ */
+export interface Reminder extends AppwriteDocument {
+  userId: string; // User who will receive the reminder
+  title: string;
+  message: string;
+  reminderDate: string; // ISO date string
+  isCompleted: boolean;
+  isRecurring: boolean;
+  recurringPattern?: string; // cron expression for recurring reminders
+  priority: 'low' | 'normal' | 'high';
+  category: string; // 'job', 'payment', 'personal', etc.
+  resourceType?: string;
+  resourceId?: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * User Recent Activity
+ * Summary of recent user activities for display
+ */
+export interface UserRecentActivity extends AppwriteDocument {
+  userId: string;
+  activities: {
+    type: string;
+    title: string;
+    description?: string;
+    timestamp: string;
+    icon?: string;
+    link?: string;
+  }[];
+  lastUpdated: string; // ISO date string
+}
+
+/**
+ * Newsletter Subscription
+ */
+export interface NewsletterSubscription extends AppwriteDocument {
+  email: string;
+  name?: string;
+  userId?: string;
+  isSubscribed: boolean;
+  subscribedAt: string; // ISO date string
+  unsubscribedAt?: string; // ISO date string
+  categories: string[]; // 'product_updates', 'jobs', 'tips', etc.
+  lastEmailSent?: string; // ISO date string
+  metadata?: Record<string, any>;
 }
 
 export interface SystemNotification {

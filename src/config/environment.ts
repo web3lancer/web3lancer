@@ -1,100 +1,12 @@
-// Environment configuration - Maps environment variables to typed constants
-// This centralizes all environment variable access for better type safety
+/**
+ * Environment Configuration module
+ * 
+ * This file centralizes all environment variables and provides
+ * typed access to them throughout the application.
+ */
 
-// Core Appwrite Configuration
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
-export const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || '';
-export const APPWRITE_PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '';
-export const APPWRITE_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
-
-// Database IDs
-export const PROFILES_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_PROFILES_ID || '';
-export const JOBS_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_JOBS_ID || '';
-export const FINANCE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_FINANCE_ID || '';
-export const SOCIAL_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_SOCIAL_ID || '';
-export const CONTENT_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID || '';
-export const GOVERNANCE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_GOVERNANCE_ID || '';
-export const ACTIVITY_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ACTIVITY_ID || '';
-export const CORE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_CORE_ID || '';
-
-// ProfilesDB Collections
-export const USER_PROFILES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_PROFILES_ID || '';
-export const PROFILE_VERIFICATIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILE_VERIFICATIONS_ID || '';
-
-// JobsDB Collections
-export const JOB_POSTINGS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_POSTINGS_ID || '';
-export const JOB_PROPOSALS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_PROPOSALS_ID || '';
-export const JOB_CONTRACTS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_CONTRACTS_ID || '';
-export const CONTRACT_MILESTONES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONTRACT_MILESTONES_ID || '';
-export const USER_REVIEWS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_REVIEWS_ID || '';
-
-// FinanceDB Collections
-export const USER_WALLETS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_WALLETS_ID || '';
-export const PLATFORM_TRANSACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PLATFORM_TRANSACTIONS_ID || '';
-export const USER_PAYMENT_METHODS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_PAYMENT_METHODS_ID || '';
-export const ESCROW_TRANSACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ESCROW_TRANSACTIONS_ID || '';
-
-// SocialDB Collections
-export const USER_CONNECTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_CONNECTIONS_ID || '';
-export const DIRECT_MESSAGES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_DIRECT_MESSAGES_ID || '';
-export const GROUP_CHATS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GROUP_CHATS_ID || '';
-export const GROUP_CHAT_MESSAGES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GROUP_CHAT_MESSAGES_ID || '';
-
-// ContentDB Collections
-export const POSTS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_POSTS_ID || '';
-export const POST_INTERACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID || '';
-export const PORTFOLIOS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PORTFOLIOS_ID || '';
-export const ARTICLES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ARTICLES_ID || '';
-export const BOOKMARKS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_BOOKMARKS_ID || '';
-
-// GovernanceDB Collections
-export const DISPUTES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_DISPUTES_ID || '';
-export const GOVERNANCE_PROPOSALS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GOVERNANCE_PROPOSALS_ID || '';
-export const GOVERNANCE_VOTES_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GOVERNANCE_VOTES_ID || '';
-
-// ActivityDB Collections
-export const NOTIFICATIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_NOTIFICATIONS_ID || '';
-export const ACTIVITY_LOGS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ACTIVITY_LOGS_ID || '';
-
-// CoreDB Collections
-export const SYSTEM_SETTINGS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_SYSTEM_SETTINGS_ID || '';
-export const SYSTEM_METRICS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_SYSTEM_METRICS_ID || '';
-export const SYSTEM_AUDIT_LOGS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_SYSTEM_AUDIT_LOGS_ID || '';
-
-// Storage Buckets
-export const VERIFICATION_DOCUMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_VERIFICATION_DOCUMENTS_PRIVATE_ID || '';
-export const PROFILE_IMAGES_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PROFILE_IMAGES_ID || '';
-export const POST_MEDIA_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_POST_MEDIA_ID || '';
-export const PORTFOLIO_MEDIA_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PORTFOLIO_MEDIA_ID || '';
-export const JOB_ATTACHMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_JOB_ATTACHMENTS_ID || '';
-export const MESSAGE_ATTACHMENTS_BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_MESSAGE_ATTACHMENTS_ID || '';
-
-// Validate environment at startup - This will help identify missing env vars early
-export function validateEnvironment(): boolean {
-  const requiredVars = [
-    APPWRITE_ENDPOINT, 
-    APPWRITE_PROJECT_ID
-  ];
-  
-  const missing = requiredVars.filter(v => !v);
-  
-  if (missing.length > 0) {
-    console.error('Missing required environment variables');
-    return false;
-  }
-  
-  return true;
-}
-
-// Typed interface for environment service - helps create more specific services
-export interface EnvVars {
-  // Generic getter for any environment variable
-  get(key: string): string;
-}
-
-// Type definition for module-specific environment variables
+// Environment config type definition
 export interface EnvConfig {
-  // Add specific config keys for different modules
   appwrite: {
     endpoint: string;
     projectId: string;
@@ -161,70 +73,94 @@ export interface EnvConfig {
   };
 }
 
-// Default environment configuration - simplifies service creation
+// Default environment config with fallback values
 export const defaultEnvConfig: EnvConfig = {
   appwrite: {
-    endpoint: APPWRITE_ENDPOINT,
-    projectId: APPWRITE_PROJECT_ID,
+    endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1',
+    projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '',
   },
   profiles: {
-    databaseId: PROFILES_DATABASE_ID,
-    userProfilesCollectionId: USER_PROFILES_COLLECTION_ID,
-    verificationsCollectionId: PROFILE_VERIFICATIONS_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_PROFILES_ID || '',
+    userProfilesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_PROFILES_ID || '',
+    verificationsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILE_VERIFICATIONS_ID || '',
   },
   jobs: {
-    databaseId: JOBS_DATABASE_ID,
-    jobPostingsCollectionId: JOB_POSTINGS_COLLECTION_ID,
-    jobProposalsCollectionId: JOB_PROPOSALS_COLLECTION_ID,
-    jobContractsCollectionId: JOB_CONTRACTS_COLLECTION_ID,
-    milestonesCollectionId: CONTRACT_MILESTONES_COLLECTION_ID,
-    reviewsCollectionId: USER_REVIEWS_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_JOBS_ID || '',
+    jobPostingsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_POSTINGS_ID || '',
+    jobProposalsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_PROPOSALS_ID || '',
+    jobContractsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_JOB_CONTRACTS_ID || '',
+    milestonesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_CONTRACT_MILESTONES_ID || '',
+    reviewsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_REVIEWS_ID || '',
   },
   finance: {
-    databaseId: FINANCE_DATABASE_ID,
-    walletsCollectionId: USER_WALLETS_COLLECTION_ID,
-    transactionsCollectionId: PLATFORM_TRANSACTIONS_COLLECTION_ID,
-    paymentMethodsCollectionId: USER_PAYMENT_METHODS_COLLECTION_ID,
-    escrowTransactionsCollectionId: ESCROW_TRANSACTIONS_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_FINANCE_ID || '',
+    walletsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_WALLETS_ID || '',
+    transactionsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PLATFORM_TRANSACTIONS_ID || '',
+    paymentMethodsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_PAYMENT_METHODS_ID || '',
+    escrowTransactionsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ESCROW_TRANSACTIONS_ID || '',
   },
   social: {
-    databaseId: SOCIAL_DATABASE_ID,
-    connectionsCollectionId: USER_CONNECTIONS_COLLECTION_ID,
-    directMessagesCollectionId: DIRECT_MESSAGES_COLLECTION_ID,
-    groupChatsCollectionId: GROUP_CHATS_COLLECTION_ID,
-    groupChatMessagesCollectionId: GROUP_CHAT_MESSAGES_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_SOCIAL_ID || '',
+    connectionsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_CONNECTIONS_ID || '',
+    directMessagesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_DIRECT_MESSAGES_ID || '',
+    groupChatsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GROUP_CHATS_ID || '',
+    groupChatMessagesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GROUP_CHAT_MESSAGES_ID || '',
   },
   content: {
-    databaseId: CONTENT_DATABASE_ID,
-    postsCollectionId: POSTS_COLLECTION_ID,
-    postInteractionsCollectionId: POST_INTERACTIONS_COLLECTION_ID,
-    portfoliosCollectionId: PORTFOLIOS_COLLECTION_ID,
-    articlesCollectionId: ARTICLES_COLLECTION_ID,
-    bookmarksCollectionId: BOOKMARKS_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID || '',
+    postsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_POSTS_ID || '',
+    postInteractionsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID || '',
+    portfoliosCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PORTFOLIOS_ID || '',
+    articlesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ARTICLES_ID || '',
+    bookmarksCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_BOOKMARKS_ID || '',
   },
   governance: {
-    databaseId: GOVERNANCE_DATABASE_ID,
-    disputesCollectionId: DISPUTES_COLLECTION_ID,
-    proposalsCollectionId: GOVERNANCE_PROPOSALS_COLLECTION_ID,
-    votesCollectionId: GOVERNANCE_VOTES_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_GOVERNANCE_ID || '',
+    disputesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_DISPUTES_ID || '',
+    proposalsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GOVERNANCE_PROPOSALS_ID || '',
+    votesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GOVERNANCE_VOTES_ID || '',
   },
   activity: {
-    databaseId: ACTIVITY_DATABASE_ID,
-    notificationsCollectionId: NOTIFICATIONS_COLLECTION_ID,
-    logsCollectionId: ACTIVITY_LOGS_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ACTIVITY_ID || '',
+    notificationsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_NOTIFICATIONS_ID || '',
+    logsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ACTIVITY_LOGS_ID || '',
   },
   core: {
-    databaseId: CORE_DATABASE_ID,
-    settingsCollectionId: SYSTEM_SETTINGS_COLLECTION_ID,
-    metricsCollectionId: SYSTEM_METRICS_COLLECTION_ID,
-    auditLogsCollectionId: SYSTEM_AUDIT_LOGS_COLLECTION_ID,
+    databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_CORE_ID || '',
+    settingsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_SYSTEM_SETTINGS_ID || '',
+    metricsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_SYSTEM_METRICS_ID || '',
+    auditLogsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_SYSTEM_AUDIT_LOGS_ID || '',
   },
   storage: {
-    verificationDocumentsBucketId: VERIFICATION_DOCUMENTS_BUCKET_ID,
-    profileImagesBucketId: PROFILE_IMAGES_BUCKET_ID,
-    postMediaBucketId: POST_MEDIA_BUCKET_ID,
-    portfolioMediaBucketId: PORTFOLIO_MEDIA_BUCKET_ID,
-    jobAttachmentsBucketId: JOB_ATTACHMENTS_BUCKET_ID,
-    messageAttachmentsBucketId: MESSAGE_ATTACHMENTS_BUCKET_ID,
+    verificationDocumentsBucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_VERIFICATION_DOCUMENTS_PRIVATE_ID || '',
+    profileImagesBucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PROFILE_IMAGES_ID || '',
+    postMediaBucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_POST_MEDIA_ID || '',
+    portfolioMediaBucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PORTFOLIO_MEDIA_ID || '',
+    jobAttachmentsBucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_JOB_ATTACHMENTS_ID || '',
+    messageAttachmentsBucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_MESSAGE_ATTACHMENTS_ID || '',
   },
 };
+
+// Helper function to validate required environment variables
+export function validateEnvConfig(config: EnvConfig): boolean {
+  // Required variables for the app to function
+  const requiredVars = [
+    config.appwrite.projectId,
+    config.profiles.databaseId,
+    config.profiles.userProfilesCollectionId,
+  ];
+  
+  return requiredVars.every(val => val && val.length > 0);
+}
+
+// Export a validated environment config
+export const envConfig = defaultEnvConfig;
+
+// Log warning if required environment variables are missing
+if (typeof window !== 'undefined' && !validateEnvConfig(envConfig)) {
+  console.warn(
+    'Some required environment variables are missing. ' +
+    'The application may not function correctly. ' +
+    'Please check your .env configuration.'
+  );
+}
