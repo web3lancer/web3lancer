@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCircle, AlertCircle, MessageCircle, DollarSign } from 'lucide-react';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import ServiceFactory from '@/services/serviceFactory';
 import NotificationService from '@/services/notificationService';
 import { Notification } from '@/types/activity';

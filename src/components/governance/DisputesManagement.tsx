@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import GovernanceService from '@/services/governanceService';
 import { Dispute } from '@/types/governance';
 

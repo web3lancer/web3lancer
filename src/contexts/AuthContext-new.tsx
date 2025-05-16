@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { Account, Avatars, ID, Models, Storage } from "appwrite";
 import { client } from "@/app/appwrite";
 import { useToast } from "@/components/ui/use-toast";
-import { BUCKET_ID, APP_URL, PROFILE_AVATARS_BUCKET_ID } from "@/lib/env";
+import { APP_URL, PROFILE_AVATARS_BUCKET_ID, LEGACY_PROFILE_PICTURES_BUCKET_ID } from "@/lib/env";
 import { CustomUser } from "@/types/appwrite";
 import { Profile, ProfileType, UserRole } from "@/types";
 import profileService from "@/services/profileService";
@@ -154,7 +154,7 @@ export function AuthProvider({
       
       // Legacy profile picture handling - keep for backward compatibility
       try {
-        const files = await storage.listFiles(BUCKET_ID);
+        const files = await storage.listFiles(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID);
 
         if (files.total > 0) {
           const pictures = files.files.filter(
@@ -162,7 +162,7 @@ export function AuthProvider({
           );
           if (pictures.length > 0) {
             const previewURL = storage.getFilePreview(
-              BUCKET_ID,
+              PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID,
               pictures[0]?.$id
             );
             setCustomUser((prev) => ({
@@ -220,13 +220,13 @@ export function AuthProvider({
       // Fallback to legacy method if no profile or update failed
       // Delete existing images with user ID as name
       try {
-        const files = await storage.listFiles(BUCKET_ID);
+        const files = await storage.listFiles(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID);
         if (files.total > 0) {
           const pictures = files.files.filter(
             (file) => file.name.split(".")[0] === user.$id
           );
           if (pictures.length > 0) {
-            await storage.deleteFile(BUCKET_ID, pictures[0].$id);
+            await storage.deleteFile(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID, pictures[0].$id);
           }
         }
       } catch (error) {
@@ -243,11 +243,11 @@ export function AuthProvider({
       });
 
       const response = await storage.createFile(
-        BUCKET_ID,
+        PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID,
         ID.unique(),
         newFile
       );
-      const previewURL = storage.getFilePreview(BUCKET_ID, response.$id);
+      const previewURL = storage.getFilePreview(PROFILE_AVATARS_BUCKET_ID || LEGACY_PROFILE_PICTURES_BUCKET_ID, response.$id);
       setCustomUser((prev) => ({
         ...prev,
         profilePicture: previewURL.href,

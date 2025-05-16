@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import WalletCard from '@/components/finance/WalletCard';
 import WalletForm from '@/components/finance/WalletForm';
 import DepositForm from '@/components/finance/DepositForm';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/governance';
 import NotificationService from '@/services/notificationService';
 import { BellIcon } from '@heroicons/react/24/outline';

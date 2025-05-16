@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import PaymentMethodCard from '@/components/finance/PaymentMethodCard';
 import PaymentMethodForm from '@/components/finance/PaymentMethodForm';
 import Modal from '@/components/Modal';

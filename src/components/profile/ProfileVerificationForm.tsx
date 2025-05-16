@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import profileService from '@/services/profileService';
 import { Profile, VerificationType } from '@/types';
 
