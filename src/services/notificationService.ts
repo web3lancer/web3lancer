@@ -418,6 +418,7 @@ class NotificationService extends BaseService {
   }
 }
 
-export default NotificationService;
+// Use a named export instead of default export
+export { NotificationService };
 
 export default NotificationService;

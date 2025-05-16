@@ -1,7 +1,9 @@
-import { Account, Client, Databases, ID, Query, Storage, Teams, Models } from 'appwrite';
+import { Client, Account, Databases, Storage, Functions, Teams, Query, ID, Models } from 'appwrite';
 import { EnvConfig } from '@/config/environment';
 
-// Extended Models.Document type for our services
+/**
+ * Base document interface from Appwrite
+ */
 export interface AppwriteDocument {
   $id: string;
   $createdAt: string;
@@ -10,105 +12,82 @@ export interface AppwriteDocument {
 }
 
 /**
- * AppwriteService - Core service for interacting with Appwrite SDK
- * 
- * This service handles authentication, database operations, and file storage
- * operations using the Appwrite SDK.
+ * AppwriteService
+ * A service wrapper for Appwrite SDK
  */
-export class AppwriteService {
+class AppwriteService {
   private client: Client;
   private account: Account;
   private databases: Databases;
   private storage: Storage;
+  private functions: Functions;
   private teams: Teams;
 
-  constructor(config: EnvConfig) {
-    this.client = new Client()
+  constructor(private config: EnvConfig) {
+    this.client = new Client();
+    this.client
       .setEndpoint(config.appwrite.endpoint)
       .setProject(config.appwrite.projectId);
-    
+
     this.account = new Account(this.client);
     this.databases = new Databases(this.client);
     this.storage = new Storage(this.client);
+    this.functions = new Functions(this.client);
     this.teams = new Teams(this.client);
   }
 
-  // Authentication Methods
+  // Account methods
   async createAccount(email: string, password: string, name: string): Promise<Models.User<Models.Preferences>> {
-    try {
-      return await this.account.create(ID.unique(), email, password, name);
-    } catch (error) {
-      console.error('Appwrite error creating account:', error);
-      throw error;
-    }
+    return this.account.create(ID.unique(), email, password, name);
   }
 
   async createEmailSession(email: string, password: string): Promise<Models.Session> {
-    try {
-      return await this.account.createSession(email, password);
-    } catch (error) {
-      console.error('Appwrite error creating session:', error);
-      throw error;
-    }
+    return this.account.createEmailSession(email, password);
   }
 
-  async getCurrentUser(): Promise<Models.User<Models.Preferences>> {
-    try {
-      return await this.account.get();
-    } catch (error) {
-      console.error('Appwrite error getting current user:', error);
-      throw error;
-    }
+  async getAccount(): Promise<Models.User<Models.Preferences>> {
+    return this.account.get();
   }
 
-  async deleteSessions(): Promise<{}> {
-    try {
-      return await this.account.deleteSessions();
-    } catch (error) {
-      console.error('Appwrite error deleting sessions:', error);
-      throw error;
-    }
+  async deleteSession(sessionId: string): Promise<{}> {
+    return this.account.deleteSession(sessionId);
   }
 
-  // Database Methods
+  async deleteCurrentSession(): Promise<{}> {
+    return this.account.deleteSession('current');
+  }
+
+  // Database methods
   async createDocument<T extends AppwriteDocument>(
     databaseId: string,
     collectionId: string,
     documentId: string,
-    data: object,
+    data: any,
     permissions?: string[]
   ): Promise<T> {
-    try {
-      const response = await this.databases.createDocument(
-        databaseId,
-        collectionId,
-        documentId,
-        data,
-        permissions
-      );
-      return response as unknown as T;
-    } catch (error) {
-      console.error('Appwrite error creating document:', error);
-      throw error;
-    }
+    const response = await this.databases.createDocument(
+      databaseId,
+      collectionId,
+      documentId,
+      data,
+      permissions
+    );
+    return response as unknown as T;
   }
 
   async getDocument<T extends AppwriteDocument>(
     databaseId: string,
     collectionId: string,
-    documentId: string
+    documentId: string,
+    queries?: string[]
   ): Promise<T> {
-    try {
-      const response = await this.databases.getDocument(
-        databaseId,
-        collectionId,
-        documentId
-      );
-      return response as unknown as T;
-    } catch (error) {
-      console.error('Appwrite error getting document:', error);
-      throw error;
-    }
+    const response = await this.databases.getDocument(
+      databaseId,
+      collectionId,
+      documentId,
+      queries
+    );
+    return response as unknown as T;
   }
 
   async listDocuments<T extends AppwriteDocument>(
@@ -116,39 +95,29 @@ export class AppwriteService {
     collectionId: string,
     queries?: string[]
   ): Promise<T[]> {
-    try {
-      const response = await this.databases.listDocuments(
-        databaseId,
-        collectionId,
-        queries
-      );
-      return response.documents as unknown as T[];
-    } catch (error) {
-      console.error('Appwrite error listing documents:', error);
-      throw error;
-    }
+    const response = await this.databases.listDocuments(
+      databaseId,
+      collectionId,
+      queries
+    );
+    return response.documents as unknown as T[];
   }
 
   async updateDocument<T extends AppwriteDocument>(
     databaseId: string,
     collectionId: string,
     documentId: string,
-    data: object,
+    data: any,
     permissions?: string[]
   ): Promise<T> {
-    try {
-      const response = await this.databases.updateDocument(
-        databaseId,
-        collectionId,
-        documentId,
-        data,
-        permissions
-      );
-      return response as unknown as T;
-    } catch (error) {
-      console.error('Appwrite error updating document:', error);
-      throw error;
-    }
+    const response = await this.databases.updateDocument(
+      databaseId,
+      collectionId,
+      documentId,
+      data,
+      permissions
+    );
+    return response as unknown as T;
   }
 
   async deleteDocument(
@@ -156,267 +125,122 @@ export class AppwriteService {
     collectionId: string,
     documentId: string
   ): Promise<{}> {
-    try {
-      return await this.databases.deleteDocument(
-        databaseId,
-        collectionId,
-        documentId
-      );
-    } catch (error) {
-      console.error('Appwrite error deleting document:', error);
-      throw error;
-    }
+    return this.databases.deleteDocument(
+      databaseId,
+      collectionId,
+      documentId
+    );
   }
 
-  // Storage Methods
-  async uploadFile(
+  // Storage methods
+  async createFile(
     bucketId: string,
+    fileId: string,
     file: File,
     permissions?: string[]
   ): Promise<Models.File> {
-    try {
-      return await this.storage.createFile(
-        bucketId,
-        ID.unique(),
-        file,
-        permissions
-      );
-    } catch (error) {
-      console.error('Appwrite error uploading file:', error);
-      throw error;
-    }
+    return this.storage.createFile(
+      bucketId,
+      fileId,
+      file,
+      permissions
+    );
   }
 
-  async getFile(bucketId: string, fileId: string): Promise<Models.File> {
-    try {
-      return await this.storage.getFile(bucketId, fileId);
-    } catch (error) {
-      console.error('Appwrite error getting file:', error);
-      throw error;
-    }
+  async getFileView(
+    bucketId: string,
+    fileId: string
+  ): Promise<string> {
+    return this.storage.getFileView(
+      bucketId,
+      fileId
+    );
   }
 
-  getFilePreview(bucketId: string, fileId: string, width?: number): string {
-    return this.storage.getFilePreview(bucketId, fileId, width);
+  async getFileDownload(
+    bucketId: string,
+    fileId: string
+  ): Promise<string> {
+    return this.storage.getFileDownload(
+      bucketId,
+      fileId
+    );
   }
 
-  getFileDownload(bucketId: string, fileId: string): string {
-    return this.storage.getFileDownload(bucketId, fileId);
+  async deleteFile(
+    bucketId: string,
+    fileId: string
+  ): Promise<{}> {
+    return this.storage.deleteFile(
+      bucketId,
+      fileId
+    );
   }
 
-  async deleteFile(bucketId: string, fileId: string): Promise<{}> {
-    try {
-      return await this.storage.deleteFile(bucketId, fileId);
-    } catch (error) {
-      console.error('Appwrite error deleting file:', error);
-      throw error;
-    }
+  // Functions methods
+  async executeFunction(
+    functionId: string,
+    data?: any
+  ): Promise<Models.Execution> {
+    return this.functions.createExecution(
+      functionId,
+      JSON.stringify(data)
+    );
   }
 
-  // Teams Methods
-  async createTeam(name: string, roles?: string[]): Promise<Models.Team<any>> {
-    try {
-      return await this.teams.create(ID.unique(), name, roles);
-    } catch (error) {
-      console.error('Appwrite error creating team:', error);
-      throw error;
-    }
+  // Teams methods
+  async createTeam(
+    name: string,
+    roles?: string[]
+  ): Promise<Models.Team> {
+    return this.teams.create(
+      ID.unique(),
+      name,
+      roles
+    );
   }
 
-  async getTeam(teamId: string): Promise<Models.Team<any>> {
-    try {
-      return await this.teams.get(teamId);
-    } catch (error) {
-      console.error('Appwrite error getting team:', error);
-      throw error;
-    }
+  async getTeam(
+    teamId: string
+  ): Promise<Models.Team> {
+    return this.teams.get(
+      teamId
+    );
   }
 
-  async listTeams(): Promise<Models.TeamList<any>> {
-    try {
-      return await this.teams.list();
-    } catch (error) {
-      console.error('Appwrite error listing teams:', error);
-      throw error;
-    }
+  async deleteTeam(
+    teamId: string
+  ): Promise<{}> {
+    return this.teams.delete(
+      teamId
+    );
   }
 
   async createTeamMembership(
     teamId: string,
     email: string,
-    roles: string[],
-    url: string
+    roles?: string[],
+    url?: string
   ): Promise<Models.Membership> {
-    try {
-      return await this.teams.createMembership(
-        teamId,
-        [email],
-        roles,
-        url
-      );
-    } catch (error) {
-      console.error('Appwrite error creating team membership:', error);
-      throw error;
-    }
+    return this.teams.createMembership(
+      teamId,
+      [email],
+      roles,
+      url
+    );
   }
-  
-  // Utility Methods
-  
-  /**
-   * Handles pagination for listing documents
-   * 
-   * This method will automatically handle pagination and return all documents
-   * that match the query.
-   */
-  async listAllDocuments<T extends AppwriteDocument>(
-    databaseId: string,
-    collectionId: string,
-    queries: string[] = [],
-    limit: number = 100
-  ): Promise<T[]> {
+
+  // Utility method to get the authenticated user's ID
+  async getCurrentUserId(): Promise<string | null> {
     try {
-      // Add limit to queries
-      const queryWithLimit = [...queries, Query.limit(limit)];
-      
-      // Get first page of results
-      const response = await this.databases.listDocuments(
-        databaseId,
-        collectionId,
-        queryWithLimit
-      );
-      
-      let allDocuments = response.documents as unknown as T[];
-      
-      // If there are more documents, paginate through them
-      while (response.documents.length === limit) {
-        // Get the last document ID from current batch
-        const lastId = response.documents[response.documents.length - 1].$id;
-        
-        // Add cursor query for pagination
-        const nextQuery = [...queries, Query.limit(limit), Query.cursorAfter(lastId)];
-        
-        // Get next page
-        const nextResponse = await this.databases.listDocuments(
-          databaseId,
-          collectionId,
-          nextQuery
-        );
-        
-        // Add new documents to result array
-        allDocuments = [...allDocuments, ...(nextResponse.documents as unknown as T[])];
-        
-        // Update response for next iteration check
-        response.documents = nextResponse.documents;
-      }
-      
-      return allDocuments;
+      const account = await this.getAccount();
+      return account.$id;
     } catch (error) {
-      console.error('Appwrite error listing all documents:', error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Performs a bulk operation on documents
-   * 
-   * This method is useful for performing the same operation on multiple documents
-   * with reduced API calls using Promise.all for parallel execution.
-   */
-  async bulkOperation<T>(
-    operation: (item: any) => Promise<T>,
-    items: any[]
-  ): Promise<T[]> {
-    try {
-      return await Promise.all(items.map(item => operation(item)));
-    } catch (error) {
-      console.error('Appwrite error performing bulk operation:', error);
-      throw error;
+      console.error('Error getting current user ID:', error);
+      return null;
     }
   }
 }
 
-// Export the Appwrite ID and Query for convenience
-export { ID, Query };
-
-export default AppwriteService;
-  
-  // Utility Methods
-  
-  /**
-   * Handles pagination for listing documents
-   * 
-   * This method will automatically handle pagination and return all documents
-   * that match the query.
-   */
-  async listAllDocuments<T extends AppwriteDocument>(
-    databaseId: string,
-    collectionId: string,
-    queries: string[] = [],
-    limit: number = 100
-  ): Promise<T[]> {
-    try {
-      // Add limit to queries
-      const queryWithLimit = [...queries, Query.limit(limit)];
-      
-      // Get first page of results
-      const response = await this.databases.listDocuments(
-        databaseId,
-        collectionId,
-        queryWithLimit
-      );
-      
-      let allDocuments = response.documents as unknown as T[];
-      
-      // If there are more documents, paginate through them
-      while (response.documents.length === limit) {
-        // Get the last document ID from current batch
-        const lastId = response.documents[response.documents.length - 1].$id;
-        
-        // Add cursor query for pagination
-        const nextQuery = [...queries, Query.limit(limit), Query.cursorAfter(lastId)];
-        
-        // Get next page
-        const nextResponse = await this.databases.listDocuments(
-          databaseId,
-          collectionId,
-          nextQuery
-        );
-        
-        // Add new documents to result array
-        allDocuments = [...allDocuments, ...(nextResponse.documents as unknown as T[])];
-        
-        // Update response for next iteration check
-        response.documents = nextResponse.documents;
-      }
-      
-      return allDocuments;
-    } catch (error) {
-      console.error('Appwrite error listing all documents:', error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Performs a bulk operation on documents
-   * 
-   * This method is useful for performing the same operation on multiple documents
-   * with reduced API calls using Promise.all for parallel execution.
-   */
-  async bulkOperation<T>(
-    operation: (item: any) => Promise<T>,
-    items: any[]
-  ): Promise<T[]> {
-    try {
-      return await Promise.all(items.map(item => operation(item)));
-    } catch (error) {
-      console.error('Appwrite error performing bulk operation:', error);
-      throw error;
-    }
-  }
-}
-}
-
-// Export the Appwrite ID and Query for convenience
-export { ID, Query };
-
-export default AppwriteService;
+// Export AppwriteService class and Appwrite SDK components that we need
+export { AppwriteService, ID, Query };
