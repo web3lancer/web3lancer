@@ -8,6 +8,7 @@ import BrowseProjectsTab from "@/components/projects/BrowseProjectsTab";
 import PostJobTab from "@/components/projects/PostJobTab";
 import CreateProjectTab from "@/components/projects/CreateProjectTab";
 import MyListingsTab from "@/components/projects/MyListingsTab";
+import { JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID, PROJECTS_DATABASE_ID, PROJECT_POSTINGS_COLLECTION_ID } from '@/lib/env';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -66,8 +67,8 @@ export default function ProjectsPage() {
     setError(null);
     try {
       const response = await databases.listDocuments(
-        process.env.NEXT_PUBLIC_DATABASES_JOBS,
-        process.env.NEXT_PUBLIC_COLLECTIONS_JOBS
+        JOBS_DATABASE_ID,
+        JOB_POSTINGS_COLLECTION_ID
       );
       setJobs(response.documents);
     } catch (error) {
@@ -83,8 +84,8 @@ export default function ProjectsPage() {
     setError(null);
     try {
       const response = await databases.listDocuments(
-        process.env.NEXT_PUBLIC_DATABASES_PROJECTS,
-        process.env.NEXT_PUBLIC_COLLECTIONS_PROJECTS
+        PROJECTS_DATABASE_ID,
+        PROJECT_POSTINGS_COLLECTION_ID
       );
       setProjects(response.documents);
     } catch (error) {
