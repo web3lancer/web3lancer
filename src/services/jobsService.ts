@@ -1,3 +1,11 @@
+  // Increment job view count (from JobService)
+  async incrementJobViewCount(jobId: string): Promise<JobPosting> {
+    const job = await this.getJobPosting(jobId);
+    if (!job) throw new Error('Job not found');
+    return this.updateJobPosting(jobId, {
+      viewsCount: (job.viewsCount || 0) + 1
+    });
+  }
 import BaseService from './baseService';
 import { AppwriteService, ID, Query } from './appwriteService';
 import { EnvConfig } from '@/config/environment';
