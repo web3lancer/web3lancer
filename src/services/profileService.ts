@@ -1,3 +1,30 @@
+// Get reviews for a specific project
+import { Review } from '@/types';
+import { Query } from 'appwrite';
+import * as env from '@/lib/env';
+
+// Add this function to the ProfileService class
+class ProfileService extends BaseService {
+  // ...existing methods...
+
+  // Get reviews for a specific project
+  async getProjectReviews(projectId: string): Promise<Review[]> {
+    try {
+      const reviews = await this.appwrite.listDocuments<Review>(
+        env.JOBS_DATABASE_ID,
+        env.USER_REVIEWS_COLLECTION_ID,
+        [
+          Query.equal('projectId', projectId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return reviews;
+    } catch (error) {
+      console.error('Error fetching project reviews:', error);
+      return [];
+    }
+  }
+}
 import BaseService from './baseService';
 import { AppwriteService, ID, Query } from './appwriteService';
 import { EnvConfig } from '@/config/environment';

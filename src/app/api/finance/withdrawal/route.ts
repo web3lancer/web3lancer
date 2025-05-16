@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { databases, ID } from '@/app/appwrite';
-import FinanceEnv from '@/lib/finance/financeEnv';
+import {
+  FINANCE_DATABASE_ID,
+  USER_WALLETS_COLLECTION_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  USER_PAYMENT_METHODS_COLLECTION_ID,
+  ESCROW_TRANSACTIONS_COLLECTION_ID
+} from '@/lib/env';
 import { calculatePlatformFee } from '@/utils/financeUtils';
 import { getSession } from '@/utils/auth';
 
@@ -10,7 +16,11 @@ const {
   userWalletsCollection,
   platformTransactionsCollection,
   userPaymentMethodsCollection
-} = FinanceEnv.getAll();
+const financeDatabase = FINANCE_DATABASE_ID;
+const userWalletsCollection = USER_WALLETS_COLLECTION_ID;
+const platformTransactionsCollection = PLATFORM_TRANSACTIONS_COLLECTION_ID;
+const userPaymentMethodsCollection = USER_PAYMENT_METHODS_COLLECTION_ID;
+const escrowTransactionsCollection = ESCROW_TRANSACTIONS_COLLECTION_ID;
 
 export async function POST(request: NextRequest) {
   try {

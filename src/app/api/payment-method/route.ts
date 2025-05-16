@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { databases, ID, Query } from '@/app/appwrite';
-import FinanceEnv from '@/lib/finance/financeEnv';
+import {
+  FINANCE_DATABASE_ID,
+  USER_WALLETS_COLLECTION_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  USER_PAYMENT_METHODS_COLLECTION_ID,
+  ESCROW_TRANSACTIONS_COLLECTION_ID
+} from '@/lib/env';
 
 // Get environment variables
 const {
   financeDatabase,
   userPaymentMethodsCollection,
-} = FinanceEnv.getAll();
+const financeDatabase = FINANCE_DATABASE_ID;
+const userWalletsCollection = USER_WALLETS_COLLECTION_ID;
+const platformTransactionsCollection = PLATFORM_TRANSACTIONS_COLLECTION_ID;
+const userPaymentMethodsCollection = USER_PAYMENT_METHODS_COLLECTION_ID;
+const escrowTransactionsCollection = ESCROW_TRANSACTIONS_COLLECTION_ID;
 
 // Helper function to get user ID from session
 // In a real implementation, replace with your auth mechanism
