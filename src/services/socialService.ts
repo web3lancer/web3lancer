@@ -1,36 +1,36 @@
-import { Client, ID, Query } from 'appwrite';
-import { Connection } from '@/types/content';
+import { Client, ID, Query, Databases, Storage } from 'appwrite';
+import { Connection, Bookmark } from '@/types/social'; 
 import * as env from '@/lib/env';
 
 class SocialService {
   private client: Client;
+  private databases: Databases;
+  private storage: Storage;
   
   constructor() {
     this.client = new Client();
     this.client
-      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+      .setEndpoint(env.ENDPOINT) 
+      .setProject(env.PROJECT_ID); 
+    this.databases = new Databases(this.client);
+    this.storage = new Storage(this.client);
   }
   
+  // --- User Connections --- 
   async followUser(followerId: string, followingId: string): Promise<Connection> {
     try {
-      const response = await fetch('/api/v1/social/follow', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await this.databases.createDocument(
+        env.SOCIAL_DATABASE_ID,
+        env.USER_CONNECTIONS_COLLECTION_ID,
+        ID.unique(),
+        {
           followerId,
-          followingId
-        }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to follow user');
-      }
-      
-      return await response.json();
+          followingId,
+          connectionType: 'follow',
+          status: 'active',
+        }
+      );
+      return response as unknown as Connection; // Cast to unknown first, then to Connection
     } catch (error) {
       console.error('Error in followUser:', error);
       throw error;
@@ -39,20 +39,23 @@ class SocialService {
   
   async unfollowUser(followerId: string, followingId: string): Promise<void> {
     try {
-      const response = await fetch('/api/v1/social/unfollow', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          followerId,
-          followingId
-        }),
-      });
+      const connections = await this.databases.listDocuments(
+        env.SOCIAL_DATABASE_ID,
+        env.USER_CONNECTIONS_COLLECTION_ID,
+        [
+          Query.equal('followerId', followerId),
+          Query.equal('followingId', followingId),
+          Query.equal('connectionType', 'follow'),
+        ]
+      );
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to unfollow user');
+      if (connections.documents.length > 0) {
+        const connectionId = connections.documents[0].$id;
+        await this.databases.deleteDocument(
+          env.SOCIAL_DATABASE_ID,
+          env.USER_CONNECTIONS_COLLECTION_ID,
+          connectionId
+        );
       }
     } catch (error) {
       console.error('Error in unfollowUser:', error);
@@ -62,31 +65,35 @@ class SocialService {
   
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
     try {
-      const response = await fetch(`/api/v1/social/following?followerId=${followerId}&followingId=${followingId}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to check follow status');
-      }
-      
-      const result = await response.json();
-      return result.isFollowing;
+      const connections = await this.databases.listDocuments(
+        env.SOCIAL_DATABASE_ID,
+        env.USER_CONNECTIONS_COLLECTION_ID,
+        [
+          Query.equal('followerId', followerId),
+          Query.equal('followingId', followingId),
+          Query.equal('connectionType', 'follow'),
+          Query.equal('status', 'active'),
+        ]
+      );
+      return connections.documents.length > 0;
     } catch (error) {
       console.error('Error in isFollowing:', error);
-      throw error;
+      return false; 
     }
   }
   
   async getFollowers(profileId: string): Promise<Connection[]> {
     try {
-      const response = await fetch(`/api/v1/social/followers/${profileId}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to get followers');
-      }
-      
-      return await response.json();
+      const response = await this.databases.listDocuments(
+        env.SOCIAL_DATABASE_ID,
+        env.USER_CONNECTIONS_COLLECTION_ID,
+        [
+          Query.equal('followingId', profileId),
+          Query.equal('connectionType', 'follow'),
+          Query.equal('status', 'active'),
+        ]
+      );
+      return response.documents as unknown as Connection[]; // Cast to unknown first
     } catch (error) {
       console.error('Error in getFollowers:', error);
       throw error;
@@ -95,132 +102,120 @@ class SocialService {
   
   async getFollowing(profileId: string): Promise<Connection[]> {
     try {
-      const response = await fetch(`/api/v1/social/following/${profileId}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to get following');
-      }
-      
-      return await response.json();
+      const response = await this.databases.listDocuments(
+        env.SOCIAL_DATABASE_ID,
+        env.USER_CONNECTIONS_COLLECTION_ID,
+        [
+          Query.equal('followerId', profileId),
+          Query.equal('connectionType', 'follow'),
+          Query.equal('status', 'active'),
+        ]
+      );
+      return response.documents as unknown as Connection[]; // Cast to unknown first
     } catch (error) {
       console.error('Error in getFollowing:', error);
       throw error;
     }
   }
   
-  async connectWithUser(requesterId: string, receiverId: string): Promise<Connection> {
+  async sendMessage(chatId: string, senderId: string, receiverId: string, messageContent: string, attachments?: File[]): Promise<any> {
     try {
-      const response = await fetch('/api/v1/social/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          requesterId,
-          receiverId
-        }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to send connection request');
+      let attachmentFileIds: string[] = [];
+      if (attachments && attachments.length > 0) {
+        for (const file of attachments) {
+          const uploadedFile = await this.storage.createFile(
+            env.MESSAGE_ATTACHMENTS_BUCKET_ID, 
+            ID.unique(),
+            file
+          );
+          attachmentFileIds.push(uploadedFile.$id);
+        }
       }
-      
-      return await response.json();
+      const response = await this.databases.createDocument(
+        env.SOCIAL_DATABASE_ID,
+        env.DIRECT_MESSAGES_COLLECTION_ID,
+        ID.unique(),
+        {
+          chatId,
+          senderId,
+          receiverId, 
+          messageContent,
+          mediaFileIds: attachmentFileIds.length > 0 ? attachmentFileIds : undefined,
+          isRead: false,
+        }
+      );
+      return response;
     } catch (error) {
-      console.error('Error in connectWithUser:', error);
+      console.error('Error sending message:', error);
       throw error;
     }
   }
-  
-  async acceptConnection(connectionId: string): Promise<Connection> {
+
+  async getMessages(chatId: string, limit = 25, offset = 0): Promise<any[]> {
     try {
-      const response = await fetch(`/api/v1/social/connect/${connectionId}/accept`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to accept connection');
-      }
-      
-      return await response.json();
+      const response = await this.databases.listDocuments(
+        env.SOCIAL_DATABASE_ID,
+        env.DIRECT_MESSAGES_COLLECTION_ID,
+        [
+          Query.equal('chatId', chatId),
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit),
+          Query.offset(offset),
+        ]
+      );
+      return response.documents;
     } catch (error) {
-      console.error('Error in acceptConnection:', error);
+      console.error('Error fetching messages:', error);
       throw error;
     }
   }
-  
-  async rejectConnection(connectionId: string): Promise<Connection> {
+
+  async addBookmark(profileId: string, itemId: string, itemType: Bookmark['itemType']): Promise<Bookmark> {
     try {
-      const response = await fetch(`/api/v1/social/connect/${connectionId}/reject`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to reject connection');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error in rejectConnection:', error);
-      throw error;
-    }
-  }
-  
-  async disconnectFromUser(profileId: string, connectedProfileId: string): Promise<void> {
-    try {
-      const response = await fetch('/api/v1/social/disconnect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await this.databases.createDocument(
+        env.CONTENT_DATABASE_ID, 
+        env.USER_BOOKMARKS_COLLECTION_ID,
+        ID.unique(),
+        {
           profileId,
-          connectedProfileId
-        }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to disconnect from user');
-      }
+          itemId,
+          itemType,
+        }
+      );
+      return response as unknown as Bookmark; // Cast to unknown first
     } catch (error) {
-      console.error('Error in disconnectFromUser:', error);
+      console.error('Error adding bookmark:', error);
       throw error;
     }
   }
-  
-  async getConnections(profileId: string): Promise<Connection[]> {
+
+  async removeBookmark(bookmarkId: string): Promise<void> {
     try {
-      const response = await fetch(`/api/v1/social/connections/${profileId}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to get connections');
-      }
-      
-      return await response.json();
+      await this.databases.deleteDocument(
+        env.CONTENT_DATABASE_ID,
+        env.USER_BOOKMARKS_COLLECTION_ID,
+        bookmarkId
+      );
     } catch (error) {
-      console.error('Error in getConnections:', error);
+      console.error('Error removing bookmark:', error);
       throw error;
     }
   }
-  
-  async getPendingConnectionRequests(profileId: string): Promise<Connection[]> {
+
+  async getUserBookmarks(profileId: string, itemType?: Bookmark['itemType']): Promise<Bookmark[]> {
     try {
-      const response = await fetch(`/api/v1/social/connections/pending/${profileId}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to get pending connection requests');
+      const queries: string[] = [Query.equal('profileId', profileId)];
+      if (itemType) {
+        queries.push(Query.equal('itemType', itemType));
       }
-      
-      return await response.json();
+      const response = await this.databases.listDocuments(
+        env.CONTENT_DATABASE_ID,
+        env.USER_BOOKMARKS_COLLECTION_ID,
+        queries
+      );
+      return response.documents as unknown as Bookmark[]; // Cast to unknown first
     } catch (error) {
-      console.error('Error in getPendingConnectionRequests:', error);
+      console.error('Error fetching user bookmarks:', error);
       throw error;
     }
   }

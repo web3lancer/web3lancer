@@ -6,10 +6,13 @@ export interface Post {
   authorId: string;
   content: string;
   mediaFileIds?: string[];
+  parentPostId?: string; // Added for threaded comments/replies
   tags?: string[];
   visibility: 'public' | 'connections' | 'private';
   likesCount: number;
   commentsCount: number;
+  repostCount: number; // Added
+  bookmarkCount: number; // Added
   isLikedByCurrentUser?: boolean;
   createdAt?: string; // Redundant with $createdAt but kept for compatibility
   updatedAt?: string; // Redundant with $updatedAt but kept for compatibility
@@ -21,8 +24,8 @@ export interface PostInteraction {
   $updatedAt: string;
   postId: string;
   userId: string;
-  interactionType: 'like' | 'comment';
-  comment?: string;
+  interactionType: 'like' | 'repost' | 'bookmark' | 'comment_reference'; // Expanded
+  commentId?: string; // Added to reference a comment post
   createdAt: string;
 }
 
@@ -50,7 +53,7 @@ export interface Bookmark {
   $updatedAt: string;
   profileId: string;
   itemId: string;
-  itemType: 'post' | 'job' | 'portfolio' | 'profile';
+  itemType: 'post' | 'job' | 'portfolio' | 'profile' | 'article'; // Added 'article'
   createdAt: string;
 }
 
@@ -61,8 +64,8 @@ export interface Connection {
   $updatedAt: string;
   followerId: string;
   followingId: string;
-  connectionType: 'follow' | 'connect';
-  status: 'pending' | 'active' | 'rejected';
+  connectionType: 'follow' | 'friend'; // Changed 'connect' to 'friend'
+  status: 'pending' | 'active' | 'rejected' | 'blocked'; // Added 'blocked'
   createdAt: string;
   updatedAt: string;
 }
