@@ -6,7 +6,6 @@
  */
 
 import { databases, ID } from '@/utils/api';
-import { APPWRITE_CONFIG } from '@/lib/env';
 import { parseEther, formatEther } from '@/utils/transactionUtils';
 import { generateWalletAddress } from '@/utils/walletUtils';
 
@@ -21,8 +20,8 @@ export async function createWallet(
   try {
     // Check if user already has a wallet of this type
     const existingWallets = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_WALLETS,
       [databases.Query.equal('userId', userId), databases.Query.equal('walletType', walletType)]
     );
     
@@ -42,8 +41,8 @@ export async function createWallet(
     const walletId = ID.unique();
     
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_WALLETS,
       ID.unique(),
       {
         walletId,
@@ -57,8 +56,8 @@ export async function createWallet(
     
     // Initialize with zero balance for ETH
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_BALANCES,
       ID.unique(),
       {
         balanceId: ID.unique(),
@@ -82,8 +81,8 @@ export async function createWallet(
 export async function getUserWallets(userId: string) {
   try {
     const wallets = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.WALLETS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_WALLETS,
       [databases.Query.equal('userId', userId)]
     );
     
@@ -100,8 +99,8 @@ export async function getUserWallets(userId: string) {
 export async function getWalletBalances(walletId: string) {
   try {
     const balances = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_BALANCES,
       [databases.Query.equal('walletId', walletId)]
     );
     
@@ -128,8 +127,8 @@ export async function getUserCryptoTransactions(userId: string) {
     const transactions = await Promise.all(
       walletIds.map(async (walletId) => {
         const txs = await databases.listDocuments(
-          APPWRITE_CONFIG.DATABASES.WALLET,
-          APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
+          process.env.DATABASES_WALLET,
+          process.env.COLLECTIONS_CRYPTO_TRANSACTIONS,
           [databases.Query.equal('walletId', walletId)]
         );
         return txs.documents;
@@ -173,8 +172,8 @@ export async function recordCryptoTransaction(
     // Create general transaction record
     const transactionId = ID.unique();
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+      process.env.DATABASES_TRANSACTIONS,
+      process.env.COLLECTIONS_TRANSACTIONS,
       ID.unique(),
       {
         userId,
@@ -188,8 +187,8 @@ export async function recordCryptoTransaction(
     
     // Create detailed crypto transaction record
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS,
       ID.unique(),
       {
         cryptoTxId: ID.unique(),
@@ -223,8 +222,8 @@ export async function updateTransactionStatus(
   try {
     // Find the crypto transaction
     const txResponse = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS,
       [databases.Query.equal('txHash', txHash)]
     );
     
@@ -236,8 +235,8 @@ export async function updateTransactionStatus(
     
     // Update crypto transaction status
     await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.CRYPTO_TRANSACTIONS,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_CRYPTO_TRANSACTIONS,
       cryptoTx.$id,
       {
         status,
@@ -248,16 +247,16 @@ export async function updateTransactionStatus(
     // Also update the main transaction status
     const transactionId = cryptoTx.transactionId;
     const mainTxResponse = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+      process.env.DATABASES_TRANSACTIONS,
+      process.env.COLLECTIONS_TRANSACTIONS,
       [databases.Query.equal('transactionId', transactionId)]
     );
     
     if (mainTxResponse.documents.length > 0) {
       const mainTx = mainTxResponse.documents[0];
       await databases.updateDocument(
-        APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
-        APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+        process.env.DATABASES_TRANSACTIONS,
+        process.env.COLLECTIONS_TRANSACTIONS,
         mainTx.$id,
         { status }
       );
@@ -267,8 +266,8 @@ export async function updateTransactionStatus(
     const notification = `Your transaction ${txHash.substring(0, 6)}...${txHash.substring(txHash.length - 4)} is now ${status}`;
     
     await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
-      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
+      process.env.DATABASES_NOTIFICATIONS,
+      process.env.COLLECTIONS_NOTIFICATIONS,
       ID.unique(),
       {
         userId: cryptoTx.userId || '', // This might need to be fetched from another query if not stored
@@ -298,8 +297,8 @@ export async function updateBalance(
   try {
     // Check if balance record exists
     const balances = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.WALLET,
-      APPWRITE_CONFIG.COLLECTIONS.BALANCES,
+      process.env.DATABASES_WALLET,
+      process.env.COLLECTIONS_BALANCES,
       [
         databases.Query.equal('walletId', walletId), 
         databases.Query.equal('currency', currency)
@@ -312,8 +311,8 @@ export async function updateBalance(
       // Update existing balance
       const balance = balances.documents[0];
       await databases.updateDocument(
-        APPWRITE_CONFIG.DATABASES.WALLET,
-        APPWRITE_CONFIG.COLLECTIONS.BALANCES,
+        process.env.DATABASES_WALLET,
+        process.env.COLLECTIONS_BALANCES,
         balance.$id,
         {
           amount: newAmount,
@@ -323,8 +322,8 @@ export async function updateBalance(
     } else {
       // Create new balance record
       await databases.createDocument(
-        APPWRITE_CONFIG.DATABASES.WALLET,
-        APPWRITE_CONFIG.COLLECTIONS.BALANCES,
+        process.env.DATABASES_WALLET,
+        process.env.COLLECTIONS_BALANCES,
         ID.unique(),
         {
           balanceId: ID.unique(),
@@ -353,8 +352,8 @@ export async function addCryptoPaymentMethod(
 ) {
   try {
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      process.env.DATABASES_PAYMENT_METHODS,
+      process.env.COLLECTIONS_PAYMENT_METHODS,
       ID.unique(),
       {
         paymentMethodId: ID.unique(),
@@ -380,6 +379,7 @@ export async function addCryptoPaymentMethod(
 export async function getUserCryptoPaymentMethods(userId: string) {
   try {
     const response = await databases.listDocuments(
+      process.env.DATABASES_PAYMENT_METHODS,
       APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
       APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
       [

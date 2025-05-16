@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { databases, ID } from '@/utils/api';
-import { APPWRITE_CONFIG } from '@/lib/env';
 import { Models } from 'appwrite';
 
 interface WalletData {
@@ -27,8 +26,8 @@ export const useWallet = (userId: string) => {
         
         // Query for the user's wallet
         const walletsResponse = await databases.listDocuments(
-          APPWRITE_CONFIG.DATABASES.WALLET as string, 
-          APPWRITE_CONFIG.COLLECTIONS.WALLETS as string,
+          process.env.NEXT_PUBLIC_DATABASES_WALLET as string, 
+          process.env.NEXT_PUBLIC_COLLECTIONS_WALLETS as string,
           [/* Query.equal('userId', userId) */] // Commented out for mock implementation
         );
         
@@ -77,8 +76,8 @@ export const useWallet = (userId: string) => {
       };
       
       const response = await databases.createDocument(
-        APPWRITE_CONFIG.DATABASES.WALLET as string,
-        APPWRITE_CONFIG.COLLECTIONS.WALLETS as string,
+        process.env.NEXT_PUBLIC_DATABASES_WALLET as string,
+        process.env.NEXT_PUBLIC_COLLECTIONS_WALLETS as string,
         ID.unique(),
         newWallet
       );
