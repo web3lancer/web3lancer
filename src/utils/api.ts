@@ -1,6 +1,21 @@
 import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor, AppwriteException } from 'appwrite'; // Add AppwriteException
 import { Models } from 'appwrite'; // Import Models for type hints
-import { APPWRITE_CONFIG, APP_CONFIG } from '@/lib/env';
+import {
+  PROFILES_DATABASE_ID,
+  USER_PROFILES_COLLECTION_ID,
+  CONTENT_DATABASE_ID,
+  USER_BOOKMARKS_COLLECTION_ID,
+  FINANCE_DATABASE_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  JOBS_DATABASE_ID,
+  JOB_POSTINGS_COLLECTION_ID,
+  SOCIAL_DATABASE_ID,
+  DIRECT_MESSAGES_COLLECTION_ID,
+  ACTIVITY_DATABASE_ID,
+  USER_NOTIFICATIONS_COLLECTION_ID,
+  USER_PORTFOLIOS_COLLECTION_ID, // Assuming projects map to portfolios
+  USER_PAYMENT_METHODS_COLLECTION_ID
+} from '@/lib/env';
 
 // Initialize client according to Appwrite docs
 const client = new Client();
@@ -510,8 +525,8 @@ async function createMfaEmailVerification() {
 async function getUserProfile(userId: string): Promise<Models.Document | null> { // Add return type
   try {
     const profile = await databases.getDocument(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
-      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId
     );
     return profile;
@@ -528,8 +543,8 @@ async function getUserProfile(userId: string): Promise<Models.Document | null> {
 async function getUserProfileByUsername(username: string): Promise<Models.Document | null> {
   try {
     const response = await databases.listDocuments(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
-      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       [Query.equal('username', username)]
     );
     if (response.documents.length > 0) {
@@ -545,8 +560,8 @@ async function getUserProfileByUsername(username: string): Promise<Models.Docume
 async function checkUsernameAvailability(username: string): Promise<boolean> {
   try {
     const response = await databases.listDocuments(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
-      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       [Query.equal('username', username)]
     );
     return response.documents.length === 0; // True if username is available
@@ -567,8 +582,8 @@ async function createUserProfile(userId: string, userData: Models.User<Models.Pr
     // Appwrite document ID for profiles should be the same as the user ID for easy lookup
     try {
       const existingProfile = await databases.getDocument(
-        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
-        process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+        PROFILES_DATABASE_ID,
+        USER_PROFILES_COLLECTION_ID,
         userId
       );
       if (existingProfile) {
@@ -596,8 +611,8 @@ async function createUserProfile(userId: string, userData: Models.User<Models.Pr
 
     // Use the userId as the documentId for the profile document
     const profile = await databases.createDocument(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
-      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId, // Use user's ID as document ID for the profile
       profileData
     );
@@ -629,8 +644,8 @@ async function updateUserProfile(userId: string, data: any) {
     }
 
     const profile = await databases.updateDocument(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_USERS_ID!, // users
-      process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_PROFILES_ID!, // Profiles
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId, // Document ID is the user's ID
       {
         ...data,
@@ -651,8 +666,8 @@ async function addBookmark(userId: string, jobId: string) {
   try {
     // Check if bookmark already exists
     const existing = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.BOOKMARKS,
-      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS,
+      CONTENT_DATABASE_ID,
+      USER_BOOKMARKS_COLLECTION_ID,
       [Query.equal('userId', userId), Query.equal('jobId', jobId)]
     );
 
@@ -661,8 +676,8 @@ async function addBookmark(userId: string, jobId: string) {
     }
 
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.BOOKMARKS, 
-      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS, 
+      CONTENT_DATABASE_ID, 
+      USER_BOOKMARKS_COLLECTION_ID, 
       ID.unique(), 
       {
         userId,
@@ -683,8 +698,8 @@ async function addBookmark(userId: string, jobId: string) {
 async function removeBookmark(bookmarkId: string) {
   try {
     await databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASES.BOOKMARKS,
-      APPWRITE_CONFIG.COLLECTIONS.BOOKMARKS,
+      CONTENT_DATABASE_ID,
+      USER_BOOKMARKS_COLLECTION_ID,
       bookmarkId
     );
     console.log('Bookmark removed successfully');
@@ -701,8 +716,8 @@ async function removeBookmark(bookmarkId: string) {
 async function addTransaction(userId: string, amount: number, type: string, status: string, transactionId: string) {
   try {
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.TRANSACTIONS,
-      APPWRITE_CONFIG.COLLECTIONS.TRANSACTIONS,
+      FINANCE_DATABASE_ID,
+      PLATFORM_TRANSACTIONS_COLLECTION_ID,
       ID.unique(),
       {
         userId,
@@ -727,8 +742,8 @@ async function addTransaction(userId: string, amount: number, type: string, stat
 async function fetchJobs() {
   try {
     const response = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.JOBS,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
     );
     return response;
   } catch (error) {
@@ -740,8 +755,8 @@ async function fetchJobs() {
 async function fetchJob(jobId: string) {
   try {
     const response = await databases.getDocument(
-      APPWRITE_CONFIG.DATABASES.JOBS,
-      APPWRITE_CONFIG.COLLECTIONS.JOBS,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       jobId
     );
     return response;
@@ -757,8 +772,8 @@ async function fetchJob(jobId: string) {
 async function sendMessage(senderId: string, receiverId: string, message: string, status: string) {
   try {
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.MESSAGES,
-      APPWRITE_CONFIG.COLLECTIONS.MESSAGES,
+      SOCIAL_DATABASE_ID,
+      DIRECT_MESSAGES_COLLECTION_ID,
       ID.unique(),
       {
         senderId,
@@ -787,8 +802,8 @@ async function sendMessage(senderId: string, receiverId: string, message: string
 async function addNotification(userId: string, message: string, type: string) {
   try {
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
-      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
+      ACTIVITY_DATABASE_ID,
+      USER_NOTIFICATIONS_COLLECTION_ID,
       ID.unique(),
       {
         userId,
@@ -810,8 +825,8 @@ async function addNotification(userId: string, message: string, type: string) {
 async function markNotificationAsRead(notificationId: string) {
   try {
     const response = await databases.updateDocument(
-      APPWRITE_CONFIG.DATABASES.NOTIFICATIONS,
-      APPWRITE_CONFIG.COLLECTIONS.NOTIFICATIONS,
+      ACTIVITY_DATABASE_ID,
+      USER_NOTIFICATIONS_COLLECTION_ID,
       notificationId,
       { read: true }
     );
@@ -828,8 +843,8 @@ async function markNotificationAsRead(notificationId: string) {
 async function addProject(ownerId: string, title: string, description: string, participants: string[], status: string) {
   try {
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.PROJECTS,
-      APPWRITE_CONFIG.COLLECTIONS.PROJECTS,
+      CONTENT_DATABASE_ID,
+      USER_PORTFOLIOS_COLLECTION_ID,
       ID.unique(),
       {
         ownerId,
@@ -853,8 +868,8 @@ async function addProject(ownerId: string, title: string, description: string, p
 async function getProjects(userId: string) {
   try {
     const response = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.PROJECTS,
-      APPWRITE_CONFIG.COLLECTIONS.PROJECTS,
+      CONTENT_DATABASE_ID,
+      USER_PORTFOLIOS_COLLECTION_ID,
       [Query.equal('ownerId', userId)]
     );
     return response.documents;
@@ -875,8 +890,8 @@ async function addPaymentMethod(
 ) {
   try {
     const response = await databases.createDocument(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      FINANCE_DATABASE_ID,
+      USER_PAYMENT_METHODS_COLLECTION_ID,
       ID.unique(),
       {
         userId,
@@ -899,8 +914,8 @@ async function addPaymentMethod(
 async function getUserPaymentMethods(userId: string) {
   try {
     const response = await databases.listDocuments(
-      APPWRITE_CONFIG.DATABASES.PAYMENT_METHODS,
-      APPWRITE_CONFIG.COLLECTIONS.PAYMENT_METHODS,
+      FINANCE_DATABASE_ID,
+      USER_PAYMENT_METHODS_COLLECTION_ID,
       [Query.equal('userId', userId)]
     );
     return response.documents;
@@ -1065,21 +1080,6 @@ async function ensureValidOAuthToken() {
  */
 async function addUser(email: string, password: string, name: string) {
   try {
-    const response = await account.create(ID.unique(), email, password, name);
-    console.log('User added successfully:', response);
-    return response;
-  } catch (error) {
-    console.error('Error adding user:', error);
-    throw new Error(`Failed to add user: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Utility functions for safe document retrieval
- */
-
-/**
- * Safely get a document with error handling
  * @param databaseId Database ID
  * @param collectionId Collection ID
  * @param documentId Document ID
