@@ -1,13 +1,44 @@
 import BaseService from './baseService';
-import { AppwriteService, ID, Query } from './appwriteService';
+import { AppwriteService, ID, Query, AppwriteDocument } from './appwriteService';
 import { EnvConfig } from '@/config/environment';
-import { Notification, ActivityLog } from '@/types/activity';
+
+// Define local interfaces to avoid namespace conflicts
+interface NotificationModel extends AppwriteDocument {
+  userId: string; // User ID who receives the notification
+  title: string;
+  message: string;
+  type: string; // 'job_application', 'message', 'payment', etc.
+  isRead: boolean;
+  readAt?: string; // ISO date string when notification was read
+  referenceType?: string; // 'job', 'contract', 'message', etc.
+  referenceId?: string; // ID of the reference object
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  actions?: {
+    label: string;
+    url: string;
+    type?: 'primary' | 'secondary' | 'danger';
+    metadata?: Record<string, any>;
+  }[];
+  expiresAt?: string; // ISO date string for when notification expires
+  metadata?: Record<string, any>;
+}
+
+interface ActivityLogModel extends AppwriteDocument {
+  userId: string; // User who performed the action
+  action: string; // The action that was performed
+  timestamp: string; // ISO date string
+  details?: string;
+  ip?: string;
+  userAgent?: string;
+  resourceType?: string; // 'job', 'contract', 'payment', etc.
+  resourceId?: string; // ID of the resource
+  metadata?: Record<string, any>;
+}
 
 /**
- * NotificationService - Handles user notifications and activity logs
+ * NotificationService
  * 
- * This service manages the creation, retrieval, and management of
- * user notifications and system activity logs.
+ * Manages user notifications and activity logs
  */
 class NotificationService extends BaseService {
   constructor(
@@ -17,25 +48,43 @@ class NotificationService extends BaseService {
     super(appwrite, config);
   }
 
-  // Notifications
-  async createNotification(data: Omit<Notification, '$id' | '$createdAt' | '$updatedAt'>): Promise<Notification> {
+  /**
+   * Get a user's notifications
+   */
+  async getUserNotifications(
+    userId: string,
+    limit: number = 10,
+    includeRead: boolean = false
+  ): Promise<NotificationModel[]> {
     return this.handleRequest(
       async () => {
-        return await this.appwrite.createDocument<Notification>(
+        const queries = [
+          Query.equal('userId', userId),
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit)
+        ];
+
+        if (!includeRead) {
+          queries.push(Query.equal('isRead', false));
+        }
+
+        return await this.appwrite.listDocuments<NotificationModel>(
           this.config.activity.databaseId,
           this.config.activity.notificationsCollectionId,
-          ID.unique(),
-          data
+          queries
         );
       },
-      'createNotification'
+      'getUserNotifications'
     );
   }
 
-  async getNotification(notificationId: string): Promise<Notification | null> {
+  /**
+   * Get a single notification by ID
+   */
+  async getNotification(notificationId: string): Promise<NotificationModel> {
     return this.handleRequest(
       async () => {
-        return await this.appwrite.getDocument<Notification>(
+        return await this.appwrite.getDocument<NotificationModel>(
           this.config.activity.databaseId,
           this.config.activity.notificationsCollectionId,
           notificationId
@@ -45,70 +94,90 @@ class NotificationService extends BaseService {
     );
   }
 
-  async markNotificationAsRead(notificationId: string): Promise<Notification> {
+  /**
+   * Create a new notification for a user
+   */
+  async createNotification(
+    notification: Omit<NotificationModel, '$id' | '$createdAt' | '$updatedAt'>
+  ): Promise<NotificationModel> {
     return this.handleRequest(
       async () => {
-        return await this.appwrite.updateDocument<Notification>(
+        const now = new Date().toISOString();
+        
+        return await this.appwrite.createDocument<NotificationModel>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          ID.unique(),
+          {
+            ...notification,
+            isRead: notification.isRead ?? false,
+            createdAt: now
+          }
+        );
+      },
+      'createNotification'
+    );
+  }
+
+  /**
+   * Mark a notification as read
+   */
+  async markNotificationAsRead(notificationId: string): Promise<NotificationModel> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.updateDocument<NotificationModel>(
           this.config.activity.databaseId,
           this.config.activity.notificationsCollectionId,
           notificationId,
-          { isRead: true, readAt: new Date().toISOString() }
+          {
+            isRead: true,
+            readAt: new Date().toISOString()
+          }
         );
       },
       'markNotificationAsRead'
     );
   }
 
+  /**
+   * Mark all notifications for a user as read
+   */
   async markAllNotificationsAsRead(userId: string): Promise<void> {
     return this.handleRequest(
       async () => {
-        const unreadNotifications = await this.getUserUnreadNotifications(userId);
-        
-        // Update each unread notification
-        const updatePromises = unreadNotifications.map(notification => 
-          this.markNotificationAsRead(notification.$id)
+        // Get all unread notifications
+        const unreadNotifications = await this.appwrite.listDocuments<NotificationModel>(
+          this.config.activity.databaseId,
+          this.config.activity.notificationsCollectionId,
+          [
+            Query.equal('userId', userId),
+            Query.equal('isRead', false)
+          ]
         );
-        
+
+        // Mark each as read
+        const now = new Date().toISOString();
+        const updatePromises = unreadNotifications.map((notification: NotificationModel) => 
+          this.appwrite.updateDocument(
+            this.config.activity.databaseId,
+            this.config.activity.notificationsCollectionId,
+            notification.$id,
+            {
+              isRead: true,
+              readAt: now
+            }
+          )
+        );
+
         await Promise.all(updatePromises);
       },
       'markAllNotificationsAsRead'
     );
   }
 
-  async getUserNotifications(userId: string, limit: number = 20): Promise<Notification[]> {
-    return this.handleRequest(
-      async () => {
-        return await this.appwrite.listDocuments<Notification>(
-          this.config.activity.databaseId,
-          this.config.activity.notificationsCollectionId,
-          [
-            Query.equal('userId', userId),
-            Query.orderDesc('$createdAt'),
-            Query.limit(limit)
-          ]
-        );
-      },
-      'getUserNotifications'
-    );
-  }
-
-  async getUserUnreadNotifications(userId: string): Promise<Notification[]> {
-    return this.handleRequest(
-      async () => {
-        return await this.appwrite.listDocuments<Notification>(
-          this.config.activity.databaseId,
-          this.config.activity.notificationsCollectionId,
-          [
-            Query.equal('userId', userId),
-            Query.equal('isRead', false),
-            Query.orderDesc('$createdAt')
-          ]
-        );
-      },
-      'getUserUnreadNotifications'
-    );
-  }
-
+  /**
+   * Delete a notification
+   */
   async deleteNotification(notificationId: string): Promise<void> {
     return this.handleRequest(
       async () => {
@@ -122,10 +191,13 @@ class NotificationService extends BaseService {
     );
   }
 
+  /**
+   * Get the count of unread notifications for a user
+   */
   async getUnreadNotificationCount(userId: string): Promise<number> {
     return this.handleRequest(
       async () => {
-        const notifications = await this.appwrite.listDocuments<Notification>(
+        const unreadNotifications = await this.appwrite.listDocuments<NotificationModel>(
           this.config.activity.databaseId,
           this.config.activity.notificationsCollectionId,
           [
@@ -133,51 +205,83 @@ class NotificationService extends BaseService {
             Query.equal('isRead', false)
           ]
         );
-        
-        return notifications.length;
+
+        return unreadNotifications.length;
       },
       'getUnreadNotificationCount'
     );
   }
 
-  // Activity Logs
-  async createActivityLog(data: Omit<ActivityLog, '$id' | '$createdAt' | '$updatedAt'>): Promise<ActivityLog> {
+  /**
+   * Send a notification to multiple users
+   */
+  async sendBulkNotification(
+    userIds: string[],
+    notificationTemplate: Omit<NotificationModel, '$id' | '$createdAt' | '$updatedAt' | 'userId'>
+  ): Promise<void> {
     return this.handleRequest(
       async () => {
-        return await this.appwrite.createDocument<ActivityLog>(
+        const now = new Date().toISOString();
+        const notificationPromises = userIds.map((userId: string) => 
+          this.appwrite.createDocument(
+            this.config.activity.databaseId,
+            this.config.activity.notificationsCollectionId,
+            ID.unique(),
+            {
+              ...notificationTemplate,
+              userId,
+              isRead: false,
+              createdAt: now
+            }
+          )
+        );
+
+        await Promise.all(notificationPromises);
+      },
+      'sendBulkNotification'
+    );
+  }
+
+  /**
+   * Log a user activity
+   */
+  async logActivity(
+    activityData: Omit<ActivityLogModel, '$id' | '$createdAt' | '$updatedAt'>
+  ): Promise<ActivityLogModel> {
+    return this.handleRequest(
+      async () => {
+        return await this.appwrite.createDocument<ActivityLogModel>(
           this.config.activity.databaseId,
           this.config.activity.logsCollectionId,
           ID.unique(),
-          data
+          {
+            ...activityData,
+            timestamp: activityData.timestamp || new Date().toISOString()
+          }
         );
       },
-      'createActivityLog'
+      'logActivity'
     );
   }
 
-  async getActivityLog(logId: string): Promise<ActivityLog | null> {
+  /**
+   * Get user activity logs
+   */
+  async getUserActivityLogs(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<ActivityLogModel[]> {
     return this.handleRequest(
       async () => {
-        return await this.appwrite.getDocument<ActivityLog>(
-          this.config.activity.databaseId,
-          this.config.activity.logsCollectionId,
-          logId
-        );
-      },
-      'getActivityLog'
-    );
-  }
-
-  async getUserActivityLogs(userId: string, limit: number = 20): Promise<ActivityLog[]> {
-    return this.handleRequest(
-      async () => {
-        return await this.appwrite.listDocuments<ActivityLog>(
+        return await this.appwrite.listDocuments<ActivityLogModel>(
           this.config.activity.databaseId,
           this.config.activity.logsCollectionId,
           [
             Query.equal('userId', userId),
-            Query.orderDesc('$createdAt'),
-            Query.limit(limit)
+            Query.orderDesc('timestamp'),
+            Query.limit(limit),
+            Query.offset(offset)
           ]
         );
       },
@@ -185,118 +289,135 @@ class NotificationService extends BaseService {
     );
   }
 
-  async getItemActivityLogs(itemId: string, itemType: string): Promise<ActivityLog[]> {
+  /**
+   * Create a notification for contract milestones
+   */
+  async createMilestoneNotification(
+    userId: string,
+    milestoneId: string,
+    contractId: string,
+    title: string,
+    message: string,
+    type: 'milestone_completed' | 'milestone_approved' | 'milestone_rejected'
+  ): Promise<NotificationModel> {
     return this.handleRequest(
       async () => {
-        return await this.appwrite.listDocuments<ActivityLog>(
-          this.config.activity.databaseId,
-          this.config.activity.logsCollectionId,
-          [
-            Query.equal('itemId', itemId),
-            Query.equal('itemType', itemType),
-            Query.orderDesc('$createdAt')
-          ]
-        );
+        return await this.createNotification({
+          userId,
+          title,
+          message,
+          type,
+          isRead: false,
+          priority: 'high',
+          referenceType: 'milestone',
+          referenceId: milestoneId,
+          actions: [
+            {
+              label: 'View Contract',
+              url: `/contracts/${contractId}`,
+              type: 'primary'
+            },
+            {
+              label: 'View Milestone',
+              url: `/contracts/${contractId}/milestones/${milestoneId}`,
+              type: 'secondary'
+            }
+          ],
+          metadata: {
+            contractId
+          }
+        });
       },
-      'getItemActivityLogs'
+      'createMilestoneNotification'
     );
   }
 
-  // Helper methods for common notifications
-  async notifyJobApplication(jobId: string, jobTitle: string, clientId: string, freelancerId: string, freelancerName: string): Promise<Notification> {
-    return this.createNotification({
-      userId: clientId,
-      type: 'job_application',
-      title: 'New Job Application',
-      message: `${freelancerName} has applied to your job: "${jobTitle}"`,
-      isRead: false,
-      itemId: jobId,
-      itemType: 'job',
-      relatedUserId: freelancerId,
-      actions: [
-        {
-          label: 'View Application',
-          url: `/jobs/${jobId}/proposals`
-        }
-      ]
-    });
+  /**
+   * Create a notification for payment events
+   */
+  async createPaymentNotification(
+    userId: string,
+    paymentId: string,
+    amount: number,
+    currency: string,
+    title: string,
+    message: string,
+    type: 'payment_sent' | 'payment_received' | 'payment_released' | 'payment_refunded'
+  ): Promise<NotificationModel> {
+    return this.handleRequest(
+      async () => {
+        return await this.createNotification({
+          userId,
+          title,
+          message,
+          type,
+          isRead: false,
+          priority: 'high',
+          referenceType: 'payment',
+          referenceId: paymentId,
+          actions: [
+            {
+              label: 'View Payment',
+              url: `/payments/${paymentId}`,
+              type: 'primary'
+            }
+          ],
+          metadata: {
+            amount,
+            currency
+          }
+        });
+      },
+      'createPaymentNotification'
+    );
   }
 
-  async notifyProposalAccepted(proposalId: string, jobId: string, jobTitle: string, clientId: string, clientName: string, freelancerId: string): Promise<Notification> {
-    return this.createNotification({
-      userId: freelancerId,
-      type: 'proposal_accepted',
-      title: 'Proposal Accepted',
-      message: `${clientName} has accepted your proposal for "${jobTitle}"`,
-      isRead: false,
-      itemId: proposalId,
-      itemType: 'proposal',
-      relatedUserId: clientId,
-      actions: [
-        {
-          label: 'View Details',
-          url: `/jobs/${jobId}/proposals/${proposalId}`
-        }
-      ]
-    });
-  }
-
-  async notifyMilestoneCompleted(milestoneId: string, contractId: string, milestoneTitle: string, clientId: string, freelancerId: string, freelancerName: string): Promise<Notification> {
-    return this.createNotification({
-      userId: clientId,
-      type: 'milestone_completed',
-      title: 'Milestone Completed',
-      message: `${freelancerName} has marked the milestone "${milestoneTitle}" as completed`,
-      isRead: false,
-      itemId: milestoneId,
-      itemType: 'milestone',
-      relatedUserId: freelancerId,
-      actions: [
-        {
-          label: 'Review Submission',
-          url: `/contracts/${contractId}/milestones/${milestoneId}`
-        }
-      ]
-    });
-  }
-
-  async notifyPaymentReleased(milestoneId: string, contractId: string, amount: number, currency: string, clientId: string, clientName: string, freelancerId: string): Promise<Notification> {
-    return this.createNotification({
-      userId: freelancerId,
-      type: 'payment_released',
-      title: 'Payment Released',
-      message: `${clientName} has released ${amount} ${currency} for your milestone`,
-      isRead: false,
-      itemId: milestoneId,
-      itemType: 'milestone',
-      relatedUserId: clientId,
-      actions: [
-        {
-          label: 'View Details',
-          url: `/contracts/${contractId}/milestones/${milestoneId}`
-        }
-      ]
-    });
-  }
-
-  async notifyNewMessage(conversationId: string, senderId: string, senderName: string, receiverId: string, preview: string): Promise<Notification> {
-    return this.createNotification({
-      userId: receiverId,
-      type: 'new_message',
-      title: 'New Message',
-      message: `${senderName}: ${preview}`,
-      isRead: false,
-      itemId: conversationId,
-      itemType: 'conversation',
-      relatedUserId: senderId,
-      actions: [
-        {
-          label: 'Reply',
-          url: `/messages/${conversationId}`
-        }
-      ]
-    });
+  /**
+   * Create a notification for new messages
+   */
+  async createMessageNotification(
+    userId: string,
+    senderName: string,
+    senderId: string,
+    messageId: string,
+    conversationId: string,
+    messageText: string
+  ): Promise<NotificationModel> {
+    return this.handleRequest(
+      async () => {
+        return await this.createNotification({
+          userId,
+          title: `New message from ${senderName}`,
+          message: messageText.length > 100 ? `${messageText.substring(0, 100)}...` : messageText,
+          type: 'new_message',
+          isRead: false,
+          priority: 'normal',
+          referenceType: 'message',
+          referenceId: messageId,
+          actions: [
+            {
+              label: 'Reply',
+              url: `/messages/${conversationId}`,
+              type: 'primary'
+            },
+            {
+              label: 'View Profile',
+              url: `/profile/${senderId}`,
+              type: 'secondary'
+            }
+          ],
+          metadata: {
+            senderId,
+            senderName,
+            conversationId
+          }
+        });
+      },
+      'createMessageNotification'
+    );
   }
 }
+
+export default NotificationService;
 
 export default NotificationService;
