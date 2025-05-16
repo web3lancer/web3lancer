@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import WalletCard from '@/components/finance/WalletCard';
@@ -54,17 +56,6 @@ export default function WalletsPage() {
     }
   };
 
-  const fetchPaymentMethods = async () => {
-    try {
-      const response = await fetch('/api/payment-method');
-      if (!response.ok) throw new Error('Failed to fetch payment methods');
-      const data = await response.json();
-      setPaymentMethods(data);
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
-    }
-  };
-  
   const fetchPaymentMethods = async () => {
     try {
       const response = await fetch('/api/payment-method');
@@ -271,8 +262,8 @@ export default function WalletsPage() {
   // Get recent transactions for a specific wallet
   const getWalletTransactions = (walletId: string) => {
     return transactions
-      .filter(tx => tx.walletId === walletId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .filter((tx: any) => tx.walletId === walletId)
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3);
   };
 
@@ -335,7 +326,7 @@ export default function WalletsPage() {
             </div>
           ) : wallets.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {wallets.map((wallet) => (
+              {wallets.map((wallet: any) => (
                 <WalletCard
                   key={wallet.$id}
                   wallet={wallet}
@@ -343,8 +334,8 @@ export default function WalletsPage() {
                   onEdit={() => handleOpenModal(wallet)}
                   onDelete={() => handleDeleteWallet(wallet.$id)}
                   onSetDefault={() => handleSetDefault(wallet.$id)}
-                  onDeposit={(wallet) => handleOpenDepositModal(wallet)}
-                  onWithdraw={(wallet) => handleOpenWithdrawModal(wallet)}
+                  onDeposit={(wallet: any) => handleOpenDepositModal(wallet)}
+                  onWithdraw={(wallet: any) => handleOpenWithdrawModal(wallet)}
                 />
               ))}
             </div>
@@ -424,3 +415,5 @@ export default function WalletsPage() {
     </div>
   );
 }
+
+// NOTE: If you see errors about JSX types, ensure your tsconfig.json has "jsx": "react-jsx" and you have @types/react installed.

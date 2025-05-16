@@ -17,9 +17,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   className = '',
   onClickProfile
 }) => {
+  if (!profile) return null;
   // Default avatar if none exists
   const avatarUrl = profile.avatarFileId 
-    ? profileService.getProfileAvatarUrl(profile.avatarFileId)
+    ? `/api/profile/avatar/${profile.avatarFileId}` // fallback URL pattern
     : '/images/default-avatar.png';
   
   const handleProfileClick = () => {
@@ -92,7 +93,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             
             {profile.skills && profile.skills.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
-                {profile.skills.slice(0, 3).map((skill, idx) => (
+                {profile.skills.slice(0, 3).map((skill: any, idx: any) => (
                   <span 
                     key={idx} 
                     className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full"
@@ -113,5 +114,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 };
+
+// NOTE: If you see errors about JSX types, ensure your tsconfig.json has "jsx": "react-jsx" and you have @types/react installed.
 
 export default ProfileCard;

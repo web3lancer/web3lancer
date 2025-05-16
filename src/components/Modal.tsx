@@ -1,6 +1,6 @@
 import React, { Fragment, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { AiOutlineClose } from 'react-icons/ai'; // Import from react-icons
 
 interface ModalProps {
   isOpen: boolean;
@@ -79,7 +79,7 @@ const Modal: React.FC<ModalProps> = ({
                   onClick={onClose}
                 >
                   <span className="sr-only">Close</span>
-                  <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                  <AiOutlineClose className="h-6 w-6" aria-hidden="true" />
                 </button>
               </div>
               <div className="p-4 sm:p-6">
