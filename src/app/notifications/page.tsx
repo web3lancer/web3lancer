@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth/AuthContext';
+// import { useAuth } from '@/components/auth/AuthContext';
 import NotificationService from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
 import { UserNotification } from '@/types/activity';
 import { formatDistanceToNow } from 'date-fns';
-import { BellIcon, CheckIcon, TrashIcon } from '@heroicons/react/outline';
+import { FiBell, FiCheck, FiTrash2 } from 'react-icons/fi';
+import { useAuth } from '@/contexts/AuthContext';
 
 const NotificationsPage: React.FC = () => {
   const { user } = useAuth();
@@ -139,7 +140,7 @@ const NotificationsPage: React.FC = () => {
             </div>
           ) : filteredNotifications.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              <BellIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <FiBell className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p>
                 {tab === 'all' 
                   ? "You don't have any notifications yet."
@@ -176,7 +177,7 @@ const NotificationsPage: React.FC = () => {
                           className="p-1 text-gray-400 hover:text-blue-600"
                           title="Mark as read"
                         >
-                          <CheckIcon className="h-5 w-5" />
+                          <FiCheck className="h-5 w-5" />
                         </button>
                       )}
                       <button
@@ -184,7 +185,7 @@ const NotificationsPage: React.FC = () => {
                         className="p-1 text-gray-400 hover:text-red-600"
                         title="Delete notification"
                       >
-                        <TrashIcon className="h-5 w-5" />
+                        <FiTrash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </div>

@@ -6,7 +6,7 @@ import { AppwriteService } from '@/services/appwriteService';
 import { Dispute } from '@/types/governance';
 import DisputeCard from '@/components/governance/DisputeCard';
 import DisputeForm from '@/components/governance/DisputeForm';
-import { PlusIcon } from '@heroicons/react/outline';
+import { FiPlus } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DisputesPage: React.FC = () => {
@@ -81,7 +81,7 @@ const DisputesPage: React.FC = () => {
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             onClick={() => setShowCreateForm(true)}
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <FiPlus className="h-5 w-5 mr-2" />
             File a Dispute
           </button>
         </div>
