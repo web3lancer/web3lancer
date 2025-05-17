@@ -24,6 +24,9 @@ class AppwriteService {
   private teams: Teams;
 
   constructor(private config: EnvConfig) {
+    if (!config?.appwrite?.endpoint || !config?.appwrite?.projectId) {
+      throw new Error('AppwriteService: Missing appwrite endpoint or projectId in config');
+    }
     this.client = new Client();
     this.client
       .setEndpoint(config.appwrite.endpoint)
@@ -42,7 +45,7 @@ class AppwriteService {
   }
 
   async createEmailSession(email: string, password: string): Promise<Models.Session> {
-    return this.account.createEmailSession(email, password);
+    return this.account.createEmailPasswordSession(email, password);
   }
 
   async getAccount(): Promise<Models.User<Models.Preferences>> {

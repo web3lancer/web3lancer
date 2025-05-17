@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import CoreDataService from '@/services/coreDataService';
 import { AppwriteService } from '@/services/appwriteService';
 import { Skill } from '@/types/core';
-import { XIcon } from '@heroicons/react/solid';
+import { FiX } from 'react-icons/fi';
+import { envConfig } from '@/config/environment';
 
 interface SkillSelectorProps {
   selectedSkills: string[];
@@ -23,7 +24,7 @@ const SkillSelector: React.FC<SkillSelectorProps> = ({
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const coreDataService = new CoreDataService(appwriteService);
   
   useEffect(() => {
@@ -141,7 +142,7 @@ const SkillSelector: React.FC<SkillSelectorProps> = ({
               onClick={() => handleRemoveSkill(skill.$id)}
               className="ml-1 text-blue-600 hover:text-blue-800"
             >
-              <XIcon className="h-4 w-4" />
+              <FiX className="h-4 w-4" />
             </button>
           </div>
         ))}

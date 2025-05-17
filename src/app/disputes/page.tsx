@@ -8,6 +8,8 @@ import DisputeCard from '@/components/governance/DisputeCard';
 import DisputeForm from '@/components/governance/DisputeForm';
 import { FiPlus } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthContext';
+import { envConfig } from '@/config/environment';
+
 
 const DisputesPage: React.FC = () => {
   const { user } = useAuth();
@@ -17,7 +19,7 @@ const DisputesPage: React.FC = () => {
   const [tab, setTab] = useState<'involved' | 'all'>('involved');
   const [showCreateForm, setShowCreateForm] = useState(false);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const disputeService = new DisputeService(appwriteService);
   
   useEffect(() => {

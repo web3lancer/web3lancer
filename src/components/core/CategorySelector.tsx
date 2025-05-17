@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CoreDataService from '@/services/coreDataService';
 import { AppwriteService } from '@/services/appwriteService';
 import { Category } from '@/types/core';
+import { envConfig } from '@/config/environment';
 
 interface CategorySelectorProps {
   selectedCategoryId: string | null;
@@ -23,7 +24,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   const [loading, setLoading] = useState(true);
   const [selectedRootCategoryId, setSelectedRootCategoryId] = useState<string | null>(null);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const coreDataService = new CoreDataService(appwriteService);
   
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import ProposalService from '@/services/proposalService';
 import { AppwriteService } from '@/services/appwriteService';
 import { PlatformProposal } from '@/types/governance';
+import { envConfig } from '@/config/environment';
 
 interface ProposalFormProps {
   proposerId: string;
@@ -25,7 +26,7 @@ const ProposalForm: React.FC<ProposalFormProps> = ({
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>();
   const [error, setError] = useState<string | null>(null);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const proposalService = new ProposalService(appwriteService);
   
   const onSubmit = async (data: FormValues) => {

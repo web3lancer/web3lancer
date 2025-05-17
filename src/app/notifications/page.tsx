@@ -8,6 +8,7 @@ import { UserNotification } from '@/types/activity';
 import { formatDistanceToNow } from 'date-fns';
 import { FiBell, FiCheck, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthContext';
+import { envConfig } from '@/config/environment';
 
 const NotificationsPage: React.FC = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ const NotificationsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'all' | 'unread'>('all');
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const notificationService = new NotificationService(appwriteService);
   
   useEffect(() => {

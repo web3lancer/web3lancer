@@ -4,6 +4,7 @@ import DisputeService from '@/services/disputeService';
 import { AppwriteService } from '@/services/appwriteService';
 import NotificationService from '@/services/notificationService';
 import { Dispute } from '@/types/governance';
+import { envConfig } from '@/config/environment';
 
 interface DisputeFormProps {
   contractId: string;
@@ -29,7 +30,7 @@ const DisputeForm: React.FC<DisputeFormProps> = ({
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>();
   const [error, setError] = useState<string | null>(null);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const disputeService = new DisputeService(appwriteService);
   const notificationService = new NotificationService(appwriteService);
   

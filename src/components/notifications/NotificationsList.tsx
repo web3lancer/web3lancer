@@ -3,6 +3,7 @@ import { UserNotification } from '@/types/activity';
 import NotificationService from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
 import { formatDistanceToNow } from 'date-fns';
+import { envConfig } from '@/config/environment';
 
 interface NotificationItemProps {
   notification: UserNotification;
@@ -52,7 +53,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({ profileId, limit 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const notificationService = new NotificationService(appwriteService);
   
   useEffect(() => {

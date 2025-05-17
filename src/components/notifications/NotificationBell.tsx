@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BellIcon } from '@heroicons/react/outline';
+import { FiBell } from 'react-icons/fi';
 import NotificationsList from './NotificationsList';
 import NotificationService from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
+import { envConfig } from '@/config/environment';
 
 interface NotificationBellProps {
   profileId: string;
@@ -13,7 +14,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ profileId }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  const appwriteService = new AppwriteService();
+  const appwriteService = new AppwriteService(envConfig);
   const notificationService = new NotificationService(appwriteService);
   
   useEffect(() => {
@@ -59,7 +60,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ profileId }) => {
         onClick={toggleDropdown}
         aria-label="Notifications"
       >
-        <BellIcon className="h-6 w-6" />
+        <FiBell className="h-6 w-6" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-blue-500 rounded-full">
             {unreadCount > 99 ? '99+' : unreadCount}
