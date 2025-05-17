@@ -7,7 +7,6 @@ import {
   Paper, 
   Avatar, 
   CircularProgress, 
-  Divider, 
   Card, 
   CardContent,
   Button,
@@ -16,31 +15,22 @@ import {
   TextField,
   Menu,
   MenuItem,
-  CardMedia,
-  CardActions,
   Container,
   useMediaQuery,
   Tooltip,
   Tabs,
   Tab,
-  ToggleButton,
-  ToggleButtonGroup,
-  Stack,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
   Snackbar,
   Alert,
-  Grid,
-  InputAdornment
-} from '@mui/material';
+  Grid} from '@mui/material';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { getUserProfile, getProfilePictureUrl } from '@/utils/api'; 
-import { APPWRITE_CONFIG } from '@/lib/env';
+import { APP_URL } from '@/lib/env';
 import { CONTENT_DATABASE_ID, USER_POSTS_COLLECTION_ID, POST_ATTACHMENTS_BUCKET_ID } from '@/lib/env';
 import { Client, Databases, Storage, ID, Query } from 'appwrite';
 
@@ -59,12 +49,9 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import GridViewIcon from '@mui/icons-material/GridView';
-import WhatshotIcon from '@mui/icons-material/Whatshot';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import ReportIcon from '@mui/icons-material/Report';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -126,6 +113,7 @@ export default function DashboardPage() {
   const client = useRef<Client | null>(null);
   const databases = useRef<Databases | null>(null);
   const storage = useRef<Storage | null>(null);
+  const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
   
   // Mock trending topics
   const trendingTopics = [
@@ -227,6 +215,28 @@ export default function DashboardPage() {
       showSnackbar('Failed to load posts', 'error');
     }
   };
+
+  const fetchUserProfiles = useCallback(async (lancesList: Lance[]) => {
+    const uniqueUserIds = Array.from(new Set(lancesList.map(l => l.userId)));
+    const missingUserIds = uniqueUserIds.filter(id => !(id in userProfiles));
+    if (missingUserIds.length === 0) return;
+    const profiles: Record<string, any> = { ...userProfiles };
+    await Promise.all(missingUserIds.map(async (id) => {
+      try {
+        const profile = await getUserProfile(id);
+        profiles[id] = profile;
+      } catch (e) {
+        profiles[id] = null;
+      }
+    }));
+    setUserProfiles(profiles);
+  }, [userProfiles]);
+
+  useEffect(() => {
+    if (lances.length > 0) {
+      fetchUserProfiles(lances);
+    }
+  }, [lances, fetchUserProfiles]);
 
   const handleRefresh = () => {
     fetchLances(true);
@@ -386,6 +396,22 @@ export default function DashboardPage() {
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
     
     return date.toLocaleDateString();
+  };
+
+  // Helper to linkify @mentions in post content
+  const linkifyMentions = (text: string) => {
+    const baseUrl = APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    return text.split(/(\s+)/).map((part, i) => {
+      if (/^@([a-zA-Z0-9_\-.]{1,64})$/.test(part)) {
+        const username = part.slice(1);
+        return (
+          <Link key={i} href={`${baseUrl}/u/${username}`} style={{ color: theme.palette.primary.main, textDecoration: 'underline' }}>
+            {part}
+          </Link>
+        );
+      }
+      return part;
+    });
   };
 
   const VisibilityIcon = visibilityOptions.find(option => option.value === selectedVisibility)?.icon || PublicIcon;
@@ -603,197 +629,203 @@ export default function DashboardPage() {
             </Box>
           ) : (
             <Box sx={{ pb: 4 }}>
-              {lances.map((lance) => (
-                <AnimatedCard
-                  key={lance.$id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  sx={{
-                    mb: 2.5,
-                    borderRadius: 3,
-                    border: `1px solid ${theme.palette.divider}`,
-                    '&:hover': { bgcolor: 'action.hover' },
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <CardContent sx={{ pb: 1 }}>
-                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                      <Avatar 
-                        src={lance.userProfilePic} 
-                        component={Link}
-                        href={`/u/${lance.userId}`}
-                        sx={{ 
-                          width: 48, 
-                          height: 48,
-                          cursor: 'pointer',
-                          '&:hover': { opacity: 0.8 } 
-                        }} 
-                      />
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <Typography 
-                                variant="subtitle1" 
-                                component={Link}
-                                href={`/u/${lance.userId}`}
-                                sx={{ 
-                                  fontWeight: 600,
-                                  textDecoration: 'none',
-                                  color: 'text.primary',
-                                  '&:hover': { textDecoration: 'underline' } 
-                                }}
-                              >
-                                {lance.userName}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                @{lance.userHandle}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                · {formatPostDate(lance.createdAt)}
-                              </Typography>
-                            </Box>
-                            {lance.visibility !== 'public' && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                {lance.visibility === 'private' && <LockIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                {lance.visibility === 'followers' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                {lance.visibility === 'following' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+              {lances.map((lance) => {
+                const profile = userProfiles[lance.userId];
+                const userProfilePic = profile && profile.profilePicture ? getProfilePictureUrl(profile.profilePicture) : undefined;
+                const userName = profile && profile.username ? profile.username : lance.userId;
+                const userHandle = profile && profile.username ? profile.username : lance.userId;
+                return (
+                  <AnimatedCard
+                    key={lance.$id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    sx={{
+                      mb: 2.5,
+                      borderRadius: 3,
+                      border: `1px solid ${theme.palette.divider}`,
+                      '&:hover': { bgcolor: 'action.hover' },
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <CardContent sx={{ pb: 1 }}>
+                      <Box sx={{ display: 'flex', gap: 1.5 }}>
+                        <Avatar 
+                          src={userProfilePic} 
+                          component={Link}
+                          href={`/u/${lance.userId}`}
+                          sx={{ 
+                            width: 48, 
+                            height: 48,
+                            cursor: 'pointer',
+                            '&:hover': { opacity: 0.8 } 
+                          }} 
+                        />
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography 
+                                  variant="subtitle1" 
+                                  component={Link}
+                                  href={`/u/${lance.userId}`}
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    textDecoration: 'none',
+                                    color: 'text.primary',
+                                    '&:hover': { textDecoration: 'underline' } 
+                                  }}
+                                >
+                                  {userName}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  @{userHandle}
+                                </Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                  {visibilityOptions.find(opt => opt.value === lance.visibility)?.label}
+                                  · {formatPostDate(lance.createdAt)}
                                 </Typography>
                               </Box>
-                            )}
-                          </Box>
-                          <IconButton size="small">
-                            <MoreHorizIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-
-                        <Typography variant="body1" sx={{ my: 1, whiteSpace: 'pre-wrap' }}>
-                          {lance.content}
-                        </Typography>
-
-                        {/* Tags */}
-                        {lance.tags && lance.tags.length > 0 && (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                            {lance.tags.map((tag, index) => (
-                              <Chip
-                                key={index}
-                                label={tag}
-                                size="small"
-                                component={Link}
-                                href={`/search?q=${encodeURIComponent(tag)}`}
-                                clickable
-                                sx={{ 
-                                  borderRadius: 1,
-                                  height: 24,
-                                  bgcolor: `${theme.palette.primary.main}15`,
-                                  color: theme.palette.primary.main,
-                                  '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
-                                  textDecoration: 'none'
-                                }}
-                              />
-                            ))}
-                          </Box>
-                        )}
-
-                        {/* Media */}
-                        {lance.media && lance.media.length > 0 && (
-                          <Box sx={{ mt: 1, mb: 2 }}>
-                            {lance.media.map((media, index) => (
-                              <Box 
-                                key={index} 
-                                sx={{ 
-                                  borderRadius: 2, 
-                                  overflow: 'hidden',
-                                  ...(lance.media && lance.media.length > 1 ? {
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                                    gap: 1
-                                  } : {})
-                                }}
-                              >
-                                {media.type === 'image' ? (
-                                  <img
-                                    src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
-                                    alt="Post media"
-                                    style={{
-                                      width: '100%',
-                                      borderRadius: 8,
-                                      objectFit: 'cover',
-                                      aspectRatio: '16/9',
-                                      cursor: 'pointer',
-                                    }}
-                                    onClick={() => setDialogOpen(true)}
-                                  />
-                                ) : media.type === 'video' ? (
-                                  <Box
-                                    component="video"
-                                    src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
-                                    controls
-                                    sx={{ width: '100%', borderRadius: 2 }}
-                                  />
-                                ) : null}
-                              </Box>
-                            ))}
-                          </Box>
-                        )}
-
-                        {/* Action buttons */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleLikeToggle(lance.$id)}
-                            color={lance.isLiked ? 'primary' : 'default'}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              {lance.isLiked ? (
-                                <FavoriteIcon fontSize="small" />
-                              ) : (
-                                <FavoriteBorderIcon fontSize="small" />
+                              {lance.visibility !== 'public' && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                  {lance.visibility === 'private' && <LockIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                  {lance.visibility === 'followers' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                  {lance.visibility === 'following' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                  <Typography variant="caption" color="text.secondary">
+                                    {visibilityOptions.find(opt => opt.value === lance.visibility)?.label}
+                                  </Typography>
+                                </Box>
                               )}
-                              <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                {lance.likes}
-                              </Typography>
                             </Box>
-                          </IconButton>
-                          <IconButton size="small">
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <ChatBubbleOutlineIcon fontSize="small" />
-                              <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                {lance.comments}
-                              </Typography>
+                            <IconButton size="small">
+                              <MoreHorizIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+
+                          <Typography variant="body1" sx={{ my: 1, whiteSpace: 'pre-wrap' }}>
+                            {linkifyMentions(lance.content)}
+                          </Typography>
+
+                          {/* Tags */}
+                          {lance.tags && lance.tags.length > 0 && (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                              {lance.tags.map((tag, index) => (
+                                <Chip
+                                  key={index}
+                                  label={tag}
+                                  size="small"
+                                  component={Link}
+                                  href={`/search?q=${encodeURIComponent(tag)}`}
+                                  clickable
+                                  sx={{ 
+                                    borderRadius: 1,
+                                    height: 24,
+                                    bgcolor: `${theme.palette.primary.main}15`,
+                                    color: theme.palette.primary.main,
+                                    '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
+                                    textDecoration: 'none'
+                                  }}
+                                />
+                              ))}
                             </Box>
-                          </IconButton>
-                          <IconButton size="small">
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <RepeatIcon fontSize="small" />
-                              <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                {lance.reposts}
-                              </Typography>
+                          )}
+
+                          {/* Media */}
+                          {lance.media && lance.media.length > 0 && (
+                            <Box sx={{ mt: 1, mb: 2 }}>
+                              {lance.media.map((media, index) => (
+                                <Box 
+                                  key={index} 
+                                  sx={{ 
+                                    borderRadius: 2, 
+                                    overflow: 'hidden',
+                                    ...(lance.media && lance.media.length > 1 ? {
+                                      display: 'grid',
+                                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                                      gap: 1
+                                    } : {})
+                                  }}
+                                >
+                                  {media.type === 'image' ? (
+                                    <img
+                                      src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
+                                      alt="Post media"
+                                      style={{
+                                        width: '100%',
+                                        borderRadius: 8,
+                                        objectFit: 'cover',
+                                        aspectRatio: '16/9',
+                                        cursor: 'pointer',
+                                      }}
+                                      onClick={() => setDialogOpen(true)}
+                                    />
+                                  ) : media.type === 'video' ? (
+                                    <Box
+                                      component="video"
+                                      src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
+                                      controls
+                                      sx={{ width: '100%', borderRadius: 2 }}
+                                    />
+                                  ) : null}
+                                </Box>
+                              ))}
                             </Box>
-                          </IconButton>
-                          <IconButton 
-                            size="small"
-                            onClick={() => handleBookmarkToggle(lance.$id)}
-                            color={lance.isBookmarked ? 'primary' : 'default'}
-                          >
-                            {lance.isBookmarked ? (
-                              <BookmarkIcon fontSize="small" />
-                            ) : (
-                              <BookmarkBorderIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                          <IconButton size="small">
-                            <ShareIcon fontSize="small" />
-                          </IconButton>
+                          )}
+
+                          {/* Action buttons */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleLikeToggle(lance.$id)}
+                              color={lance.isLiked ? 'primary' : 'default'}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                {lance.isLiked ? (
+                                  <FavoriteIcon fontSize="small" />
+                                ) : (
+                                  <FavoriteBorderIcon fontSize="small" />
+                                )}
+                                <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                  {lance.likes}
+                                </Typography>
+                              </Box>
+                            </IconButton>
+                            <IconButton size="small">
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <ChatBubbleOutlineIcon fontSize="small" />
+                                <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                  {lance.comments}
+                                </Typography>
+                              </Box>
+                            </IconButton>
+                            <IconButton size="small">
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <RepeatIcon fontSize="small" />
+                                <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                  {lance.reposts}
+                                </Typography>
+                              </Box>
+                            </IconButton>
+                            <IconButton 
+                              size="small"
+                              onClick={() => handleBookmarkToggle(lance.$id)}
+                              color={lance.isBookmarked ? 'primary' : 'default'}
+                            >
+                              {lance.isBookmarked ? (
+                                <BookmarkIcon fontSize="small" />
+                              ) : (
+                                <BookmarkBorderIcon fontSize="small" />
+                              )}
+                            </IconButton>
+                            <IconButton size="small">
+                              <ShareIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                  </CardContent>
-                </AnimatedCard>
-              ))}
+                    </CardContent>
+                  </AnimatedCard>
+                );
+              })}
 
               {/* Load more indicator */}
               {isLoading && lances.length > 0 && (

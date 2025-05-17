@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth/AuthContext';
 import DisputeService from '@/services/disputeService';
 import { AppwriteService } from '@/services/appwriteService';
 import { Dispute } from '@/types/governance';
 import DisputeCard from '@/components/governance/DisputeCard';
 import DisputeForm from '@/components/governance/DisputeForm';
 import { PlusIcon } from '@heroicons/react/outline';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DisputesPage: React.FC = () => {
   const { user } = useAuth();
