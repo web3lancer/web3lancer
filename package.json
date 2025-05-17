@@ -31,6 +31,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "appwrite": "^17.0.0",
+    "class-variance-authority": "^0.7.1",
     "crypto-js": "^4.2.0",
     "date-fns": "^2.30.0",
     "express": "^5.1.0",
