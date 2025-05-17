@@ -20,6 +20,9 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 - **💰 Real time Support with Magic Block** - Features a fast real-time transaction system powered by magicblock.
 - **⚡ Cross-Chain Interoperability with LayerZero** - Enables seamless transactions and data exchange between Solana, Stellar, and other supported blockchains, enhancing flexibility and scalability for users and developers.
 
+[Layerzero implementation](https://github.com/web3lancer/zeroints)
+
+
 ## ⛓️ On-Chain Capabilities
 
 Web3Lancer leverages **Solana** blockchain technology to enable:
