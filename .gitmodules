@@ -4,3 +4,6 @@
 [submodule "contracts/layerzerocontracts"]
 	path = contracts/layerzerocontracts
 	url = https://github.com/web3lancer/zeroints
+[submodule "contracts/lancertransfer"]
+	path = contracts/lancertransfer
+	url = https://github.com/web3lancer/lancertransfer
