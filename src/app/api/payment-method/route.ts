@@ -9,9 +9,9 @@ import {
 } from '@/lib/env';
 
 // Get environment variables
-const {
-  financeDatabase,
-  userPaymentMethodsCollection,
+// const {
+//   financeDatabase,
+//   userPaymentMethodsCollection,
 const financeDatabase = FINANCE_DATABASE_ID;
 const userWalletsCollection = USER_WALLETS_COLLECTION_ID;
 const platformTransactionsCollection = PLATFORM_TRANSACTIONS_COLLECTION_ID;

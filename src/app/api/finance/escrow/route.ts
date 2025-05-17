@@ -11,11 +11,12 @@ import { calculatePlatformFee } from '@/utils/financeUtils';
 import { getSession } from '@/utils/auth';
 
 // Get environment variables
-const {
-  financeDatabase,
-  userWalletsCollection,
-  platformTransactionsCollection,
-  escrowTransactionsCollection
+// const {
+//   financeDatabase,
+//   userWalletsCollection,
+//   platformTransactionsCollection,
+//   escrowTransactionsCollection
+
 const financeDatabase = FINANCE_DATABASE_ID;
 const userWalletsCollection = USER_WALLETS_COLLECTION_ID;
 const platformTransactionsCollection = PLATFORM_TRANSACTIONS_COLLECTION_ID;
