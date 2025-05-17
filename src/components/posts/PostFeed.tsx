@@ -6,6 +6,7 @@ import { Post, Profile } from '@/types';
 import postService from '@/services/postService';
 import profileService from '@/services/profileService';
 import { useAuth } from '@/contexts/AuthContext';
+import getProfileByUserId from '@/services/profileService';
 
 interface PostFeedProps {
   profileId?: string; // If provided, shows only posts from this profile

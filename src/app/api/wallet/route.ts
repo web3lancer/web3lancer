@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserWallets, createUserWallet, updateWallet, deleteWallet, setPrimaryWallet, verifyWalletOwnership } from "@/services/financeService";
-import { getProfileByUserId } from "@/utils/profile";
+import getProfileByUserId from '@/services/profileService';
+
 import { validateSession } from "@/utils/auth";
 
 export async function GET(req: NextRequest) {

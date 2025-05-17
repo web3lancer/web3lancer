@@ -6,8 +6,9 @@ import {
   getContractEscrowTransactions,
   getMilestoneEscrowTransaction 
 } from "@/services/financeService";
-import { getProfileByUserId } from "@/utils/profile";
 import { validateSession } from "@/utils/auth";
+
+import getProfileByUserId from '@/services/profileService';
 
 export async function GET(req: NextRequest) {
   try {
