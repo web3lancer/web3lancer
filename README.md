@@ -22,6 +22,7 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 
 [Layerzero implementation](https://github.com/web3lancer/zeroints)
 
+[Magic Block implementation](https://github.com/web3lancer/lancertransfer)
 
 ## ⛓️ On-Chain Capabilities
 
