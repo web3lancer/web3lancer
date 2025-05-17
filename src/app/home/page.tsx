@@ -208,7 +208,15 @@ export default function DashboardPage() {
       if (refresh) {
         setLances(fetchedLances);
       } else {
-        setLances(prev => [...prev, ...fetchedLances]);
+        setLances(prev => {
+          const allLances = [...prev, ...fetchedLances];
+          // Deduplicate by $id
+          const uniqueLancesMap = new Map();
+          allLances.forEach(lance => {
+            uniqueLancesMap.set(lance.$id, lance);
+          });
+          return Array.from(uniqueLancesMap.values());
+        });
       }
       setIsLoading(false);
       setHasMore(fetchedLances.length === 10);
