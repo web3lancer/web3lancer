@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { databases, ID } from '@/lib/appwrite';
+import { databases } from '@/lib/appwrite';
 import { getSession } from '@/utils/auth';
 import * as env from '@/lib/env';
+import { ID } from "appwrite";
 
 interface Params {
   params: {
@@ -21,8 +22,8 @@ export async function POST(request: NextRequest, { params }: Params) {
     
     // Check if the user has already liked this post
     const existingLikes = await databases.listDocuments(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.POST_INTERACTIONS_COLLECTION_ID,
       [
         /* Query for existing like from this user */
       ]
@@ -34,8 +35,8 @@ export async function POST(request: NextRequest, { params }: Params) {
     
     // Create like interaction
     await databases.createDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.POST_INTERACTIONS_COLLECTION_ID,
       ID.unique(),
       {
         postId,
@@ -47,14 +48,14 @@ export async function POST(request: NextRequest, { params }: Params) {
     
     // Update post's likesCount
     const post = await databases.getDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId
     );
     
     const updatedPost = await databases.updateDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId,
       {
         likesCount: (post.likesCount || 0) + 1
@@ -80,8 +81,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     
     // Find the user's like interaction
     const existingLikes = await databases.listDocuments(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.POST_INTERACTIONS_COLLECTION_ID,
       [
         /* Query for existing like from this user */
       ]
@@ -93,21 +94,21 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     
     // Delete the like interaction
     await databases.deleteDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.POST_INTERACTIONS_COLLECTION_ID,
       existingLikes.documents[0].$id
     );
     
     // Update post's likesCount
     const post = await databases.getDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId
     );
     
     const updatedPost = await databases.updateDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId,
       {
         likesCount: Math.max((post.likesCount || 0) - 1, 0)

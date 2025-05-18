@@ -3,8 +3,8 @@ import * as env from '@/lib/env';
 
 const client = new Client();
 client
-  .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-  .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+  .setEndpoint(env.ENDPOINT)
+  .setProject(env.PROJECT_ID);
 
 const account = new Account(client);
 const databases = new Databases(client);

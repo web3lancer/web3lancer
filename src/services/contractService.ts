@@ -1,11 +1,10 @@
 import { ID, Query } from "appwrite";
-import { databases, storage } from "@/app/api";
-import { Contract, Milestone, Review, Profile } from "@/types";
+import { databases } from "@/app/api";
+import { Contract, Milestone, Review } from "@/types";
 
 // Import constants
 import {
-  PROJECT_DATABASE_ID,
-  PROJECTS_COLLECTION_ID,
+  JOBS_DATABASE_ID,
   JOB_CONTRACTS_COLLECTION_ID,
   CONTRACT_MILESTONES_COLLECTION_ID,
   USER_REVIEWS_COLLECTION_ID
@@ -16,7 +15,7 @@ class ContractService {
   async createContract(contractData: Partial<Contract>): Promise<Contract | null> {
     try {
       const newContract = await databases.createDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         ID.unique(),
         {
@@ -42,7 +41,7 @@ class ContractService {
   async getContract(contractId: string): Promise<Contract | null> {
     try {
       const contract = await databases.getDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         contractId
       );
@@ -57,7 +56,7 @@ class ContractService {
   async getContractsByClientId(clientId: string): Promise<Contract[]> {
     try {
       const contracts = await databases.listDocuments(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         [Query.equal("clientId", clientId)]
       );
@@ -73,7 +72,7 @@ class ContractService {
   async getContractsByFreelancerId(freelancerId: string): Promise<Contract[]> {
     try {
       const contracts = await databases.listDocuments(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         [Query.equal("freelancerId", freelancerId)]
       );
@@ -89,7 +88,7 @@ class ContractService {
   async updateContract(contractId: string, contractData: Partial<Contract>): Promise<Contract | null> {
     try {
       const updatedContract = await databases.updateDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         contractId,
         {
@@ -108,7 +107,7 @@ class ContractService {
   async updateContractStatus(contractId: string, status: Contract['status']): Promise<Contract | null> {
     try {
       const updatedContract = await databases.updateDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         contractId,
         {
@@ -127,7 +126,7 @@ class ContractService {
   async deleteContract(contractId: string): Promise<boolean> {
     try {
       await databases.deleteDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         JOB_CONTRACTS_COLLECTION_ID,
         contractId
       );
@@ -144,7 +143,7 @@ class ContractService {
   async createMilestone(milestoneData: Partial<Milestone>): Promise<Milestone | null> {
     try {
       const newMilestone = await databases.createDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         CONTRACT_MILESTONES_COLLECTION_ID,
         ID.unique(),
         {
@@ -169,7 +168,7 @@ class ContractService {
   async getMilestone(milestoneId: string): Promise<Milestone | null> {
     try {
       const milestone = await databases.getDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         CONTRACT_MILESTONES_COLLECTION_ID,
         milestoneId
       );
@@ -184,7 +183,7 @@ class ContractService {
   async getMilestonesByContractId(contractId: string): Promise<Milestone[]> {
     try {
       const milestones = await databases.listDocuments(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         CONTRACT_MILESTONES_COLLECTION_ID,
         [Query.equal("contractId", contractId)]
       );
@@ -200,7 +199,7 @@ class ContractService {
   async updateMilestone(milestoneId: string, milestoneData: Partial<Milestone>): Promise<Milestone | null> {
     try {
       const updatedMilestone = await databases.updateDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         CONTRACT_MILESTONES_COLLECTION_ID,
         milestoneId,
         {
@@ -219,7 +218,7 @@ class ContractService {
   async updateMilestoneStatus(milestoneId: string, status: Milestone['status']): Promise<Milestone | null> {
     try {
       const updatedMilestone = await databases.updateDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         CONTRACT_MILESTONES_COLLECTION_ID,
         milestoneId,
         {
@@ -238,7 +237,7 @@ class ContractService {
   async deleteMilestone(milestoneId: string): Promise<boolean> {
     try {
       await databases.deleteDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         CONTRACT_MILESTONES_COLLECTION_ID,
         milestoneId
       );
@@ -255,7 +254,7 @@ class ContractService {
   async createReview(reviewData: Partial<Review>): Promise<Review | null> {
     try {
       const newReview = await databases.createDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         ID.unique(),
         {
@@ -279,7 +278,7 @@ class ContractService {
   async getReview(reviewId: string): Promise<Review | null> {
     try {
       const review = await databases.getDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         reviewId
       );
@@ -294,7 +293,7 @@ class ContractService {
   async getReviewsByContractId(contractId: string): Promise<Review[]> {
     try {
       const reviews = await databases.listDocuments(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         [Query.equal("contractId", contractId)]
       );
@@ -310,7 +309,7 @@ class ContractService {
   async getReviewsByReviewerId(reviewerId: string): Promise<Review[]> {
     try {
       const reviews = await databases.listDocuments(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         [Query.equal("reviewerId", reviewerId)]
       );
@@ -326,7 +325,7 @@ class ContractService {
   async getReviewsForProfile(profileId: string): Promise<Review[]> {
     try {
       const reviews = await databases.listDocuments(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         [Query.equal("revieweeId", profileId)]
       );
@@ -342,7 +341,7 @@ class ContractService {
   async updateReview(reviewId: string, reviewData: Partial<Review>): Promise<Review | null> {
     try {
       const updatedReview = await databases.updateDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         reviewId,
         {
@@ -361,7 +360,7 @@ class ContractService {
   async deleteReview(reviewId: string): Promise<boolean> {
     try {
       await databases.deleteDocument(
-        PROJECT_DATABASE_ID,
+        JOBS_DATABASE_ID,
         USER_REVIEWS_COLLECTION_ID,
         reviewId
       );
