@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import profileService from '@/services/profileService';
+// import profileService from '@/services/profileService';
 import { Profile, VerificationType } from '@/types';
 
-/**
- * Hook for working with user profiles
- */
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
+
 export const useProfile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -24,7 +28,7 @@ export const useProfile = () => {
       setError(null);
       
       try {
-        const userProfile = await profileService.getProfileByUserId(user.id);
+        const userProfile = await profileService.getProfileByUserId(user.$id);
         setProfile(userProfile);
       } catch (err) {
         console.error('Error fetching profile:', err);

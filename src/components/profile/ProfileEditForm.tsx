@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-import profileService from '@/services/profileService';
+// import profileService from '@/services/profileService';
 import { Profile } from '@/types';
+
+import getProfileByUserId from '@/services/profileService';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 const ProfileEditForm: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +49,7 @@ const ProfileEditForm: React.FC = () => {
       if (!user || !user.userId) return;
       
       try {
-        const userProfile = await profileService.getProfileByUserId(user.userId);
+        const userProfile = await profileService.getProfileByUserId(user.$id);
         if (userProfile) {
           setProfile(userProfile);
           setFormData({

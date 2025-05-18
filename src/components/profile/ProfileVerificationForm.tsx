@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import profileService from '@/services/profileService';
+// import profileService from '@/services/profileService';
 import { Profile, VerificationType } from '@/types';
+
+import getProfileByUserId from '@/services/profileService';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 const verificationTypes: { type: VerificationType; label: string; description: string }[] = [
   {
@@ -42,7 +50,7 @@ const ProfileVerificationForm: React.FC = () => {
       if (!user || !user.userId) return;
       
       try {
-        const userProfile = await profileService.getProfileByUserId(user.userId);
+        const userProfile = await profileService.getProfileByUserId(user.$id);
         if (userProfile) {
           setProfile(userProfile);
           

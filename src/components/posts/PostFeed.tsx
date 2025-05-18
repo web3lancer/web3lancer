@@ -39,7 +39,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ profileId, showPostForm = true }) =
         
         // Fetch current user's profile if logged in
         if (user && user.userId) {
-          const userProfile = await profileService.getProfileByUserId(user.userId);
+          const userProfile = await profileService.getProfileByUserId(user.$id);
           setCurrentUserProfile(userProfile);
         }
         

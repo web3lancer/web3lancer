@@ -10,6 +10,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { APP_URL, PROFILE_AVATARS_BUCKET_ID } from "@/lib/env";
 import profileService from "@/services/profileService";
 
+import getProfileByUserId from '@/services/profileService';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
+
 // Define UserProfile interface based on the ProfilesDB/user_profiles schema
 interface UserProfile {
   $id: string;
