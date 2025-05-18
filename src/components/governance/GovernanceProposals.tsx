@@ -216,7 +216,7 @@ interface GovernanceProposalsProps {
 
 // Main governance proposals component
 const GovernanceProposals: React.FC<GovernanceProposalsProps> = ({ governanceService }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [proposals, setProposals] = useState<GovernanceProposal[]>([]);
   const [userVotes, setUserVotes] = useState<Record<string, GovernanceVote>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);

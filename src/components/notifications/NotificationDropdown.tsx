@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/governance';
 import NotificationService from '@/services/notificationService';
-import { BellIcon } from '@heroicons/react/24/outline';
+import { FaRegBell } from 'react-icons/fa'; // react-icons
 
 interface NotificationDropdownProps {
   notificationService: NotificationService;
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificationService }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -23,7 +23,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
       setIsLoading(true);
       try {
         const userNotifications = await notificationService.listNotifications([
-          'Query.equal("recipientId", "' + user.id + '")',
+          'Query.equal("recipientId", "' + user.$id + '")',
           'Query.orderDesc("$createdAt")',
           'Query.limit(10)'
         ]);
@@ -39,14 +39,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
 
     fetchNotifications();
     
-    // Set up interval to check for new notifications
-    const intervalId = setInterval(fetchNotifications, 30000); // Every 30 seconds
+    const intervalId = setInterval(fetchNotifications, 30000);
     
     return () => clearInterval(intervalId);
   }, [user, notificationService]);
 
   useEffect(() => {
-    // Close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -60,8 +58,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       await notificationService.markAsRead(notificationId);
-      
-      // Update local state
       setNotifications(prevNotifications => 
         prevNotifications.map(notification => 
           notification.$id === notificationId 
@@ -69,7 +65,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
             : notification
         )
       );
-      
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -78,15 +73,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
 
   const handleMarkAllAsRead = async () => {
     if (!user) return;
-    
     try {
       await notificationService.markAllAsRead(user.id);
-      
-      // Update local state
       setNotifications(prevNotifications => 
         prevNotifications.map(notification => ({ ...notification, isRead: true }))
       );
-      
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -110,19 +101,33 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
     return date.toLocaleDateString();
   };
 
+  // Use FaRegBell for all notification types, but change color
   const getNotificationIcon = (type: Notification['type']) => {
+    let bg = 'bg-gray-100';
+    let color = 'text-gray-500';
     switch (type) {
       case 'message':
-        return <div className="bg-blue-100 p-2 rounded-full"><BellIcon className="h-4 w-4 text-blue-500" /></div>;
+        bg = 'bg-blue-100';
+        color = 'text-blue-500';
+        break;
       case 'contract':
-        return <div className="bg-green-100 p-2 rounded-full"><BellIcon className="h-4 w-4 text-green-500" /></div>;
+        bg = 'bg-green-100';
+        color = 'text-green-500';
+        break;
       case 'payment':
-        return <div className="bg-yellow-100 p-2 rounded-full"><BellIcon className="h-4 w-4 text-yellow-500" /></div>;
+        bg = 'bg-yellow-100';
+        color = 'text-yellow-500';
+        break;
       case 'dispute':
-        return <div className="bg-red-100 p-2 rounded-full"><BellIcon className="h-4 w-4 text-red-500" /></div>;
-      default:
-        return <div className="bg-gray-100 p-2 rounded-full"><BellIcon className="h-4 w-4 text-gray-500" /></div>;
+        bg = 'bg-red-100';
+        color = 'text-red-500';
+        break;
     }
+    return (
+      <div className={`${bg} p-2 rounded-full`}>
+        <FaRegBell className={`h-4 w-4 ${color}`} />
+      </div>
+    );
   };
 
   return (
@@ -132,7 +137,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="sr-only">Notifications</span>
-        <BellIcon className="h-6 w-6" />
+        <FaRegBell className="h-6 w-6" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
             {unreadCount > 9 ? '9+' : unreadCount}

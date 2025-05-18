@@ -11,7 +11,7 @@ import Modal from '@/components/Modal';
 import { Wallet, Transaction, PaymentMethod } from '@/types';
 
 export default function WalletsPage() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);

@@ -245,7 +245,7 @@ interface DisputesManagementProps {
 
 // Main disputes management component
 const DisputesManagement: React.FC<DisputesManagementProps> = ({ governanceService }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);

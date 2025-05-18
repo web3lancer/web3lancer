@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ServiceFactory from '@/services/serviceFactory';
 import NotificationService from '@/services/notificationService';
 import { Notification } from '@/types/activity';
+import { isAuthenticated } from '@/utils/auth';
 
 interface NotificationDropdownProps {
   maxHeight?: number;
@@ -19,7 +20,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, user } = useAuthContext();
+  const { user } = useAuth();
   
   // Get services
   const serviceFactory = ServiceFactory.getInstance();
