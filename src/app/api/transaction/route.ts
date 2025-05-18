@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserTransactions, updateTransactionStatus } from "@/services/financeService";
-import getProfileByUserId from '@/services/profileService';
+import getUserTransactions from "@/services/financeService";
+import updateTransactionStatus from "@/services/financeService";
+// import getProfileByUserId from '@/services/profileService';
 
 import { validateSession } from "@/utils/api";
+
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,7 +23,7 @@ export async function GET(req: NextRequest) {
     const userId = session.userId;
     
     // Get user profile
-    const userProfile = await getProfileByUserId(userId);
+    const userProfile = profileService.getProfileByUserId(userId);
     if (!userProfile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }

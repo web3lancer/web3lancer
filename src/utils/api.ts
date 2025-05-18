@@ -14,8 +14,7 @@ import {
   ACTIVITY_DATABASE_ID,
   USER_NOTIFICATIONS_COLLECTION_ID,
   USER_PORTFOLIOS_COLLECTION_ID, // Assuming projects map to portfolios
-  USER_PAYMENT_METHODS_COLLECTION_ID,
-  USER_CONNECTIONS_COLLECTION_ID, // Added for social connections
+  USER_PAYMENT_METHODS_COLLECTION_ID, // Added for social connections
 } from '@/lib/env';
 
 // Initialize client according to Appwrite docs

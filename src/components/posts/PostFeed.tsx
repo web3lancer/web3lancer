@@ -4,9 +4,17 @@ import PostCard from './PostCard';
 import PostForm from './PostForm';
 import { Post, Profile } from '@/types';
 import postService from '@/services/postService';
-import profileService from '@/services/profileService';
+// import profileService from '@/services/profileService';
 import { useAuth } from '@/contexts/AuthContext';
-import getProfileByUserId from '@/services/profileService';
+
+
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 interface PostFeedProps {
   profileId?: string; // If provided, shows only posts from this profile
