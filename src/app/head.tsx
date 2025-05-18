@@ -18,7 +18,7 @@ export default function Head() {
       {/* Open Graph Meta Tags for social sharing */}
       <meta property="og:title" content="Web3Lancer - Decentralized Freelancing Platform" />
       <meta property="og:description" content="Connect, collaborate, and create on the leading Web3 freelancing platform. Hire top talent or find your next big project in the decentralized space." />
-      <meta property="og:image" content="/logo/web3lancer_og_image.jpg" /> {/* Replace with actual URL to an engaging OG image */}
+      <meta property="og:image" content="/logo/web3lancer.jpg" /> {/* Replace with actual URL to an engaging OG image */}
       <meta property="og:url" content="https://www.web3lancer.website" /> {/* Replace with your actual domain */}
       <meta property="og:type" content="website" />
 
@@ -26,7 +26,7 @@ export default function Head() {
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content="Web3Lancer - Decentralized Freelancing Platform" />
       <meta name="twitter:description" content="Join the revolution of work. Web3Lancer connects skilled freelancers with innovative projects in the decentralized ecosystem." />
-      <meta name="twitter:image" content="/logo/web3lancer_twitter_card.jpg" /> {/* Replace with actual URL to a Twitter card image */}
+      <meta name="twitter:image" content="/logo/web3lancer.jpg" /> {/* Replace with actual URL to a Twitter card image */}
       {/* <meta name="twitter:site" content="@yourtwitterhandle" /> Optional: Your Twitter handle */}
 
       <title>Web3Lancer - Decentralized Freelancing & Project Platform</title>

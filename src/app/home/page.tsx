@@ -33,6 +33,7 @@ import { getUserProfile, getProfilePictureUrl } from '@/utils/api';
 import { APP_URL } from '@/lib/env';
 import { CONTENT_DATABASE_ID, USER_POSTS_COLLECTION_ID, POST_ATTACHMENTS_BUCKET_ID } from '@/lib/env';
 import { Client, Databases, Storage, ID, Query } from 'appwrite';
+import { Metadata } from 'next';
 
 // Icons
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -89,6 +90,30 @@ interface VisibilityOption {
   label: string;
   icon: React.ElementType;
 }
+
+export const generateMetadata = async (): Promise<Metadata> => {
+  const title = 'Web3Lancer Home - Decentralized Freelancing Platform';
+  const description = 'Your dashboard for projects, jobs, and collaboration in the Web3Lancer ecosystem.';
+  const image = '/logo/web3lancer.jpg';
+  const url = 'https://www.web3lancer.website/home';
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      images: [image],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+  };
+};
 
 export default function DashboardPage() {
   const theme = useTheme();
