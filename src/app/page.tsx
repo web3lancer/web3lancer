@@ -12,6 +12,7 @@ import TestimonialsSection from './home0/sections/TestimonialsSection';
 import DownloadSection from './home0/sections/DownloadSection';
 import JobsSection from './home0/sections/JobsSection';
 import CommunitySection from './home0/sections/CommunitySection';
+import Head from 'next/head';
 
 // Placeholder for HowItWorksSection
 const HowItWorksSection: React.FC = () => (
@@ -145,155 +146,170 @@ export default function HomePage() {
   };
 
   return (
-    <Box sx={{ 
-      overflowX: 'hidden',
-      width: '100%',
-      maxWidth: '100vw',
-      boxSizing: 'border-box',
-      bgcolor: theme.palette.background.default,
-      color: theme.palette.text.primary,
-      position: 'relative',
-    }}>
-      <HeroSection />
-
-      <Paper elevation={0} sx={{
-        py: { xs: 4, md: 6 },
-        background: theme.palette.mode === 'dark' 
-          ? theme.palette.grey[900] 
-          : theme.palette.grey[50],
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <StatisticsSection />
-        </Container>
-      </Paper>
-      
-      <Paper elevation={0} sx={{
-        py: { xs: 4, md: 6 }, 
-        background: theme.palette.mode === 'dark' 
-          ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)` 
-          : `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 100%)`,
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <FeaturesSection />
-        </Container>
-      </Paper>
-
-      <Paper elevation={0} sx={{
-        py: { xs: 4, md: 6 },
-        background: theme.palette.mode === 'dark'
-          ? theme.palette.background.paper // A slightly different shade for variety
-          : theme.palette.grey[200],
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <FeaturedProjects />
-        </Container>
-      </Paper>
-
+    <>
+      <Head>
+        <title>Web3Lancer – Decentralized Web3 Freelance Marketplace</title>
+        <meta name="description" content="Find top Web3 talent or your next blockchain project. Secure, decentralized, and community-driven freelance marketplace for the future of work." />
+        <meta property="og:title" content="Web3Lancer – Decentralized Web3 Freelance Marketplace" />
+        <meta property="og:description" content="Find top Web3 talent or your next blockchain project. Secure, decentralized, and community-driven freelance marketplace for the future of work." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://web3lancer.xyz/" />
+        <meta property="og:image" content="https://web3lancer.xyz/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Web3Lancer – Decentralized Web3 Freelance Marketplace" />
+        <meta name="twitter:description" content="Find top Web3 talent or your next blockchain project. Secure, decentralized, and community-driven freelance marketplace for the future of work." />
+        <meta name="twitter:image" content="https://web3lancer.xyz/og-image.png" />
+      </Head>
       <Box sx={{ 
-        py: { xs: 6, md: 8 },
-        background: theme.palette.mode === 'dark' 
-            ? 'rgba(10, 25, 41, 0.6)' // Darker acrylic
-            : 'rgba(240, 248, 255, 0.75)', // Lighter acrylic
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)', 
+        overflowX: 'hidden',
+        width: '100%',
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
         position: 'relative',
-        zIndex: 1,
       }}>
-        <Container maxWidth="lg">
-          <HowItWorksSection />
+        <HeroSection />
+
+        <Paper elevation={0} sx={{
+          py: { xs: 4, md: 6 },
+          background: theme.palette.mode === 'dark' 
+            ? theme.palette.grey[900] 
+            : theme.palette.grey[50],
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <StatisticsSection />
+          </Container>
+        </Paper>
+        
+        <Paper elevation={0} sx={{
+          py: { xs: 4, md: 6 }, 
+          background: theme.palette.mode === 'dark' 
+            ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)` 
+            : `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 100%)`,
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <FeaturesSection />
+          </Container>
+        </Paper>
+
+        <Paper elevation={0} sx={{
+          py: { xs: 4, md: 6 },
+          background: theme.palette.mode === 'dark'
+            ? theme.palette.background.paper // A slightly different shade for variety
+            : theme.palette.grey[200],
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <FeaturedProjects />
+          </Container>
+        </Paper>
+
+        <Box sx={{ 
+          py: { xs: 6, md: 8 },
+          background: theme.palette.mode === 'dark' 
+              ? 'rgba(10, 25, 41, 0.6)' // Darker acrylic
+              : 'rgba(240, 248, 255, 0.75)', // Lighter acrylic
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)', 
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <HowItWorksSection />
+          </Container>
+        </Box>
+
+        <Paper elevation={0} sx={{
+          py: { xs: 4, md: 6 },
+          background: theme.palette.mode === 'dark' 
+            ? theme.palette.grey[800] // Another distinct shade
+            : theme.palette.grey[100],
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <TestimonialsSection />
+          </Container>
+        </Paper>
+
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <CTABanner 
+            title="Ready to Start Your Next Web3 Project?"
+            subtitle="Join Web3Lancer today and connect with top talent or find exciting new opportunities."
+            primaryButtonText="Find Talent"
+            primaryButtonLink="/projects/post"
+            secondaryButtonText="Browse Projects"
+            secondaryButtonLink="/projects"
+          />
         </Container>
+
+        <Paper elevation={0} sx={{
+          py: { xs: 4, md: 6 }, 
+          background: theme.palette.mode === 'dark' 
+            ? theme.palette.background.default // Subtle distinction
+            : theme.palette.grey[50],
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <JobsSection jobs={jobs} isLoading={loadingJobs} /> 
+          </Container>
+        </Paper>
+        
+        <Paper elevation={0} sx={{
+          py: { xs: 4, md: 6 },
+          background: theme.palette.mode === 'dark' 
+            ? `linear-gradient(to bottom, ${theme.palette.grey[900]}, ${theme.palette.background.paper})`
+            : `linear-gradient(to bottom, ${theme.palette.grey[50]}, ${theme.palette.grey[200]})`,
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <DownloadSection />
+          </Container>
+        </Paper>
+        
+        <Box sx={{ 
+          py: { xs: 6, md: 8 },
+          background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
+          color: theme.palette.primary.contrastText,
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <Container maxWidth="lg">
+            <CommunitySection />
+          </Container>
+        </Box>
+
+        <Fab
+          color="primary"
+          aria-label="scroll to top"
+          onClick={scrollToTop}
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 72, md: 32 },
+            right: 32,
+            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main || theme.palette.primary.dark})`,
+            boxShadow: `0 8px 20px ${theme.palette.primary.dark}59`,
+            zIndex: 1100,
+            opacity: 0.9,
+            transition: 'opacity 0.3s ease, background 0.3s ease, transform 0.3s ease',
+            '&:hover': {
+              opacity: 1,
+              transform: 'scale(1.1)',
+              background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark || theme.palette.primary.main})`,
+            },
+          }}
+        >
+          <ArrowUpwardIcon />
+        </Fab>
       </Box>
-
-      <Paper elevation={0} sx={{
-        py: { xs: 4, md: 6 },
-        background: theme.palette.mode === 'dark' 
-          ? theme.palette.grey[800] // Another distinct shade
-          : theme.palette.grey[100],
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <TestimonialsSection />
-        </Container>
-      </Paper>
-
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-        <CTABanner 
-          title="Ready to Start Your Next Web3 Project?"
-          subtitle="Join Web3Lancer today and connect with top talent or find exciting new opportunities."
-          primaryButtonText="Find Talent"
-          primaryButtonLink="/projects/post"
-          secondaryButtonText="Browse Projects"
-          secondaryButtonLink="/projects"
-        />
-      </Container>
-
-      <Paper elevation={0} sx={{
-        py: { xs: 4, md: 6 }, 
-        background: theme.palette.mode === 'dark' 
-          ? theme.palette.background.default // Subtle distinction
-          : theme.palette.grey[50],
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <JobsSection jobs={jobs} isLoading={loadingJobs} /> 
-        </Container>
-      </Paper>
-      
-      <Paper elevation={0} sx={{
-        py: { xs: 4, md: 6 },
-        background: theme.palette.mode === 'dark' 
-          ? `linear-gradient(to bottom, ${theme.palette.grey[900]}, ${theme.palette.background.paper})`
-          : `linear-gradient(to bottom, ${theme.palette.grey[50]}, ${theme.palette.grey[200]})`,
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <DownloadSection />
-        </Container>
-      </Paper>
-      
-      <Box sx={{ 
-        py: { xs: 6, md: 8 },
-        background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-        color: theme.palette.primary.contrastText,
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <Container maxWidth="lg">
-          <CommunitySection />
-        </Container>
-      </Box>
-
-      <Fab
-        color="primary"
-        aria-label="scroll to top"
-        onClick={scrollToTop}
-        sx={{
-          position: 'fixed',
-          bottom: { xs: 72, md: 32 },
-          right: 32,
-          background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main || theme.palette.primary.dark})`,
-          boxShadow: `0 8px 20px ${theme.palette.primary.dark}59`,
-          zIndex: 1100,
-          opacity: 0.9,
-          transition: 'opacity 0.3s ease, background 0.3s ease, transform 0.3s ease',
-          '&:hover': {
-            opacity: 1,
-            transform: 'scale(1.1)',
-            background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark || theme.palette.primary.main})`,
-          },
-        }}
-      >
-        <ArrowUpwardIcon />
-      </Fab>
-    </Box>
+    </>
   );
 }
