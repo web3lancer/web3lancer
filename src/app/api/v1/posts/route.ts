@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { databases, ID, storage } from '@/lib/appwrite';
 import { getSession } from '@/utils/auth';
-import env from '@/lib/env';
+import * as env from '@/lib/env';
 
 /**
  * Get user's feed (posts from people they follow)
@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
     
     // First, get the profiles that the user follows
     const followedProfilesQuery = await databases.listDocuments(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_SOCIAL_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_CONNECTIONS_ID,
+      env.SOCIAL_DATABASE_ID,
+      env.USER_CONNECTIONS_COLLECTION_ID,
       [
         /* Query for followerId = current user's profile ID */
       ]
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
     
     // Then, get posts from those profiles
     const posts = await databases.listDocuments(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       [
         /* Query for posts from followed profiles, ordered by createdAt */
       ]
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
     const postsWithLikeInfo = await Promise.all(
       posts.documents.map(async (post) => {
         const likes = await databases.listDocuments(
-          env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-          env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+          env.CONTENT_DATABASE_ID,
+          env.POST_INTERACTIONS_COLLECTION_ID,
           [
             /* Query for interactions on this post from current user */
           ]
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
     
     // Create post document
     const post = await databases.createDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       ID.unique(),
       {
         authorId,

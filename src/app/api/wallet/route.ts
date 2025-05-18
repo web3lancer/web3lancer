@@ -71,13 +71,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Create wallet
-    const wallet = await createUserWallet(
-      userProfile.$id, 
-      walletAddress, 
+    const wallet = new createUserWallet(userProfile.$id,
+      walletAddress,
       walletType as 'ethereum' | 'solana' | 'xion' | 'internal',
       !!isPrimary,
-      nickname
-    );
+      nickname);
     
     return NextResponse.json({ wallet }, { status: 201 });
   } catch (error) {

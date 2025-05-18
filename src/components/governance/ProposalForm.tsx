@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import ProposalService from '@/services/proposalService';
 import { AppwriteService } from '@/services/appwriteService';
-import { PlatformProposal } from '@/types/governance';
+import PlatformProposal from '@/types/governance';
 import { envConfig } from '@/config/environment';
 
 interface ProposalFormProps {

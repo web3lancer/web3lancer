@@ -64,11 +64,9 @@ export async function PUT(req: NextRequest) {
     }
 
     // Update transaction status
-    const updatedTransaction = await updateTransactionStatus(
-      transactionId, 
+    const updatedTransaction = new updateTransactionStatus(transactionId,
       status as 'pending' | 'completed' | 'failed' | 'cancelled',
-      txHash
-    );
+      txHash);
     
     return NextResponse.json({ transaction: updatedTransaction });
   } catch (error) {

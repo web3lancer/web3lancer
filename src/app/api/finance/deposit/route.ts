@@ -4,9 +4,7 @@ import {
   FINANCE_DATABASE_ID,
   USER_WALLETS_COLLECTION_ID,
   PLATFORM_TRANSACTIONS_COLLECTION_ID,
-  USER_PAYMENT_METHODS_COLLECTION_ID,
-  ESCROW_TRANSACTIONS_COLLECTION_ID
-} from '@/lib/env';
+  USER_PAYMENT_METHODS_COLLECTION_ID} from '@/lib/env';
 import { calculatePlatformFee } from '@/utils/financeUtils';
 // Use appropriate auth method based on project's existing implementation
 import { getSession } from '@/utils/auth';

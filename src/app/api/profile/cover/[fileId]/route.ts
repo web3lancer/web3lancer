@@ -15,16 +15,15 @@ export async function GET(
 
   try {
     const storage = new Storage(client);
-    const file = await storage.getFileDownload(COVER_IMAGES_BUCKET_ID, fileId);
-    
-    const buffer = await file.arrayBuffer();
-    const response = new NextResponse(buffer);
-    
+    const fileView = await storage.getFileView(COVER_IMAGES_BUCKET_ID, fileId);
+
+    const response = new NextResponse(fileView);
+
     // Set appropriate content type
     const fileDetails = await storage.getFile(COVER_IMAGES_BUCKET_ID, fileId);
     response.headers.set("Content-Type", fileDetails.mimeType);
     response.headers.set("Cache-Control", "public, max-age=604800"); // Cache for 1 week
-    
+
     return response;
   } catch (error) {
     console.error("Error fetching cover image:", error);
