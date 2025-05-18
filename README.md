@@ -10,6 +10,7 @@
 
 Web3Lancer bridges traditional freelancing with blockchain innovation, creating a borderless platform where freelancers and businesses connect, collaborate, and transact with unprecedented transparency and efficiency.
 
+
 ## 🛠️ Core Features
 
 - **🔍 Smart Matching** - AI-powered talent discovery across disciplines
