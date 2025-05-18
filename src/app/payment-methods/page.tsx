@@ -6,9 +6,11 @@ import PaymentMethodCard from '@/components/finance/PaymentMethodCard';
 import PaymentMethodForm from '@/components/finance/PaymentMethodForm';
 import Modal from '@/components/Modal';
 import { PaymentMethod } from '@/types';
+// import useAuthContext from '@/contexts/AuthContext';
 
 export default function PaymentMethodsPage() {
-  const { user } = useAuthContext();
+  // const { user } = useAuthContext();
+  const { user } = useAuth();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
