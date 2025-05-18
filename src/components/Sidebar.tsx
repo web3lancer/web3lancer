@@ -42,7 +42,7 @@ export default function Sidebar() {
 
   // Define menu items for the sidebar
   const mainMenuItems = useMemo(() => [
-    { text: 'Dashboard', icon: Dashboard, path: '/home' },
+    { text: 'Home', icon: Dashboard, path: '/home' },
     { text: 'Projects', icon: Work, path: '/projects' },
     { text: 'Connect', icon: People, path: '/connect' },
     { text: 'Groups', icon: Groups, path: '/groups' },
@@ -64,7 +64,7 @@ export default function Sidebar() {
   
   // Mobile nav items (Dashboard, Projects, Connect, Lancelot, Profile)
   const mobileNavItems = useMemo(() => [
-    { text: 'Dashboard', icon: Dashboard, path: '/home' },
+    { text: 'Home', icon: Dashboard, path: '/home' },
     { text: 'Projects', icon: Work, path: '/projects' },
     { text: 'Connect', icon: People, path: '/connect' },
     { text: 'Lancelot', icon: Loyalty, path: '/lancelot' },

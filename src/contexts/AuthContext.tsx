@@ -415,7 +415,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       // Navigate to dashboard
-      router.push('/dashboard');
+      router.push('/home');
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -470,7 +470,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       // Navigate to dashboard
-      router.push('/dashboard');
+      router.push('/home');
     } catch (error) {
       console.error("Registration error:", error);
       toast({
@@ -516,7 +516,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       // Navigate to dashboard
-      router.push('/dashboard');
+      router.push('/home');
     } catch (error) {
       console.error("Magic link verification error:", error);
       toast({
