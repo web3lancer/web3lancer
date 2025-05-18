@@ -2,12 +2,12 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useRouter } from "next/navigation";
-import { account, validateSession, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, signUp, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
-import { ensureGuestSession, isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
-import { Models, Storage, ID, Avatars, Account } from 'appwrite';
+import { account, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
+import { isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
+import { Models, Storage, Avatars, Account } from 'appwrite';
 import { client } from '@/app/appwrite';
 import { useToast } from "@/components/ui/use-toast";
-import { APP_URL, PROFILE_AVATARS_BUCKET_ID, LEGACY_PROFILE_PICTURES_BUCKET_ID } from "@/lib/env";
+import { APP_URL, PROFILE_AVATARS_BUCKET_ID } from "@/lib/env";
 import profileService from "@/services/profileService";
 
 // Define UserProfile interface based on the ProfilesDB/user_profiles schema

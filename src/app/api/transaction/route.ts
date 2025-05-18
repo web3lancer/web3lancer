@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserTransactions, updateTransactionStatus } from "@/services/financeService";
 import getProfileByUserId from '@/services/profileService';
 
-import { validateSession } from "@/utils/auth";
+import { validateSession } from "@/utils/api";
 
 export async function GET(req: NextRequest) {
   try {

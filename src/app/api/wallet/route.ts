@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserWallets, createUserWallet, updateWallet, deleteWallet, setPrimaryWallet, verifyWalletOwnership } from "@/services/financeService";
-import getProfileByUserId from '@/services/profileService';
+import getUserWallets from "@/services/financeService";
+import createUserWallet from "@/services/financeService";
+import updateWallet from "@/services/financeService";
+import deleteWallet from "@/services/financeService";``
+import setPrimaryWallet from "@/services/financeService";``
 
-import { validateSession } from "@/utils/auth";
+import { validateSession } from "@/utils/api";
+
+import getProfileByUserId from '@/services/profileService';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,7 +26,8 @@ export async function GET(req: NextRequest) {
     const userId = session.userId;
     
     // Get user profile
-    const userProfile = await getProfileByUserId(userId);
+    // const userProfile = await getProfileByUserId(userId);
+    const userProfile = await profileService.getProfileByUserId(userId);
     if (!userProfile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }

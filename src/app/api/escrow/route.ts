@@ -6,7 +6,7 @@ import {
   getContractEscrowTransactions,
   getMilestoneEscrowTransaction 
 } from "@/services/financeService";
-import { validateSession } from "@/utils/auth";
+import { validateSession } from "@/utils/api";
 
 import getProfileByUserId from '@/services/profileService';
 
