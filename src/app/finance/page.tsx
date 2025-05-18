@@ -1,50 +1,50 @@
 import React from 'react';
 import Link from 'next/link';
 import { 
-  WalletIcon, 
-  CreditCardIcon, 
-  ArrowDownTrayIcon,
-  ArrowUpTrayIcon,
-  ArrowPathIcon,
-  ShieldCheckIcon 
-} from '@heroicons/react/24/outline';
+  FaWallet, 
+  FaCreditCard, 
+  FaArrowDown, 
+  FaArrowUp, 
+  FaHistory, 
+  FaShieldAlt 
+} from 'react-icons/fa';
 
 export default function FinancePage() {
   const features = [
     {
       name: 'Wallets',
       description: 'Manage your fiat and crypto wallets. Fund your wallets to pay for services or receive payments from clients.',
-      icon: WalletIcon,
+      icon: FaWallet,
       href: '/wallet'
     },
     {
       name: 'Payment Methods',
       description: 'Add and manage your payment methods for easy deposits and withdrawals.',
-      icon: CreditCardIcon,
+      icon: FaCreditCard,
       href: '/payment-methods'
     },
     {
       name: 'Deposits',
       description: 'Add funds to your wallets for paying freelancers or platform fees.',
-      icon: ArrowDownTrayIcon,
+      icon: FaArrowDown,
       href: '/wallet' // Will open wallet page with deposit modal
     },
     {
       name: 'Withdrawals',
       description: 'Withdraw your earnings to your bank account or crypto wallet.',
-      icon: ArrowUpTrayIcon,
+      icon: FaArrowUp,
       href: '/wallet' // Will open wallet page with withdrawal modal
     },
     {
       name: 'Transaction History',
       description: 'View all your past transactions including payments, deposits, and withdrawals.',
-      icon: ArrowPathIcon,
+      icon: FaHistory,
       href: '/wallet?tab=transactions'
     },
     {
       name: 'Escrow Services',
       description: 'Secure payments through our escrow service for all contracts.',
-      icon: ShieldCheckIcon,
+      icon: FaShieldAlt,
       href: '/contracts'
     },
   ];
