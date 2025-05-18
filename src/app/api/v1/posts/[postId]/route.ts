@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { databases, storage } from '@/lib/appwrite';
 import { getSession } from '@/utils/auth';
-import env from '@/lib/env';
+import * as env from '@/lib/env';
+import { ID } from '@/app/appwrite';
 
 interface Params {
   params: {
@@ -15,17 +16,18 @@ export async function GET(request: NextRequest, { params }: Params) {
     const { postId } = params;
     
     const post = await databases.getDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId
     );
     
+
     // Check if the current user has liked this post
     const session = await getSession();
     if (session?.userId) {
       const likes = await databases.listDocuments(
-        env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-        env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+        env.CONTENT_DATABASE_ID,
+        env.POST_INTERACTIONS_COLLECTION_ID,
         [
           /* Query for interactions on this post from current user */
         ]
@@ -55,8 +57,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Media attachments are too large. Please reduce the number or size of media files.' }, { status: 400 });
     }
     const post = await databases.createDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       ID.unique(),
       {
         authorId,
@@ -91,8 +93,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
     
     // First, verify that the user is the author of the post
     const post = await databases.getDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId
     );
     
@@ -103,8 +105,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
     
     // Update the post
     const updatedPost = await databases.updateDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId,
       {
         ...updateData,
@@ -131,8 +133,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     
     // First, verify that the user is the author of the post
     const post = await databases.getDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId
     );
     
@@ -157,15 +159,15 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     
     // Delete the post
     await databases.deleteDocument(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_POSTS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.USER_POSTS_COLLECTION_ID,
       postId
     );
     
     // Delete associated interactions (likes, comments, etc.)
     const interactions = await databases.listDocuments(
-      env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-      env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+      env.CONTENT_DATABASE_ID,
+      env.POST_INTERACTIONS_COLLECTION_ID,
       [
         /* Query for interactions on this post */
       ]
@@ -173,8 +175,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     
     for (const interaction of interactions.documents) {
       await databases.deleteDocument(
-        env.NEXT_PUBLIC_APPWRITE_DATABASE_CONTENT_ID,
-        env.NEXT_PUBLIC_APPWRITE_COLLECTION_POST_INTERACTIONS_ID,
+        env.CONTENT_DATABASE_ID,
+        env.POST_INTERACTIONS_COLLECTION_ID,
         interaction.$id
       );
     }

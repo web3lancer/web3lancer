@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { databases, ID, storage } from '@/lib/appwrite';
+import { databases, storage } from '@/lib/appwrite';
 import { getSession } from '@/utils/auth';
 import * as env from '@/lib/env';
-
+import { ID } from '@/app/appwrite';
 /**
  * Get user's feed (posts from people they follow)
  */
