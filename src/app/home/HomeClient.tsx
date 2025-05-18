@@ -23,8 +23,9 @@ import {
   Dialog,
   DialogContent,
   Snackbar,
-  Alert,
-  Grid} from '@mui/material';
+  Alert
+} from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -646,6 +647,7 @@ export default function HomeClient() {
                       border: `1px solid ${theme.palette.divider}`,
                       '&:hover': { bgcolor: 'action.hover' },
                       boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                      width: '100%'
                     }}
                   >
                     <CardContent sx={{ pb: 1 }}>
