@@ -29,5 +29,5 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default function Project({ params }: { params: { id: string } }) {
-  <ProjectClient params={params} />;
+  return <ProjectClient params={params} />;
 }
