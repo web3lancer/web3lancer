@@ -429,430 +429,432 @@ export default function HomeClient() {
 
         {/* Main content */}
         <Grid item xs={12} md={6} lg={6}>
-          {/* Fixed tabs section at the top */}
-          <Paper
-            elevation={0}
-            sx={{
-              borderRadius: '16px 16px 0 0',
-              border: `1px solid ${theme.palette.divider}`,
-              overflow: 'hidden',
-              position: 'sticky',
-              top: 0,
-              zIndex: 10,
-              backgroundColor: theme.palette.background.paper,
-              mb: 2,
-            }}
-          >
-            <Tabs
-              value={activeTab}
-              onChange={handleTabChange}
-              variant="fullWidth"
-              aria-label="feed tabs"
-              sx={{
-                borderBottom: 1,
-                borderColor: 'divider',
-              }}
-            >
-              <Tab
-                icon={<GridViewIcon fontSize="small" />}
-                iconPosition="start"
-                label="For You"
-              />
-              <Tab
-                icon={<TrendingUpIcon fontSize="small" />}
-                iconPosition="start"
-                label="Trending"
-              />
-              <Tab
-                icon={<PeopleIcon fontSize="small" />}
-                iconPosition="start"
-                label="Following"
-              />
-            </Tabs>
-          </Paper>
-
-          {/* Post creation box - only for signed in users */}
-          {user && (
+          <Box sx={{ width: '100%' }}>
+            {/* Fixed tabs section at the top */}
             <Paper
               elevation={0}
               sx={{
-                borderRadius: 3,
+                borderRadius: '16px 16px 0 0',
                 border: `1px solid ${theme.palette.divider}`,
-                mb: 3,
+                overflow: 'hidden',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                backgroundColor: theme.palette.background.paper,
+                mb: 2,
               }}
             >
-              <Box sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
-                  <Avatar src={userProfilePic || undefined} />
-                  <Box sx={{ flexGrow: 1 }}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={2}
-                      placeholder="What's happening in the web3 world?"
-                      value={newPostContent}
-                      onChange={(e) => setNewPostContent(e.target.value)}
-                      variant="outlined"
-                      sx={{
-                        mb: 1,
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                        },
-                      }}
-                      InputProps={{
-                        sx: { p: 1.5 }
-                      }}
-                    />
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                variant="fullWidth"
+                aria-label="feed tabs"
+                sx={{
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                }}
+              >
+                <Tab
+                  icon={<GridViewIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="For You"
+                />
+                <Tab
+                  icon={<TrendingUpIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Trending"
+                />
+                <Tab
+                  icon={<PeopleIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Following"
+                />
+              </Tabs>
+            </Paper>
 
-                    {/* Media preview */}
-                    {mediaPreview.length > 0 && (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                        {mediaPreview.map((preview, index) => (
-                          <Box key={index} sx={{ position: 'relative', width: 100, height: 100 }}>
-                            <img
-                              src={preview}
-                              alt={`Preview ${index}`}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                borderRadius: 8,
-                              }}
-                            />
-                            <IconButton
-                              size="small"
-                              onClick={() => removeMedia(index)}
-                              sx={{
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                bgcolor: 'rgba(0,0,0,0.5)',
-                                color: 'white',
-                                p: 0.5,
-                                '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
-                              }}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
+            {/* Post creation box - only for signed in users */}
+            {user && (
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: `1px solid ${theme.palette.divider}`,
+                  mb: 3,
+                }}
+              >
+                <Box sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 1.5 }}>
+                    <Avatar src={userProfilePic || undefined} />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        placeholder="What's happening in the web3 world?"
+                        value={newPostContent}
+                        onChange={(e) => setNewPostContent(e.target.value)}
+                        variant="outlined"
+                        sx={{
+                          mb: 1,
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                          },
+                        }}
+                        InputProps={{
+                          sx: { p: 1.5 }
+                        }}
+                      />
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*,video/*"
-                          style={{ display: 'none' }}
-                          ref={fileInputRef}
-                          onChange={handleMediaUpload}
-                        />
-                        <Tooltip title="Add Image">
-                          <IconButton
-                            color="primary"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <ImageIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Add Video">
-                          <IconButton
-                            color="primary"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <VideocamIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Add Emoji">
-                          <IconButton color="primary">
-                            <EmojiEmotionsIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Add Location">
-                          <IconButton color="primary">
-                            <LocationOnIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Visibility">
-                          <IconButton
-                            color="primary"
-                            onClick={handleMenuOpen}
-                            aria-controls="visibility-menu"
-                            aria-haspopup="true"
-                          >
-                            <VisibilityIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Menu
-                          id="visibility-menu"
-                          anchorEl={anchorEl}
-                          open={Boolean(anchorEl)}
-                          onClose={handleMenuClose}
-                        >
-                          {visibilityOptions.map((option) => (
-                            <MenuItem
-                              key={option.value}
-                              onClick={() => {
-                                setSelectedVisibility(option.value);
-                                handleMenuClose();
-                              }}
-                              selected={selectedVisibility === option.value}
-                            >
-                              <option.icon fontSize="small" sx={{ mr: 1 }} />
-                              {option.label}
-                            </MenuItem>
+                      {/* Media preview */}
+                      {mediaPreview.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                          {mediaPreview.map((preview, index) => (
+                            <Box key={index} sx={{ position: 'relative', width: 100, height: 100 }}>
+                              <img
+                                src={preview}
+                                alt={`Preview ${index}`}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  borderRadius: 8,
+                                }}
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => removeMedia(index)}
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  bgcolor: 'rgba(0,0,0,0.5)',
+                                  color: 'white',
+                                  p: 0.5,
+                                  '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+                                }}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           ))}
-                        </Menu>
+                        </Box>
+                      )}
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*,video/*"
+                            style={{ display: 'none' }}
+                            ref={fileInputRef}
+                            onChange={handleMediaUpload}
+                          />
+                          <Tooltip title="Add Image">
+                            <IconButton
+                              color="primary"
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <ImageIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Add Video">
+                            <IconButton
+                              color="primary"
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <VideocamIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Add Emoji">
+                            <IconButton color="primary">
+                              <EmojiEmotionsIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Add Location">
+                            <IconButton color="primary">
+                              <LocationOnIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Visibility">
+                            <IconButton
+                              color="primary"
+                              onClick={handleMenuOpen}
+                              aria-controls="visibility-menu"
+                              aria-haspopup="true"
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Menu
+                            id="visibility-menu"
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={handleMenuClose}
+                          >
+                            {visibilityOptions.map((option) => (
+                              <MenuItem
+                                key={option.value}
+                                onClick={() => {
+                                  setSelectedVisibility(option.value);
+                                  handleMenuClose();
+                                }}
+                                selected={selectedVisibility === option.value}
+                              >
+                                <option.icon fontSize="small" sx={{ mr: 1 }} />
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </Menu>
+                        </Box>
+                        <Button
+                          variant="contained"
+                          disableElevation
+                          endIcon={<SendIcon />}
+                          onClick={handlePostSubmit}
+                          disabled={isLoading || (!newPostContent.trim() && selectedMedia.length === 0)}
+                          sx={{ borderRadius: 6, px: 3 }}
+                        >
+                          Lance it
+                        </Button>
                       </Box>
-                      <Button
-                        variant="contained"
-                        disableElevation
-                        endIcon={<SendIcon />}
-                        onClick={handlePostSubmit}
-                        disabled={isLoading || (!newPostContent.trim() && selectedMedia.length === 0)}
-                        sx={{ borderRadius: 6, px: 3 }}
-                      >
-                        Lance it
-                      </Button>
                     </Box>
                   </Box>
                 </Box>
-              </Box>
-            </Paper>
-          )}
+              </Paper>
+            )}
 
-          {/* Scrollable feed content - individual lance cards */}
-          {isLoading && lances.length === 0 ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <Box sx={{ pb: 4 }}>
-              {lances.map((lance) => {
-                const profile = userProfiles[lance.userId];
-                const userProfilePic = profile && profile.profilePicture ? getProfilePictureUrl(profile.profilePicture) : undefined;
-                const userName = profile && profile.username ? profile.username : lance.userId;
-                const userHandle = profile && profile.username ? profile.username : lance.userId;
-                return (
-                  <AnimatedCard
-                    key={lance.$id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    sx={{
-                      mb: 2.5,
-                      borderRadius: 3,
-                      border: `1px solid ${theme.palette.divider}`,
-                      '&:hover': { bgcolor: 'action.hover' },
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                      width: '100%'
-                    }}
-                  >
-                    <CardContent sx={{ pb: 1 }}>
-                      <Box sx={{ display: 'flex', gap: 1.5 }}>
-                        <Avatar 
-                          src={userProfilePic} 
-                          component={Link}
-                          href={`/u/${lance.userId}`}
-                          sx={{ 
-                            width: 48, 
-                            height: 48,
-                            cursor: 'pointer',
-                            '&:hover': { opacity: 0.8 } 
-                          }} 
-                        />
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <Typography 
-                                  variant="subtitle1" 
-                                  component={Link}
-                                  href={`/u/${lance.userId}`}
-                                  sx={{ 
-                                    fontWeight: 600,
-                                    textDecoration: 'none',
-                                    color: 'text.primary',
-                                    '&:hover': { textDecoration: 'underline' } 
-                                  }}
-                                >
-                                  {userName}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  @{userHandle}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  · {formatPostDate(lance.createdAt)}
-                                </Typography>
-                              </Box>
-                              {lance.visibility !== 'public' && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                  {lance.visibility === 'private' && <LockIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                  {lance.visibility === 'followers' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
-                                  {lance.visibility === 'following' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+            {/* Scrollable feed content - individual lance cards */}
+            {isLoading && lances.length === 0 ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Box sx={{ pb: 4, width: '100%' }}>
+                {lances.map((lance) => {
+                  const profile = userProfiles[lance.userId];
+                  const userProfilePic = profile && profile.profilePicture ? getProfilePictureUrl(profile.profilePicture) : undefined;
+                  const userName = profile && profile.username ? profile.username : lance.userId;
+                  const userHandle = profile && profile.username ? profile.username : lance.userId;
+                  return (
+                    <AnimatedCard
+                      key={lance.$id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      sx={{
+                        mb: 2.5,
+                        borderRadius: 3,
+                        border: `1px solid ${theme.palette.divider}`,
+                        '&:hover': { bgcolor: 'action.hover' },
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                        width: '100%'
+                      }}
+                    >
+                      <CardContent sx={{ pb: 1, width: '100%' }}>
+                        <Box sx={{ display: 'flex', gap: 1.5 }}>
+                          <Avatar 
+                            src={userProfilePic} 
+                            component={Link}
+                            href={`/u/${lance.userId}`}
+                            sx={{ 
+                              width: 48, 
+                              height: 48,
+                              cursor: 'pointer',
+                              '&:hover': { opacity: 0.8 } 
+                            }} 
+                          />
+                          <Box sx={{ flexGrow: 1, width: '100%' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <Typography 
+                                    variant="subtitle1" 
+                                    component={Link}
+                                    href={`/u/${lance.userId}`}
+                                    sx={{ 
+                                      fontWeight: 600,
+                                      textDecoration: 'none',
+                                      color: 'text.primary',
+                                      '&:hover': { textDecoration: 'underline' } 
+                                    }}
+                                  >
+                                    {userName}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    @{userHandle}
+                                  </Typography>
                                   <Typography variant="caption" color="text.secondary">
-                                    {visibilityOptions.find(opt => opt.value === lance.visibility)?.label}
+                                    · {formatPostDate(lance.createdAt)}
                                   </Typography>
                                 </Box>
-                              )}
-                            </Box>
-                            <IconButton size="small">
-                              <MoreHorizIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-
-                          <Typography variant="body1" sx={{ my: 1, whiteSpace: 'pre-wrap' }}>
-                            {linkifyMentions(lance.content)}
-                          </Typography>
-
-                          {/* Tags */}
-                          {lance.tags && lance.tags.length > 0 && (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                              {lance.tags.map((tag, index) => (
-                                <Chip
-                                  key={index}
-                                  label={tag}
-                                  size="small"
-                                  component={Link}
-                                  href={`/search?q=${encodeURIComponent(tag)}`}
-                                  clickable
-                                  sx={{ 
-                                    borderRadius: 1,
-                                    height: 24,
-                                    bgcolor: `${theme.palette.primary.main}15`,
-                                    color: theme.palette.primary.main,
-                                    '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
-                                    textDecoration: 'none'
-                                  }}
-                                />
-                              ))}
-                            </Box>
-                          )}
-
-                          {/* Media */}
-                          {lance.media && lance.media.length > 0 && (
-                            <Box sx={{ mt: 1, mb: 2 }}>
-                              {lance.media.map((media, index) => (
-                                <Box 
-                                  key={index} 
-                                  sx={{ 
-                                    borderRadius: 2, 
-                                    overflow: 'hidden',
-                                    ...(lance.media && lance.media.length > 1 ? {
-                                      display: 'grid',
-                                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                                      gap: 1
-                                    } : {})
-                                  }}
-                                >
-                                  {media.type === 'image' ? (
-                                    <img
-                                      src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
-                                      alt="Post media"
-                                      style={{
-                                        width: '100%',
-                                        borderRadius: 8,
-                                        objectFit: 'cover',
-                                        aspectRatio: '16/9',
-                                        cursor: 'pointer',
-                                      }}
-                                      onClick={() => setDialogOpen(true)}
-                                    />
-                                  ) : media.type === 'video' ? (
-                                    <Box
-                                      component="video"
-                                      src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
-                                      controls
-                                      sx={{ width: '100%', borderRadius: 2 }}
-                                    />
-                                  ) : null}
-                                </Box>
-                              ))}
-                            </Box>
-                          )}
-
-                          {/* Action buttons */}
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleLikeToggle(lance.$id)}
-                              color={lance.isLiked ? 'primary' : 'default'}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                {lance.isLiked ? (
-                                  <FavoriteIcon fontSize="small" />
-                                ) : (
-                                  <FavoriteBorderIcon fontSize="small" />
+                                {lance.visibility !== 'public' && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                    {lance.visibility === 'private' && <LockIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                    {lance.visibility === 'followers' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                    {lance.visibility === 'following' && <PeopleIcon sx={{ fontSize: 14, mr: 0.5 }} />}
+                                    <Typography variant="caption" color="text.secondary">
+                                      {visibilityOptions.find(opt => opt.value === lance.visibility)?.label}
+                                    </Typography>
+                                  </Box>
                                 )}
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {lance.likes}
-                                </Typography>
                               </Box>
-                            </IconButton>
-                            <IconButton size="small">
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <ChatBubbleOutlineIcon fontSize="small" />
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {lance.comments}
-                                </Typography>
+                              <IconButton size="small">
+                                <MoreHorizIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                            <Typography variant="body1" sx={{ my: 1, whiteSpace: 'pre-wrap' }}>
+                              {linkifyMentions(lance.content)}
+                            </Typography>
+
+                            {/* Tags */}
+                            {lance.tags && lance.tags.length > 0 && (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                                {lance.tags.map((tag, index) => (
+                                  <Chip
+                                    key={index}
+                                    label={tag}
+                                    size="small"
+                                    component={Link}
+                                    href={`/search?q=${encodeURIComponent(tag)}`}
+                                    clickable
+                                    sx={{ 
+                                      borderRadius: 1,
+                                      height: 24,
+                                      bgcolor: `${theme.palette.primary.main}15`,
+                                      color: theme.palette.primary.main,
+                                      '&:hover': { bgcolor: `${theme.palette.primary.main}25` },
+                                      textDecoration: 'none'
+                                    }}
+                                  />
+                                ))}
                               </Box>
-                            </IconButton>
-                            <IconButton size="small">
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <RepeatIcon fontSize="small" />
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {lance.reposts}
-                                </Typography>
+                            )}
+
+                            {/* Media */}
+                            {lance.media && lance.media.length > 0 && (
+                              <Box sx={{ mt: 1, mb: 2 }}>
+                                {lance.media.map((media, index) => (
+                                  <Box 
+                                    key={index} 
+                                    sx={{ 
+                                      borderRadius: 2, 
+                                      overflow: 'hidden',
+                                      ...(lance.media && lance.media.length > 1 ? {
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                                        gap: 1
+                                      } : {})
+                                    }}
+                                  >
+                                    {media.type === 'image' ? (
+                                      <img
+                                        src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
+                                        alt="Post media"
+                                        style={{
+                                          width: '100%',
+                                          borderRadius: 8,
+                                          objectFit: 'cover',
+                                          aspectRatio: '16/9',
+                                          cursor: 'pointer',
+                                        }}
+                                        onClick={() => setDialogOpen(true)}
+                                      />
+                                    ) : media.type === 'video' ? (
+                                      <Box
+                                        component="video"
+                                        src={storage.current?.getFileView(POST_ATTACHMENTS_BUCKET_ID, media.fileId).toString()}
+                                        controls
+                                        sx={{ width: '100%', borderRadius: 2 }}
+                                      />
+                                    ) : null}
+                                  </Box>
+                                ))}
                               </Box>
-                            </IconButton>
-                            <IconButton 
-                              size="small"
-                              onClick={() => handleBookmarkToggle(lance.$id)}
-                              color={lance.isBookmarked ? 'primary' : 'default'}
-                            >
-                              {lance.isBookmarked ? (
-                                <BookmarkIcon fontSize="small" />
-                              ) : (
-                                <BookmarkBorderIcon fontSize="small" />
-                              )}
-                            </IconButton>
-                            <IconButton size="small">
-                              <ShareIcon fontSize="small" />
-                            </IconButton>
+                            )}
+
+                            {/* Action buttons */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleLikeToggle(lance.$id)}
+                                color={lance.isLiked ? 'primary' : 'default'}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  {lance.isLiked ? (
+                                    <FavoriteIcon fontSize="small" />
+                                  ) : (
+                                    <FavoriteBorderIcon fontSize="small" />
+                                  )}
+                                  <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                    {lance.likes}
+                                  </Typography>
+                                </Box>
+                              </IconButton>
+                              <IconButton size="small">
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <ChatBubbleOutlineIcon fontSize="small" />
+                                  <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                    {lance.comments}
+                                  </Typography>
+                                </Box>
+                              </IconButton>
+                              <IconButton size="small">
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <RepeatIcon fontSize="small" />
+                                  <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                    {lance.reposts}
+                                  </Typography>
+                                </Box>
+                              </IconButton>
+                              <IconButton 
+                                size="small"
+                                onClick={() => handleBookmarkToggle(lance.$id)}
+                                color={lance.isBookmarked ? 'primary' : 'default'}
+                              >
+                                {lance.isBookmarked ? (
+                                  <BookmarkIcon fontSize="small" />
+                                ) : (
+                                  <BookmarkBorderIcon fontSize="small" />
+                                )}
+                              </IconButton>
+                              <IconButton size="small">
+                                <ShareIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           </Box>
                         </Box>
-                      </Box>
-                    </CardContent>
-                  </AnimatedCard>
-                );
-              })}
+                      </CardContent>
+                    </AnimatedCard>
+                  );
+                })}
 
-              {/* Load more indicator */}
-              {isLoading && lances.length > 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                  <CircularProgress size={24} />
-                </Box>
-              )}
+                {/* Load more indicator */}
+                {isLoading && lances.length > 0 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
 
-              {/* End of feed message */}
-              {!isLoading && !hasMore && (
-                <Box sx={{ py: 3, textAlign: 'center', mb: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    You've reached the end of your feed
-                  </Typography>
-                  <Button
-                    startIcon={<RefreshIcon />}
-                    onClick={handleRefresh}
-                    sx={{ mt: 1 }}
-                  >
-                    Refresh Feed
-                  </Button>
-                </Box>
-              )}
-            </Box>
-          )}
+                {/* End of feed message */}
+                {!isLoading && !hasMore && (
+                  <Box sx={{ py: 3, textAlign: 'center', mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      You've reached the end of your feed
+                    </Typography>
+                    <Button
+                      startIcon={<RefreshIcon />}
+                      onClick={handleRefresh}
+                      sx={{ mt: 1 }}
+                    >
+                      Refresh Feed
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Box>
         </Grid>
 
         {/* Right sidebar - only on desktop/tablet */}
