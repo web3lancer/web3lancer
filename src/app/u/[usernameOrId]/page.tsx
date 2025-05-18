@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { Container, Box, Typography, Paper, Grid, Avatar, Button, Tabs, Tab, Divider, Chip, CircularProgress, Alert, TextField, IconButton, Snackbar } from '@mui/material';
