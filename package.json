@@ -32,6 +32,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "appwrite": "^17.0.0",
     "class-variance-authority": "^0.7.1",
+    "connectkit": "^1.9.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^2.30.0",
     "express": "^5.1.0",
