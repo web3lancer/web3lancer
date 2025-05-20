@@ -20,7 +20,8 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 - **💰 Multi-currency Support** - Work and earn in your preferred currency (fiat or crypto)
 - **💰 Real time Support with Magic Block** - Features a fast real-time transaction system powered by magicblock.
 - **⚡ Cross-Chain Interoperability with LayerZero** - Enables seamless transactions and data exchange between Solana, Stellar, and other supported blockchains, enhancing flexibility and scalability for users and developers.
-- **⚡ Integrations with lens** - 
+- **⚡ Integrations with lens chain/bonsai** - [lens implementation](https://github.com/web3lancer/lenscontract.git)
+
 
 
 [Layerzero implementation](https://github.com/web3lancer/zeroints)
