@@ -7,3 +7,6 @@
 [submodule "contracts/lancertransfer"]
 	path = contracts/lancertransfer
 	url = https://github.com/web3lancer/lancertransfer
+[submodule "contracts/lenscontract"]
+	path = contracts/lenscontract
+	url = https://github.com/web3lancer/lenscontract
