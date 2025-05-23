@@ -13,7 +13,7 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 
 ## 🛠️ Core Features
 
-- **🔍 Smart Matching** - AI-powered talent discovery across disciplines
+- **🔍 Smart Matching** - AI-powered talent discovery across disciplines and skill sets
 - **🔐 Secure Escrow** - Protected payments with milestone-based releases
 - **🌐 Global Talent Pool** - Access expertise regardless of location
 - **🤝 Collaborative Workspace** - Built-in tools for seamless project management
