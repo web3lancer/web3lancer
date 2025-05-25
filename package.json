@@ -25,6 +25,8 @@
     "@mui/material": "^7.1.0",
     "@mui/material-nextjs": "^7.0.0",
     "@mui/x-date-pickers": "^7.28.2",
+    "@mysten/dapp-kit": "^0.16.5",
+    "@mysten/sui": "^1.30.1",
     "@stellar/stellar-sdk": "^13.1.0",
     "@stellar/wallet-sdk": "^0.11.2",
     "@tanstack/react-query": "^5.66.9",
