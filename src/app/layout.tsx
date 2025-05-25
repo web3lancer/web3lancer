@@ -10,6 +10,7 @@ import { Suspense } from 'react';
 import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
 import AppLayout from '@/components/layout/AppLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { SuiWalletProvider } from '@/contexts/SuiWalletContext';
 import { Box, CssBaseline, CircularProgress } from '@mui/material';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -42,7 +43,8 @@ export default function RootLayout({
         `}</style>
         <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
-            <ThemeProviderWrapper>
+            <SuiWalletProvider>
+              <ThemeProviderWrapper>
               <CssBaseline />
               <Suspense fallback={
                 <Box sx={{ 
@@ -62,6 +64,7 @@ export default function RootLayout({
                 <AppLayout>{children}</AppLayout>
               </Suspense>
             </ThemeProviderWrapper>
+            </SuiWalletProvider>
           </AuthProvider>
         </AbstraxionProvider>
       </body>
