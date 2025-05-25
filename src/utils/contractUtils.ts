@@ -51,7 +51,87 @@ export const SUI_CONFIG = {
     PROJECT_REGISTRY: '0x4e9112b5dce9a53cefa48a039b66308bf8554ad982715215bce12436b1d7a17b',
     REPUTATION_REGISTRY: '0xe00f9e6b48f1a2079c320e8017112ae3caa698aee06e0d08534e719cdd5e8c2e',
     MESSAGING_REGISTRY: '0x04c4c65442c14df15ab1a27ffc0d8ac2ff74a77764871d68802c38cf5bd6636d',
+  },
+  MAINNET: {
+    USER_PROFILE_REGISTRY: '',
+    PROJECT_REGISTRY: '',
+    REPUTATION_REGISTRY: '',
+    MESSAGING_REGISTRY: '',
   }
+};
+
+// Contract constants mirroring the Move contracts
+export const CONTRACT_CONSTANTS = {
+  // Project Status
+  PROJECT_STATUS: {
+    OPEN: 0,
+    ACTIVE: 1,
+    COMPLETED: 2,
+    CANCELLED: 3,
+    DISPUTED: 4,
+  },
+  
+  // Milestone Status
+  MILESTONE_STATUS: {
+    PENDING: 0,
+    IN_PROGRESS: 1,
+    SUBMITTED: 2,
+    APPROVED: 3,
+    DISPUTED: 4,
+  },
+  
+  // Message Types
+  MESSAGE_TYPE: {
+    TEXT: 0,
+    FILE: 1,
+    PROJECT_UPDATE: 2,
+    SYSTEM: 3,
+  },
+  
+  // Notification Types
+  NOTIFICATION_TYPE: {
+    MESSAGE: 0,
+    PROJECT: 1,
+    PAYMENT: 2,
+    REVIEW: 3,
+    SYSTEM: 4,
+  },
+};
+
+// Helper functions for contract interactions
+export const contractUtils = {
+  // Convert string to bytes array for Move contracts
+  stringToBytes: (str: string): number[] => {
+    return Array.from(new TextEncoder().encode(str));
+  },
+  
+  // Convert timestamp to Move-compatible format
+  timestampToMove: (date: Date): number => {
+    return date.getTime();
+  },
+  
+  // Parse Move object content
+  parseMoveObject: (objectData: any) => {
+    try {
+      if (objectData?.content?.fields) {
+        return objectData.content.fields;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error parsing Move object:', error);
+      return null;
+    }
+  },
+  
+  // Format SUI amount (convert from MIST to SUI)
+  formatSuiAmount: (amount: number): number => {
+    return amount / 1_000_000_000; // Convert MIST to SUI
+  },
+  
+  // Convert SUI to MIST for contract calls
+  suiToMist: (suiAmount: number): number => {
+    return Math.floor(suiAmount * 1_000_000_000);
+  },
 };
 
 /**
