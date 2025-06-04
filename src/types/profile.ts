@@ -38,6 +38,13 @@ export interface Profile {
   isVerified: boolean;
   reputationScore: number;
   
+  // Add Graphite integration fields
+  graphiteTrustScore?: number;
+  kycVerified?: boolean;
+  walletAddress?: string;
+  hybridReputationScore?: number;
+  eligibleForHighValueTx?: boolean;
+  
   // Media
   avatarFileId?: string;
   coverImageFileId?: string;

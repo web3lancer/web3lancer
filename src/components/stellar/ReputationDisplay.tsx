@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Rating, Skeleton, Tooltip, Paper } from '@mui/material';
+import { Box, Typography, Rating, Skeleton, Tooltip, Paper, Chip } from '@mui/material';
 import { useStellarContract } from '@/hooks/useStellarContract';
+import { graphiteService } from '@/utils/graphite';
 
 interface ReputationDisplayProps {
   userId: string;
@@ -11,6 +12,8 @@ export default function ReputationDisplay({ userId, showReviews = false }: Reput
   const { loading, error, getReputationScore, getUserReviews } = useStellarContract();
   const [score, setScore] = useState<number | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [graphiteTrust, setGraphiteTrust] = useState<number | null>(null);
+  const [kycVerified, setKycVerified] = useState<boolean>(false);
   
   useEffect(() => {
     if (!userId) return;
@@ -33,6 +36,21 @@ export default function ReputationDisplay({ userId, showReviews = false }: Reput
     
     fetchScore();
   }, [userId, showReviews, getReputationScore, getUserReviews]);
+  
+  useEffect(() => {
+    // Add Graphite trust score fetch
+    const fetchGraphiteData = async () => {
+      if (userId) {
+        const trustData = await graphiteService.getTrustScore(userId);
+        if (trustData) {
+          setGraphiteTrust(trustData.trustScore);
+          setKycVerified(trustData.kycVerified);
+        }
+      }
+    };
+    
+    fetchGraphiteData();
+  }, [userId]);
   
   if (loading && score === null) {
     return (
@@ -69,6 +87,23 @@ export default function ReputationDisplay({ userId, showReviews = false }: Reput
           ({score?.toFixed(1) || '0.0'})
         </Typography>
       </Box>
+      
+      {/* Add Graphite Trust Score */}
+      {graphiteTrust !== null && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="caption" color="text.secondary">
+            Graphite Trust Score: {graphiteTrust}/100
+            {kycVerified && (
+              <Chip 
+                label="KYC Verified" 
+                size="small" 
+                color="success" 
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Typography>
+        </Box>
+      )}
       
       {showReviews && reviews.length > 0 && (
         <Box sx={{ mt: 2 }}>
