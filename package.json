@@ -13,6 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@atgraphite/web3-plugin": "^1.1.1",
     "@burnt-labs/abstraxion": "1.0.0-alpha.61",
     "@burnt-labs/ui": "0.1.0-alpha.17",
     "@emotion/react": "^11.14.0",
