@@ -53,6 +53,17 @@ At the heart of Web3Lancer is a robust, on-chain reputation and identity system:
 
 The smart contract efficiently manages user reputation through functions like `submit_review`, `get_reputation_score`, and `dispute_review`, ensuring a trustworthy and compliant marketplace for all participants.
 
+### 🔗 Advanced Trust Network Integration with Graphite
+
+Web3Lancer integrates with cutting-edge reputation infrastructure to provide enhanced trust scoring and compliance verification:
+
+- **🎯 Trust Score Analytics** - Advanced behavioral scoring and KYC verification integration
+- **🛡️ Sybil Resistance** - "One User – One Account" policy enforcement through reputation-based validation
+- **🔐 Compliance Filtering** - Smart contract access control based on user verification levels
+- **⚡ Reputation-Based Logic** - Dynamic feature access and permissions tied to on-chain trust profiles
+
+This integration enables sophisticated access control, fraud prevention, and compliance management while maintaining user privacy through zero-knowledge verification methods.
+
 ## 📊 Stellar Contract Details
 
 - **Contract Address:** [view deployed address link](https://stellar.expert/explorer/testnet/contract/CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN)
