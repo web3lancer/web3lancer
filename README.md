@@ -8,7 +8,7 @@
 
 ## 🌟 Vision
 
-Web3Lancer bridges traditional freelancing with blockchain innovation, creating a borderless platform where freelancers and businesses connect, collaborate, and transact with unprecedented transparency, trust, and efficiency.  
+Web3Lancer bridges traditional freelancing with blockchain innovation, creating a borderless platform where freelancers and businesses connect, collaborate, and transact with verifiable trust, compliance, and transparency.  
 Our platform is built on the principles of decentralized reputation, modular identity, and compliance-first infrastructure, enabling a secure and credible environment for all participants.
 
 ## 🛠️ Core Features
