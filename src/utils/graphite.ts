@@ -110,3 +110,114 @@ export class GraphiteReputationService {
 }
 
 export const graphiteService = new GraphiteReputationService();
+
+// Importing and using Graphite service in utils/graphite.ts
+import { getGraphiteService } from '@/services/graphiteService';
+
+// Configuration for Graphite nodes
+const GRAPHITE_CONFIG = {
+  nodeUrl: process.env.NEXT_PUBLIC_GRAPHITE_NODE_URL || 'https://testnet.atgraphite.com',
+  privateKey: process.env.GRAPHITE_PRIVATE_KEY || undefined
+};
+
+/**
+ * Initialize Graphite service with configuration
+ */
+export const initializeGraphite = async (privateKey?: string) => {
+  const service = getGraphiteService(GRAPHITE_CONFIG);
+  await service.initialize(privateKey);
+  return service;
+};
+
+/**
+ * Get user's trust score for reputation-based features
+ */
+export const getUserTrustScore = async (address?: string) => {
+  try {
+    const service = getGraphiteService();
+    const reputation = await service.getReputation(address);
+    return {
+      score: reputation.score,
+      level: reputation.level,
+      isVerified: reputation.isActivated && reputation.kycLevel > 0,
+      compliance: {
+        activated: reputation.isActivated,
+        kycLevel: reputation.kycLevel
+      }
+    };
+  } catch (error) {
+    console.error('Error getting trust score:', error);
+    return {
+      score: 0,
+      level: 'New',
+      isVerified: false,
+      compliance: {
+        activated: false,
+        kycLevel: 0
+      }
+    };
+  }
+};
+
+/**
+ * Check if user can access premium features based on trust
+ */
+export const canAccessPremiumFeatures = async (address?: string): Promise<boolean> => {
+  try {
+    const service = getGraphiteService();
+    return await service.meetsMinimumTrust(address, 3.5); // Require 3.5+ score
+  } catch (error) {
+    console.error('Error checking premium access:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if user can post jobs (compliance check)
+ */
+export const canPostJobs = async (address?: string): Promise<boolean> => {
+  try {
+    const service = getGraphiteService();
+    return await service.isCompliant(address, 1); // Require KYC level 1+
+  } catch (error) {
+    console.error('Error checking job posting permission:', error);
+    return false;
+  }
+};
+
+/**
+ * Get activation requirements for new users
+ */
+export const getActivationRequirements = async () => {
+  try {
+    const service = getGraphiteService();
+    const fee = await service.getActivationFee();
+    return {
+      required: true,
+      fee,
+      currency: 'ETH'
+    };
+  } catch (error) {
+    console.error('Error getting activation requirements:', error);
+    return {
+      required: true,
+      fee: '0',
+      currency: 'ETH'
+    };
+  }
+};
+
+/**
+ * Activate user account on Graphite Network
+ */
+export const activateUserAccount = async () => {
+  try {
+    const service = getGraphiteService();
+    return await service.activateAccount();
+  } catch (error) {
+    console.error('Error activating account:', error);
+    throw error;
+  }
+};
+
+export { getGraphiteService };
