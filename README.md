@@ -1,6 +1,6 @@
 # Web3Lancer 🚀✨
 
-> A decentralized marketplace connecting global talent with opportunities in the Web3 ecosystem
+> A decentralized marketplace connecting global talent with opportunities in the Web3 ecosystem, powered by on-chain trust and reputation.
 
 <p align="center">
   <img src="public/logo/web3lancer.jpg" alt="Web3Lancer Logo">
@@ -8,16 +8,16 @@
 
 ## 🌟 Vision
 
-Web3Lancer bridges traditional freelancing with blockchain innovation, creating a borderless platform where freelancers and businesses connect, collaborate, and transact with unprecedented transparency and efficiency.
-
+Web3Lancer bridges traditional freelancing with blockchain innovation, creating a borderless platform where freelancers and businesses connect, collaborate, and transact with unprecedented transparency, trust, and efficiency.  
+Our platform is built on the principles of decentralized reputation, modular identity, and compliance-first infrastructure, enabling a secure and credible environment for all participants.
 
 ## 🛠️ Core Features
 
-- **🔍 Smart Matching** - AI-powered talent discovery across disciplines and skill sets
-- **🔐 Secure Escrow** - Protected payments with milestone-based releases
-- **🌐 Global Talent Pool** - Access expertise regardless of location
-- **🤝 Collaborative Workspace** - Built-in tools for seamless project management
-- **💰 Multi-currency Support** - Work and earn in your preferred currency (fiat or crypto)
+- **🔍 Smart Matching** - AI-powered talent discovery across disciplines and skill sets, enhanced by on-chain reputation signals.
+- **🔐 Secure Escrow** - Protected payments with milestone-based releases, leveraging compliance and trust logic.
+- **🌐 Global Talent Pool** - Access expertise regardless of location, with verifiable identity and trust scores.
+- **🤝 Collaborative Workspace** - Built-in tools for seamless project management, with reputation-based access and permissions.
+- **💰 Multi-currency Support** - Work and earn in your preferred currency (fiat or crypto).
 - **💰 Real time Support with Magic Block** - Features a fast real-time transaction system powered by magicblock.
 - **⚡ Cross-Chain Interoperability with LayerZero** - Enables seamless transactions and data exchange between Solana, Stellar, and other supported blockchains, enhancing flexibility and scalability for users and developers.
 - **⚡ Integrations with lens chain/bonsai** - [lens implementation](https://github.com/web3lancer/lenscontract.git)
@@ -31,25 +31,27 @@ Web3Lancer bridges traditional freelancing with blockchain innovation, creating 
 
 Web3Lancer leverages **Solana** blockchain technology to enable:
 
-- **💸 Instant Cross-Border Payments** - Eliminate traditional banking delays and high fees
-- **🔄 Currency Conversion** - Seamless exchanges between different currencies
-- **📊 Financial Inclusion** - Providing banking-like services to the unbanked
-- **🛡️ Transaction Security** - Immutable records of all payment activities
-- **⚡ Low-Cost Microtransactions** - Enabling granular payment models for small tasks
+- **💸 Instant Cross-Border Payments** - Eliminate traditional banking delays and high fees.
+- **🔄 Currency Conversion** - Seamless exchanges between different currencies.
+- **📊 Financial Inclusion** - Providing banking-like services to the unbanked.
+- **🛡️ Transaction Security** - Immutable records of all payment activities.
+- **⚡ Low-Cost Microtransactions** - Enabling granular payment models for small tasks.
 
-In addition, Stellar's fast, low-cost transaction infrastructure powers our payment system, making it possible for freelancers to receive compensation quickly regardless of geographic location.
+Stellar's fast, low-cost transaction infrastructure powers our payment system, making it possible for freelancers to receive compensation quickly regardless of geographic location.
 
-### 🌟 Stellar-Powered Trust System
+### 🌟 Reputation, Trust & Compliance Infrastructure
 
-Our platform integrates a cutting-edge reputation system built directly on Stellar smart contracts:
+At the heart of Web3Lancer is a robust, on-chain reputation and identity system:
 
-- **💯 Transparent Ratings** - All reputation scores are calculated and stored on-chain, ensuring manipulation-proof reviews
-- **👥 Verified Reviews** - Only clients and freelancers who have worked together can submit reviews, guaranteed by blockchain verification
-- **⚖️ Dispute Resolution** - Fair arbitration process for contested reviews, with full transparency of decisions
-- **🔍 Reputation History** - Complete on-chain history of work quality that follows freelancers across projects
-- **🧮 Decentralized Scoring** - Reputation scores (0-5) calculated automatically by smart contracts, without central authority
+- **💯 Transparent Ratings** - All reputation scores are calculated and stored on-chain, ensuring manipulation-proof reviews and trust metrics.
+- **👥 Verified Reviews** - Only clients and freelancers who have worked together can submit reviews, guaranteed by blockchain verification and compliance logic.
+- **⚖️ Dispute Resolution** - Fair arbitration process for contested reviews, with full transparency of decisions.
+- **🔍 Reputation History** - Complete on-chain history of work quality and compliance that follows freelancers across projects.
+- **🧮 Decentralized Scoring** - Reputation scores (0-5) calculated automatically by smart contracts, without central authority.
+- **🛡️ Modular Identity** - Each user account is unique and verifiable, supporting Sybil resistance, access control, and fraud reduction, all without exposing personal data.
+- **🔗 Permissioned Access** - Smart contracts and app features can adapt logic based on user trust profiles and compliance status.
 
-The smart contract efficiently manages user reputation through functions like `submit_review`, `get_reputation_score`, and `dispute_review`, ensuring a trustworthy marketplace for all participants.
+The smart contract efficiently manages user reputation through functions like `submit_review`, `get_reputation_score`, and `dispute_review`, ensuring a trustworthy and compliant marketplace for all participants.
 
 ## 📊 Stellar Contract Details
 
@@ -57,9 +59,10 @@ The smart contract efficiently manages user reputation through functions like `s
 - **Contract ID:** CDFJTPECWESQLM4NCVBD3VQZ2VMOL7LOK6EEJHTJ3MM4OFNNNJORB5HN
 - **Contract Testnet URI:** [View Deployment Transaction link](https://stellar.expert/explorer/testnet/tx/3ec143da28658ea3f09b5412b45a00a142ab091106ec82d6e6df8ffa49440ffc)
 
-## ⚖️ Justice & Legal Transparency Applications
+## ⚖️ Legal Transparency & Trust Applications
 
-Web3Lancer's open-source, decentralized platform is not only a marketplace for global talent, but also a foundation for building legal data and transparency tools. By leveraging blockchain's immutable and transparent ledger, the platform's open and accessible nature makes it a powerful tool for justice innovation, legal empowerment, and transparent governance on a global scale.
+Web3Lancer's open-source, decentralized platform is not only a marketplace for global talent, but also a foundation for building legal data, compliance, and transparency tools.  
+By leveraging blockchain's immutable and transparent ledger, the platform's open and accessible nature makes it a powerful tool for justice innovation, legal empowerment, and transparent governance on a global scale.
 
 ## 🚀 Getting Started
 
@@ -79,7 +82,7 @@ npm run dev
 
 - [x] Core platform architecture
 - [x] Stellar payment integration
-- [x] On-chain reputation system
+- [x] On-chain reputation and compliance system
 - [ ] Advanced search functionality
 - [ ] Mobile application
 
@@ -94,9 +97,8 @@ Web3Lancer is licensed under [GNU Affero General Public License v3.0 (AGPL-3.0)]
 ---
 
 <p align="center">
-  <i>Connecting talent with opportunity, globally and transparently. 🌍✨</i>
+  <i>Connecting talent with opportunity, globally and transparently — powered by trust, reputation, and compliance. 🌍✨</i>
 </p>
-
 
 [pitch-deck](https://doc.storydoc.ai/tgKIKu)
 
