@@ -1,20 +1,5 @@
 // import { Client, Account, Databases, Storage, Avatars, ID, Query } from "appwrite";
 
-// Defensive: fallback to empty string if env is undefined (prevents .replace error)
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "";
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "";
-
-const client = new Client();
-
-if (endpoint && projectId) {
-  client.setEndpoint(endpoint).setProject(projectId);
-}
-
-const account = new Account(client);
-const databases = new Databases(client);
-const storage = new Storage(client);
-const avatars = new Avatars(client);
-
 import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor, AppwriteException } from 'appwrite'; // Add AppwriteException
 import { Models } from 'appwrite'; // Import Models for type hints
 import {
