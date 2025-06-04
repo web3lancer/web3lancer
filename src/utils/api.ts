@@ -15,8 +15,6 @@ const databases = new Databases(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
 
-export { client, account, databases, storage, avatars, ID, Query };
-
 import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor, AppwriteException } from 'appwrite'; // Add AppwriteException
 import { Models } from 'appwrite'; // Import Models for type hints
 import {
