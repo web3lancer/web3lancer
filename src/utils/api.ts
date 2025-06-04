@@ -21,9 +21,19 @@ import {
 
 // Initialize client according to Appwrite docs
 const client = new Client();
+
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
+
+if (!endpoint || !projectId) {
+  throw new Error(
+    "Appwrite endpoint or project ID is not set. Please check your environment variables: NEXT_PUBLIC_APPWRITE_ENDPOINT and NEXT_PUBLIC_APPWRITE_PROJECT_ID."
+  );
+}
+
 client
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!); 
+  .setEndpoint(endpoint)
+  .setProject(projectId); 
 
 const account = new Account(client);
 const databases = new Databases(client);
