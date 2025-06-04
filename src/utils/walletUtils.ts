@@ -1,7 +1,7 @@
 import { account, ID, databases } from './api';
 import { wallets } from './dbWrapper';
-import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import { fromB64 } from '@mysten/sui.js/utils';
+import { Ed25519Keypair } from '@mysten/sui/keypairs';
+import { fromB64 } from '@mysten/sui/utils';
 
 /**
  * Wallet authentication and management utilities
