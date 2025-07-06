@@ -122,8 +122,8 @@ export const defaultEnvConfig: EnvConfig = {
   },
   activity: {
     databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ACTIVITY_ID || '',
-    notificationsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_NOTIFICATIONS_ID || '',
-    logsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ACTIVITY_LOGS_ID || '',
+    notificationsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USER_NOTIFICATIONS_ID || '',
+    logsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_AUDIT_LOGS_ID || '',
   },
   core: {
     databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_CORE_ID || '',

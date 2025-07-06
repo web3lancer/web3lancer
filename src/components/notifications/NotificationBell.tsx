@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiBell } from 'react-icons/fi';
 import NotificationsList from './NotificationsList';
-import NotificationService from '@/services/notificationService';
+import { NotificationService } from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
-import { envConfig } from '@/config/environment';
+import { defaultEnvConfig } from '@/config/environment';
 
 interface NotificationBellProps {
   profileId: string;
@@ -14,13 +14,13 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ profileId }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  const appwriteService = new AppwriteService(envConfig);
-  const notificationService = new NotificationService(appwriteService);
+  const appwriteService = new AppwriteService(defaultEnvConfig);
+  const notificationService = new NotificationService(appwriteService, defaultEnvConfig);
   
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const count = await notificationService.getUnreadNotificationsCount(profileId);
+        const count = await notificationService.getUnreadNotificationCount(profileId);
         setUnreadCount(count);
       } catch (err) {
         console.error('Error fetching unread notifications count:', err);

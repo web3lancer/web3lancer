@@ -2,33 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 // import { useAuth } from '@/components/auth/AuthContext';
-import NotificationService from '@/services/notificationService';
+import { NotificationService } from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
 import { UserNotification } from '@/types/activity';
 import { formatDistanceToNow } from 'date-fns';
 import { FiBell, FiCheck, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthContext';
-import { envConfig } from '@/config/environment';
+import { defaultEnvConfig } from '@/config/environment';
 
 const NotificationsPage: React.FC = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'all' | 'unread'>('all');
   
-  const appwriteService = new AppwriteService(envConfig);
-  const notificationService = new NotificationService(appwriteService);
+  const appwriteService = new AppwriteService(defaultEnvConfig);
+  const notificationService = new NotificationService(appwriteService, defaultEnvConfig);
   
   useEffect(() => {
     const fetchNotifications = async () => {
-      if (!user || !user.profileId) return;
+      if (!user || !user.$id) return;
       
       try {
         setLoading(true);
         setError(null);
         const fetchedNotifications = await notificationService.getUserNotifications(
-          user.profileId,
+          user.$id,
           50 // Fetch more for this page
         );
         setNotifications(fetchedNotifications);
@@ -59,10 +59,10 @@ const NotificationsPage: React.FC = () => {
   };
   
   const handleMarkAllAsRead = async () => {
-    if (!user || !user.profileId) return;
+    if (!user || !user.$id) return;
     
     try {
-      await notificationService.markAllNotificationsAsRead(user.profileId);
+      await notificationService.markAllNotificationsAsRead(user.$id);
       setNotifications(prevNotifications => 
         prevNotifications.map(notification => ({
           ...notification,
@@ -191,13 +191,13 @@ const NotificationsPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  {notification.link && (
+                  {notification.actions && notification.actions.length > 0 && (
                     <div className="mt-2">
                       <a 
-                        href={notification.link}
+                        href={notification.actions[0].url}
                         className="text-sm font-medium text-blue-600 hover:text-blue-800"
                       >
-                        View Details
+                        {notification.actions[0].label || 'View Details'}
                       </a>
                     </div>
                   )}

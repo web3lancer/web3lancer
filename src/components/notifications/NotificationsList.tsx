@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { UserNotification } from '@/types/activity';
-import NotificationService from '@/services/notificationService';
+import { NotificationService } from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
 import { formatDistanceToNow } from 'date-fns';
-import { envConfig } from '@/config/environment';
+import { defaultEnvConfig } from '@/config/environment';
 
 interface NotificationItemProps {
-  notification: UserNotification;
+  notification: any; // Using any for now to avoid type conflicts
   onMarkAsRead: (id: string) => void;
 }
 
@@ -17,8 +17,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
     }
     
     // Navigate to the link if provided
-    if (notification.link) {
-      window.location.href = notification.link;
+    if (notification.actions && notification.actions.length > 0) {
+      window.location.href = notification.actions[0].url;
     }
   };
   
@@ -49,12 +49,12 @@ interface NotificationsListProps {
 }
 
 const NotificationsList: React.FC<NotificationsListProps> = ({ profileId, limit = 10 }) => {
-  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const appwriteService = new AppwriteService(envConfig);
-  const notificationService = new NotificationService(appwriteService);
+  const appwriteService = new AppwriteService(defaultEnvConfig);
+  const notificationService = new NotificationService(appwriteService, defaultEnvConfig);
   
   useEffect(() => {
     const fetchNotifications = async () => {

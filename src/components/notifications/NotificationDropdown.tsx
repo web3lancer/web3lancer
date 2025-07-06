@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/governance';
-import NotificationService from '@/services/notificationService';
+import { NotificationService } from '@/services/notificationService';
+import { AppwriteService } from '@/services/appwriteService';
+import { defaultEnvConfig } from '@/config/environment';
 import { FaRegBell } from 'react-icons/fa'; // react-icons
 
-interface NotificationDropdownProps {
-  notificationService: NotificationService;
-}
-
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificationService }) => {
+const NotificationDropdown: React.FC = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Create services
+  const appwriteService = new AppwriteService(defaultEnvConfig);
+  const notificationService = new NotificationService(appwriteService, defaultEnvConfig);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -57,7 +59,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      await notificationService.markAsRead(notificationId);
+      await notificationService.markNotificationAsRead(notificationId);
       setNotifications(prevNotifications => 
         prevNotifications.map(notification => 
           notification.$id === notificationId 
@@ -74,7 +76,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
   const handleMarkAllAsRead = async () => {
     if (!user) return;
     try {
-      await notificationService.markAllAsRead(user.id);
+      await notificationService.markAllNotificationsAsRead(user.$id);
       setNotifications(prevNotifications => 
         prevNotifications.map(notification => ({ ...notification, isRead: true }))
       );

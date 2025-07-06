@@ -416,6 +416,86 @@ class NotificationService extends BaseService {
       'createMessageNotification'
     );
   }
+
+  /**
+   * List notifications with query strings (for backward compatibility)
+   * This method converts string queries to proper Query objects
+   */
+  async listNotifications(queryStrings: string[]): Promise<NotificationModel[]> {
+    return this.handleRequest(
+      async () => {
+        // Convert string queries to proper Query objects
+        const queries: any[] = [];
+        
+        for (const queryStr of queryStrings) {
+          // Parse the query string and convert to proper Query object
+          if (queryStr.includes('Query.equal("recipientId"') || queryStr.includes('Query.equal("userId"')) {
+            // Extract the user ID from the query string
+            const match = queryStr.match(/Query\.equal\("(?:recipientId|userId)",\s*"([^"]+)"\)/);
+            if (match) {
+              const userId = match[1];
+              // First try with userId field
+              queries.push(Query.equal('userId', userId));
+              // If the database actually has a toUserId array field, we'll need to use Query.contains
+              // But for now, let's try the direct approach
+            }
+          } else if (queryStr.includes('Query.orderDesc("$createdAt")')) {
+            queries.push(Query.orderDesc('$createdAt'));
+          } else if (queryStr.includes('Query.limit(')) {
+            const match = queryStr.match(/Query\.limit\((\d+)\)/);
+            if (match) {
+              queries.push(Query.limit(parseInt(match[1])));
+            }
+          }
+          // Add other query type conversions as needed
+        }
+
+        // Try the query with userId first
+        try {
+          return await this.appwrite.listDocuments<NotificationModel>(
+            this.config.activity.databaseId,
+            this.config.activity.notificationsCollectionId,
+            queries
+          );
+        } catch (error: any) {
+          // If the error mentions toUserId being an array, try with Query.contains
+          if (error.message && error.message.includes('toUserId') && error.message.includes('array')) {
+            console.log('Detected toUserId array field, trying with Query.contains');
+            
+            // Rebuild queries with array handling
+            const arrayQueries: any[] = [];
+            for (const queryStr of queryStrings) {
+              if (queryStr.includes('Query.equal("recipientId"') || queryStr.includes('Query.equal("userId"')) {
+                const match = queryStr.match(/Query\.equal\("(?:recipientId|userId)",\s*"([^"]+)"\)/);
+                if (match) {
+                  const userId = match[1];
+                  // Use Query.contains for array field toUserId
+                  arrayQueries.push(Query.contains('toUserId', userId));
+                }
+              } else if (queryStr.includes('Query.orderDesc("$createdAt")')) {
+                arrayQueries.push(Query.orderDesc('$createdAt'));
+              } else if (queryStr.includes('Query.limit(')) {
+                const match = queryStr.match(/Query\.limit\((\d+)\)/);
+                if (match) {
+                  arrayQueries.push(Query.limit(parseInt(match[1])));
+                }
+              }
+            }
+            
+            return await this.appwrite.listDocuments<NotificationModel>(
+              this.config.activity.databaseId,
+              this.config.activity.notificationsCollectionId,
+              arrayQueries
+            );
+          }
+          
+          // Re-throw if it's a different error
+          throw error;
+        }
+      },
+      'listNotifications'
+    );
+  }
 }
 
 // Use a named export instead of default export
