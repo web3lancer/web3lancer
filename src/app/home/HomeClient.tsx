@@ -35,6 +35,7 @@ import { APP_URL } from '@/lib/env';
 import { CONTENT_DATABASE_ID, USER_POSTS_COLLECTION_ID, POST_ATTACHMENTS_BUCKET_ID } from '@/lib/env';
 import { Client, Databases, Storage, ID, Query } from 'appwrite';
 import { Metadata } from 'next';
+import { useInView } from 'react-intersection-observer';
 
 // Icons
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -115,6 +116,8 @@ export default function HomeClient() {
   const databases = useRef<Databases | null>(null);
   const storage = useRef<Storage | null>(null);
   const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
+  const feedContainerRef = useRef<HTMLDivElement>(null); // Add ref for feed container
+  const { ref: sentinelRef, inView } = useInView({ threshold: 0, rootMargin: '200px' }); // Add intersection observer
   
   // Mock trending topics
   const trendingTopics = [
@@ -173,8 +176,8 @@ export default function HomeClient() {
         USER_POSTS_COLLECTION_ID,
         [
           Query.orderDesc('$createdAt'),
-          Query.limit(10),
-          Query.offset((refresh ? 0 : (page - 1) * 10))
+          Query.limit(50), // Increased from 10 to 50
+          Query.offset((refresh ? 0 : (page - 1) * 50)) // Also update offset step
         ]
       );
       const fetchedLances = response.documents.map((doc: any) => ({
@@ -208,7 +211,7 @@ export default function HomeClient() {
         });
       }
       setIsLoading(false);
-      setHasMore(fetchedLances.length === 10);
+      setHasMore(fetchedLances.length === 50); // Update to match new limit
       if (!refresh) setPage(prev => prev + 1);
     } catch (error) {
       console.error('Error fetching lances:', error);
@@ -416,6 +419,13 @@ export default function HomeClient() {
   };
 
   const VisibilityIcon = visibilityOptions.find(option => option.value === selectedVisibility)?.icon || PublicIcon;
+
+  // Infinite scroll effect using intersection observer
+  useEffect(() => {
+    if (inView && hasMore && !isLoading) {
+      fetchLances();
+    }
+  }, [inView, hasMore, isLoading]); // Remove fetchLances from deps to avoid unwanted triggers
 
   return (
     <Container maxWidth="lg" sx={{ pt: 0, mb: 8 }}>
@@ -630,7 +640,10 @@ export default function HomeClient() {
                 <CircularProgress />
               </Box>
             ) : (
-              <Box sx={{ pb: 4, width: '100%' }}>
+              <Box
+                sx={{ pb: 4, width: '100%' }}
+                ref={feedContainerRef}
+              >
                 {lances.map((lance) => {
                   const profile = userProfiles[lance.userId];
                   const userProfilePic = profile && profile.profilePicture ? getProfilePictureUrl(profile.profilePicture) : undefined;
@@ -836,6 +849,9 @@ export default function HomeClient() {
                     <CircularProgress size={24} />
                   </Box>
                 )}
+
+                {/* Sentinel for infinite scroll */}
+                <div ref={sentinelRef} />
 
                 {/* End of feed message */}
                 {!isLoading && !hasMore && (
