@@ -550,8 +550,30 @@ export default function HomeClient() {
                         </Box>
                       )}
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                      {/* Make action row sticky on mobile */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          position: { xs: 'sticky', sm: 'static' },
+                          bottom: { xs: 0, sm: 'auto' },
+                          left: 0,
+                          bgcolor: { xs: 'background.paper', sm: 'inherit' },
+                          py: { xs: 1, sm: 0 },
+                          zIndex: 2,
+                          borderTop: { xs: `1px solid ${theme.palette.divider}`, sm: 'none' },
+                          mt: { xs: 2, sm: 0 },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            gap: 1,
+                            overflowX: { xs: 'auto', sm: 'visible' },
+                            maxWidth: { xs: '70vw', sm: 'none' },
+                          }}
+                        >
                           <input
                             type="file"
                             multiple
@@ -623,7 +645,15 @@ export default function HomeClient() {
                           endIcon={<SendIcon />}
                           onClick={handlePostSubmit}
                           disabled={isLoading || (!newPostContent.trim() && selectedMedia.length === 0)}
-                          sx={{ borderRadius: 6, px: 3 }}
+                          sx={{
+                            borderRadius: 6,
+                            px: 3,
+                            minWidth: 100,
+                            ml: 2,
+                            flexShrink: 0,
+                            position: { xs: 'sticky', sm: 'static' },
+                            right: { xs: 0, sm: 'auto' },
+                          }}
                         >
                           Lance it
                         </Button>
