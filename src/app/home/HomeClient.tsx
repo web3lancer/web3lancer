@@ -59,6 +59,7 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const AnimatedCard = motion(Card);
 
@@ -118,7 +119,8 @@ export default function HomeClient() {
   const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
   const feedContainerRef = useRef<HTMLDivElement>(null); // Add ref for feed container
   const { ref: sentinelRef, inView } = useInView({ threshold: 0, rootMargin: '200px' }); // Add intersection observer
-  
+  const [addMenuAnchorEl, setAddMenuAnchorEl] = useState<null | HTMLElement>(null);
+
   // Mock trending topics
   const trendingTopics = [
     { tag: '#Web3', count: '5.2K' },
@@ -285,6 +287,14 @@ export default function HomeClient() {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleAddMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAddMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleAddMenuClose = () => {
+    setAddMenuAnchorEl(null);
   };
 
   const handleLikeToggle = (id: string) => {
@@ -582,42 +592,106 @@ export default function HomeClient() {
                             ref={fileInputRef}
                             onChange={handleMediaUpload}
                           />
-                          <Tooltip title="Add Image">
-                            <IconButton
-                              color="primary"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              <ImageIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Add Video">
-                            <IconButton
-                              color="primary"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              <VideocamIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Add Emoji">
-                            <IconButton color="primary">
-                              <EmojiEmotionsIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Add Location">
-                            <IconButton color="primary">
-                              <LocationOnIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Visibility">
-                            <IconButton
-                              color="primary"
-                              onClick={handleMenuOpen}
-                              aria-controls="visibility-menu"
-                              aria-haspopup="true"
-                            >
-                              <VisibilityIcon />
-                            </IconButton>
-                          </Tooltip>
+                          {/* MOBILE: Combine first four icons into a dropdown, keep visibility separate */}
+                          {isMobile ? (
+                            <>
+                              <Tooltip title="Add">
+                                <IconButton
+                                  color="primary"
+                                  onClick={handleAddMenuOpen}
+                                >
+                                  <AddCircleOutlineIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Menu
+                                anchorEl={addMenuAnchorEl}
+                                open={Boolean(addMenuAnchorEl)}
+                                onClose={handleAddMenuClose}
+                                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                                transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                              >
+                                <MenuItem
+                                  onClick={() => {
+                                    fileInputRef.current?.click();
+                                    handleAddMenuClose();
+                                  }}
+                                >
+                                  <ImageIcon fontSize="small" sx={{ mr: 1 }} />
+                                  Add Image
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() => {
+                                    fileInputRef.current?.click();
+                                    handleAddMenuClose();
+                                  }}
+                                >
+                                  <VideocamIcon fontSize="small" sx={{ mr: 1 }} />
+                                  Add Video
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={handleAddMenuClose}
+                                >
+                                  <EmojiEmotionsIcon fontSize="small" sx={{ mr: 1 }} />
+                                  Add Emoji
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={handleAddMenuClose}
+                                >
+                                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+                                  Add Location
+                                </MenuItem>
+                              </Menu>
+                              <Tooltip title="Visibility">
+                                <IconButton
+                                  color="primary"
+                                  onClick={handleMenuOpen}
+                                  aria-controls="visibility-menu"
+                                  aria-haspopup="true"
+                                >
+                                  <VisibilityIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <>
+                              <Tooltip title="Add Image">
+                                <IconButton
+                                  color="primary"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
+                                  <ImageIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Add Video">
+                                <IconButton
+                                  color="primary"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
+                                  <VideocamIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Add Emoji">
+                                <IconButton color="primary">
+                                  <EmojiEmotionsIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Add Location">
+                                <IconButton color="primary">
+                                  <LocationOnIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Visibility">
+                                <IconButton
+                                  color="primary"
+                                  onClick={handleMenuOpen}
+                                  aria-controls="visibility-menu"
+                                  aria-haspopup="true"
+                                >
+                                  <VisibilityIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          )}
                           <Menu
                             id="visibility-menu"
                             anchorEl={anchorEl}
