@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+
+// Simple loader component
+function Loader({ className = "" }) {
+  return (
+    <div className={`animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary ${className}`}></div>
+  );
+}
 
 export default function SettingsLayout({
   children,
@@ -16,7 +22,7 @@ export default function SettingsLayout({
   if (loadingnUser) {
     return (
       <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader className="h-8 w-8" />
       </div>
     );
   }
@@ -25,13 +31,15 @@ export default function SettingsLayout({
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
-        <p className="mb-4">You need to be logged in to access settings.</p>
-        <Link 
-          href="/signin" 
-          className="rounded-md bg-primary py-2 px-4 text-white shadow-sm hover:bg-primary/90"
-        >
-          Sign In
-        </Link>
+        <p>You need to be logged in to access settings.</p>
+        <div className="mt-4">
+          <Link 
+            href="/signin" 
+            className="rounded-md bg-primary py-2 px-4 text-white shadow-sm hover:bg-primary/90"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     );
   }
