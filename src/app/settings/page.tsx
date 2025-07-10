@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, Typography, Button, Grid } from "@mui/material";
+import { Card, CardHeader, CardContent, Button, Grid, Typography } from "@mui/material";
 
 export default function SettingsHomePage() {
   const { user } = useAuth();
@@ -13,8 +13,8 @@ export default function SettingsHomePage() {
         <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
         <p>You need to be logged in to access settings.</p>
         <div className="mt-4">
-          <Link 
-            href="/signin" 
+          <Link
+            href="/signin"
             className="rounded-md bg-primary py-2 px-4 text-white shadow-sm hover:bg-primary/90"
           >
             Sign In
@@ -25,11 +25,6 @@ export default function SettingsHomePage() {
   }
 
   const sections = [
-    {
-      title: "Profile",
-      description: "Edit your personal information, bio, and social links.",
-      href: "/settings/profile",
-    },
     {
       title: "Verification",
       description: "Submit documents to verify your identity or organization.",
@@ -72,7 +67,7 @@ export default function SettingsHomePage() {
                   {section.description}
                 </Typography>
                 <Button
-                  component={Link}
+                  component={Link as any}
                   href={section.href}
                   variant="contained"
                   color="primary"
