@@ -269,6 +269,7 @@ export async function createEscrowTransaction(data: Partial<AppwriteTypes.Escrow
   return databases.createDocument<AppwriteTypes.EscrowTransactions>(DB.FINANCE, COL.ESCROW_TRANSACTIONS, ID.unique(), data);
 }
 export async function listEscrowTransactions(queries: any[] = []) {
+  return databases.listDocuments<AppwriteTypes.EscrowTransactions>(DB.FINANCE, COL.ESCROW_TRANSACTIONS, queries);
 }
 
 // --- Disputes ---
