@@ -1,5 +1,4 @@
 import { Client, Account, Databases, Storage, Functions, ID, Query, Avatars } from 'appwrite';
-import * as env from '@/lib/env';
 import type * as AppwriteTypes from '@/types/appwrite.d';
 
 // Use NEXT_PUBLIC_ envs for all IDs
