@@ -97,6 +97,16 @@ export async function listProfiles(queries: any[] = []) {
   return databases.listDocuments<AppwriteTypes.Profiles>(DB.PROFILES, COL.PROFILES, queries);
 }
 
+// --- Projects (Profiles as Projects) ---
+export async function createProject(data: Partial<AppwriteTypes.Profiles>) {
+  return databases.createDocument<AppwriteTypes.Profiles>(
+    DB.PROFILES,
+    COL.PROFILES,
+    ID.unique(),
+    data
+  );
+}
+
 // --- Jobs ---
 export async function createJob(data: Partial<AppwriteTypes.Jobs>) {
   return databases.createDocument<AppwriteTypes.Jobs>(DB.JOBS, COL.JOBS, ID.unique(), data);

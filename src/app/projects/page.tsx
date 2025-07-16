@@ -78,15 +78,10 @@ export default function ProjectsPage() {
   };
 
   const fetchProjects = async () => {
-
-  const fetchProjects = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await databases.listDocuments(
-        PROFILES_DATABASE_ID,
-        USER_PROFILES_COLLECTION_ID
-      );
+      const response = await listProfiles();
       setProjects(response.documents);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -111,10 +106,10 @@ export default function ProjectsPage() {
   return (
     <Box sx={{ width: '100%' }}>
       {error && (
-        <Alert 
-          severity="error" 
-          sx={{ 
-            mb: 3, 
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
             borderRadius: 2,
             boxShadow: 2
           }}
@@ -122,13 +117,12 @@ export default function ProjectsPage() {
           {error}
         </Alert>
       )}
-      
-      
-      <Tabs 
-        value={activeTab} 
-        onChange={handleTabChange} 
+
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
         variant="fullWidth"
-        sx={{ 
+        sx={{
           mb: 3,
           borderRadius: '16px 16px 0 0',
           background: theme => `linear-gradient(145deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
@@ -155,19 +149,19 @@ export default function ProjectsPage() {
         <Tab label="Create Project" />
         <Tab label="My Listings" />
       </Tabs>
-      
+
       <TabPanel value={activeTab} index={0}>
         <BrowseProjectsTab jobs={jobs} projects={projects} loading={loading} />
       </TabPanel>
-      
+
       <TabPanel value={activeTab} index={1}>
         <PostJobTab user={user} onJobPosted={fetchJobs} setActiveTab={setActiveTab} />
       </TabPanel>
-      
+
       <TabPanel value={activeTab} index={2}>
         <CreateProjectTab user={user} onProjectCreated={fetchProjects} setActiveTab={setActiveTab} />
       </TabPanel>
-      
+
       <TabPanel value={activeTab} index={3}>
         <MyListingsTab user={user} jobs={jobs} projects={projects} />
       </TabPanel>

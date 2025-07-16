@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Chip } from '@mui/material';
-import { databases, ID } from "@/utils/api";
+import { createProject } from "@/lib/appwrite";
 
 interface CreateProjectTabProps {
   user: any;
@@ -27,23 +27,17 @@ export default function CreateProjectTab({ user, onProjectCreated, setActiveTab 
 
   const handleCreateProject = async () => {
     try {
-      const response = await databases.createDocument(
-        process.env.NEXT_PUBLIC_DATABASES_PROJECTS,
-        process.env.NEXT_PUBLIC_COLLECTIONS_PROJECTS,
-        ID.unique(),
-        {
-          title: projectTitle,
-          description: projectDescription,
-          tags: projectTags,
-          createdAt: new Date().toISOString(),
-          projectId: ID.unique(),
-          ownerId: user?.$id,
-          status: 'active',
-          updatedAt: new Date().toISOString(),
-          participants: [user?.$id],
-        }
-      );
-      console.log('Project created successfully:', response);
+      await createProject({
+        userId: user?.$id,
+        name: projectTitle,
+        bio: projectDescription,
+        tags: projectTags,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true,
+        isVerified: false,
+      });
+      console.log('Project created successfully');
       
       // Reset form and refresh projects
       setProjectTitle("");
@@ -104,3 +98,4 @@ export default function CreateProjectTab({ user, onProjectCreated, setActiveTab 
     </Box>
   );
 }
+    

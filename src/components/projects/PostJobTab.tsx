@@ -94,11 +94,11 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
     });
   };
 
-  const handleSkillsChange = (_: any, newValue: string[]) => {
-    setFormData({
-      ...formData,
-      skills: newValue,
-    });
+  const handleSkillsChange = (_event: any, value: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: value,
+    }));
   };
 
   const isFormValid = () => {
@@ -129,11 +129,18 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
     setError('');
 
     try {
+      // Ensure skills is always an array
+      const skillsRequired = Array.isArray(formData.skills)
+        ? formData.skills.filter(Boolean)
+        : typeof formData.skills === 'string' && formData.skills.trim() !== ''
+          ? [formData.skills.trim()]
+          : [];
+
       const jobData = {
         userId: user.$id,
         title: formData.title,
         description: formData.description,
-        skills: formData.skills,
+        skillsRequired,
         duration: formData.duration,
         experienceLevel: formData.experienceLevel,
         budget: formData.budget,
@@ -141,8 +148,8 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
       };
 
       await databases.createDocument(
-        process.env.NEXT_PUBLIC_DATABASE_ID,
-        process.env.NEXT_PUBLIC_COLLECTION_ID,
+        process.env.NEXT_PUBLIC_DATABASE_ID!,
+        process.env.NEXT_PUBLIC_COLLECTION_ID!,
         ID.unique(),
         jobData
       );
@@ -322,6 +329,7 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
                 <Chip
+                  key={option}
                   label={option}
                   {...getTagProps({ index })}
                   sx={{ 
@@ -443,7 +451,7 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
                 boxShadow: theme => `0 4px 10px ${alpha(theme.palette.primary.main, 0.4)}`,
                 '&:hover': {
                   boxShadow: theme => `0 6px 15px ${alpha(theme.palette.primary.main, 0.6)}`,
-                }
+                },
               }}
               endIcon={loading ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
             >
