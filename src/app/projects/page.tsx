@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Alert, CircularProgress, Tabs, Tab } from "@mui/material";
-import { databases } from "@/utils/api";
+import { Box, Alert, CircularProgress, Tabs, Tab } from "@mui/material";
 import { useAuth } from '@/contexts/AuthContext';
 import BrowseProjectsTab from "@/components/projects/BrowseProjectsTab";
 import PostJobTab from "@/components/projects/PostJobTab";
 import CreateProjectTab from "@/components/projects/CreateProjectTab";
 import MyListingsTab from "@/components/projects/MyListingsTab";
-import { JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID, PROFILES_DATABASE_ID, USER_PROFILES_COLLECTION_ID } from '@/lib/env';
+import { listJobs, listProfiles } from "@/lib/appwrite";
+import type { Jobs, Profiles } from "@/types/appwrite.d";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -28,8 +28,8 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ 
-          pt: 1, 
+        <Box sx={{
+          pt: 1,
           animation: 'fadeIn 0.4s ease-in-out',
           '@keyframes fadeIn': {
             '0%': {
@@ -52,24 +52,22 @@ function TabPanel(props: TabPanelProps) {
 export default function ProjectsPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Jobs[]>([]);
+  const [projects, setProjects] = useState<Profiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchJobs();
     fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchJobs = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await databases.listDocuments(
-        JOBS_DATABASE_ID,
-        JOB_POSTINGS_COLLECTION_ID
-      );
+      const response = await listJobs();
       setJobs(response.documents);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -78,6 +76,8 @@ export default function ProjectsPage() {
       setLoading(false);
     }
   };
+
+  const fetchProjects = async () => {
 
   const fetchProjects = async () => {
     setLoading(true);

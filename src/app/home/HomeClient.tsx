@@ -58,6 +58,12 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
+// Import Query from Appwrite SDK
+import { Query } from "appwrite";
+
+// You may need to define APP_URL if you use it in linkifyMentions
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+
 const AnimatedCard = motion(Card);
 
 // Types for lances (posts)
@@ -66,7 +72,6 @@ interface Media {
   fileId: string;
   thumbnailFileId?: string;
 }
-
 interface Lance {
   $id: string;
   userId: string;
@@ -84,12 +89,20 @@ interface Lance {
   isLiked?: boolean;
   isBookmarked?: boolean;
 }
-
 interface VisibilityOption {
   value: Lance['visibility'];
   label: string;
   icon: React.ElementType;
 }
+
+// Helper for profile pic (fix: this is not defined in your code)
+function getProfilePictureUrl(pic: string) {
+  // Update this function to match your backend implementation
+  if (!pic) return "";
+  // Example: if you store only fileId, and need to use getFileViewUrl
+  return getFileViewUrl("", pic);
+}
+
 export default function HomeClient() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -136,6 +149,7 @@ export default function HomeClient() {
       fetchUserProfile();
     }
     fetchLances();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchUserProfile = async () => {
@@ -155,6 +169,7 @@ export default function HomeClient() {
   const fetchLances = async (refresh = false) => {
     try {
       setIsLoading(true);
+      let nextPage = refresh ? 1 : page;
       if (refresh) {
         setPage(1);
         setHasMore(true);
@@ -163,7 +178,7 @@ export default function HomeClient() {
       const response = await listPosts([
         Query.orderDesc('$createdAt'),
         Query.limit(50),
-        Query.offset((refresh ? 0 : (page - 1) * 50))
+        Query.offset((refresh ? 0 : (nextPage - 1) * 50))
       ]);
       const fetchedLances = response.documents.map((doc: Posts) => ({
         $id: doc.$id,
@@ -258,11 +273,10 @@ export default function HomeClient() {
     });
   };
 
-  const handleVisibilityChange = (event: React.MouseEvent<HTMLElement>, newVisibility: Lance['visibility']) => {
-    if (newVisibility !== null) {
-      setSelectedVisibility(newVisibility);
-    }
-  };
+  // unused, but referenced in MenuItem onClick
+  // const handleVisibilityChange = (event: React.MouseEvent<HTMLElement>, newVisibility: Lance['visibility']) => {
+  //   if (newVisibility !== null) setSelectedVisibility(newVisibility);
+  // };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -407,6 +421,7 @@ export default function HomeClient() {
     if (inView && hasMore && !isLoading) {
       fetchLances();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, hasMore, isLoading]); // Remove fetchLances from deps to avoid unwanted triggers
 
   return (
@@ -476,7 +491,7 @@ export default function HomeClient() {
               >
                 <Box sx={{ p: 2 }}>
                   <Box sx={{ display: 'flex', gap: 1.5 }}>
-                    <Avatar src={userProfilePic || undefined} />
+                    <Avatar src={userProfilePic ? getProfilePictureUrl(userProfilePic) : undefined} />
                     <Box sx={{ flexGrow: 1 }}>
                       <TextField
                         fullWidth
@@ -538,7 +553,7 @@ export default function HomeClient() {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          position: { xs: 'sticky', sm: 'static' },
+                          position: { xs: 'sticky', sm: 'static' } as any,
                           bottom: { xs: 0, sm: 'auto' },
                           left: 0,
                           bgcolor: { xs: 'background.paper', sm: 'inherit' },
@@ -697,7 +712,7 @@ export default function HomeClient() {
                             minWidth: 100,
                             ml: 2,
                             flexShrink: 0,
-                            position: { xs: 'sticky', sm: 'static' },
+                            position: { xs: 'sticky', sm: 'static' } as any,
                             right: { xs: 0, sm: 'auto' },
                           }}
                         >
@@ -963,34 +978,6 @@ export default function HomeClient() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* Media preview dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogContent sx={{ p: 0, position: 'relative' }}>
-          <IconButton
-            onClick={() => setDialogOpen(false)}
-            sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'rgba(0,0,0,0.4)', color: 'white' }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <img
-            src="https://picsum.photos/1000/600"
-            alt="Full size media"
-            style={{ width: '100%', height: 'auto' }}
-          />
-        </DialogContent>
-      </Dialog>
-    </Container>
-  );
-}
           onClose={handleSnackbarClose}
           severity={snackbarSeverity}
           variant="filled"
