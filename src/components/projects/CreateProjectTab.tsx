@@ -31,7 +31,7 @@ export default function CreateProjectTab({ user, onProjectCreated, setActiveTab 
         userId: user?.$id,
         name: projectTitle,
         bio: projectDescription,
-        tags: projectTags,
+        skills: projectTags, // Optionally use 'skills' if you want to store tags as skills
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         isActive: true,
@@ -98,4 +98,3 @@ export default function CreateProjectTab({ user, onProjectCreated, setActiveTab 
     </Box>
   );
 }
-    
