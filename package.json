@@ -10,7 +10,9 @@
     "build:full": "npm run build:next && npm run build:custom-server && npm run build:signaling-server",
     "start": "NODE_ENV=production node dist/server.js",
     "start:signaling": "NODE_ENV=production node dist/signaling-server.js",
-    "lint": "next lint"
+    "lint": "next lint",
+    "find-deadcode": "ts-prune"
+
   },
   "dependencies": {
     "@atgraphite/web3-plugin": "^1.1.1",
