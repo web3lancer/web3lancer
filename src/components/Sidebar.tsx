@@ -423,6 +423,11 @@ export default function Sidebar() {
     </Box>
   );
 
+  // Do not render sidebar on /pitch
+  if (pathname === "/pitch") {
+    return null;
+  }
+
   return (
     <>
       <Drawer

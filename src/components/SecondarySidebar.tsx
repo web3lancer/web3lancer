@@ -533,6 +533,14 @@ export default function SecondarySidebar({
     </Box>
   );
 
+  // Get current pathname from window.location (since usePathname is not available here)
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+
+  // Do not render secondary sidebar on /pitch
+  if (pathname === "/pitch") {
+    return null;
+  }
+
   return (
     <Box 
       sx={{ 
