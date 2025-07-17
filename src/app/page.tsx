@@ -6,6 +6,14 @@ import React, {
 
 import Head from 'next/head';
 
+import CommunitySection from '@/app/home0/sections/CommunitySection';
+import DownloadSection from '@/app/home0/sections/DownloadSection';
+import FeaturedProjects from '@/app/home0/sections/FeaturedProjects';
+import FeaturesSection from '@/app/home0/sections/FeaturesSection';
+import HeroSection from '@/app/home0/sections/HeroSection';
+import JobsSection from '@/app/home0/sections/JobsSection';
+import StatisticsSection from '@/app/home0/sections/StatisticsSection';
+import TestimonialsSection from '@/app/home0/sections/TestimonialsSection';
 import {
   JOB_POSTINGS_COLLECTION_ID,
   JOBS_DATABASE_ID,
@@ -24,14 +32,6 @@ import {
   databases,
   ensureSession,
 } from '../utils/api';
-import CommunitySection from './home0/sections/CommunitySection';
-import DownloadSection from './home0/sections/DownloadSection';
-import FeaturedProjects from './home0/sections/FeaturedProjects';
-import FeaturesSection from './home0/sections/FeaturesSection';
-import HeroSection from './home0/sections/HeroSection';
-import JobsSection from './home0/sections/JobsSection';
-import StatisticsSection from './home0/sections/StatisticsSection';
-import TestimonialsSection from './home0/sections/TestimonialsSection';
 
 // Placeholder for HowItWorksSection
 const HowItWorksSection: React.FC = () => (
