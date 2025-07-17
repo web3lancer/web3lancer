@@ -7,10 +7,19 @@
 </p>
 
 ## 🌟 Vision
- 
+
 Web3Lancer bridges traditional freelancing with blockchain innovation, creating a borderless platform where freelancers and businesses connect, collaborate, and transact with unprecedented transparency in a community reputation based system
 
 Our platform is built on the principles of decentralized reputation, modular identity, and compliance-first infrastructure, enabling a secure and credible environment for all participants.
+
+## 🔗 Integrations
+
+Web3Lancer is designed to be extensible and interoperable with leading blockchain technologies.  
+The following integration powers our freelance escrow system:
+
+- **Cardano/Aiken Freelance Escrow**  
+  Secure, decentralized escrow for freelance payments, built on Cardano using Aiken smart contracts.  
+  [Integration Source](https://github.com/web3lancer/freelancesafe)
 
 ## 🛠️ Core Features
 
@@ -19,18 +28,11 @@ Our platform is built on the principles of decentralized reputation, modular ide
 - **🌐 Global Talent Pool** - Access expertise regardless of location, with verifiable identity and trust scores.
 - **🤝 Collaborative Workspace** - Built-in tools for seamless project management, with reputation-based access and permissions.
 - **💰 Multi-currency Support** - Work and earn in your preferred currency (fiat or crypto).
-- **💰 Real time Support with Magic Block** - Features a fast real-time transaction system powered by magicblock.
-- **⚡ Cross-Chain Interoperability with LayerZero** - Enables seamless transactions and data exchange between Solana, Stellar, and other supported blockchains, enhancing flexibility and scalability for users and developers.
-- **⚡ Integrations with lens chain/bonsai** - [lens implementation](https://github.com/web3lancer/lenscontract.git)
-- **⚡ SUI move implementation** - [SUI implementation](https://github.com/web3lancer/suicontract.git)
-
-[Layerzero implementation](https://github.com/web3lancer/zeroints)
-
-[Magic Block implementation](https://github.com/web3lancer/lancertransfer)
+- **⚡ Cross-Chain Interoperability** - Seamless blockchain transactions.
 
 ## ⛓️ On-Chain Capabilities
 
-Web3Lancer leverages **Solana** blockchain technology to enable:
+Web3Lancer leverages blockchain technology to enable:
 
 - **💸 Instant Cross-Border Payments** - Eliminate traditional banking delays and high fees.
 - **🔄 Currency Conversion** - Seamless exchanges between different currencies.
@@ -54,16 +56,16 @@ At the heart of Web3Lancer is a robust, on-chain reputation and identity system:
 
 The smart contract efficiently manages user reputation through functions like `submit_review`, `get_reputation_score`, and `dispute_review`, ensuring a trustworthy and compliant marketplace for all participants.
 
-### 🔗 Advanced Trust Network Integration with Graphite
+### 🔗 Advanced Trust Network Integration
 
-Web3Lancer integrates with cutting-edge reputation infrastructure to provide enhanced trust scoring and compliance verification:
+Web3Lancer provides enhanced trust scoring and compliance verification:
 
 - **🎯 Trust Score Analytics** - Advanced behavioral scoring and KYC verification integration
 - **🛡️ Sybil Resistance** - "One User – One Account" policy enforcement through reputation-based validation
 - **🔐 Compliance Filtering** - Smart contract access control based on user verification levels
 - **⚡ Reputation-Based Logic** - Dynamic feature access and permissions tied to on-chain trust profiles
 
-This integration enables sophisticated access control, fraud prevention, and compliance management while maintaining user privacy through zero-knowledge verification methods.
+This enables sophisticated access control, fraud prevention, and compliance management while maintaining user privacy through zero-knowledge verification methods.
 
 ## 📊 Stellar Contract Details
 
@@ -93,7 +95,7 @@ npm run dev
 ## 📋 Project Status
 
 - [x] Core platform architecture
-- [x] Stellar payment integration
+- [x] Freelance escrow integration (Cardano/Aiken)
 - [x] On-chain reputation and compliance system
 - [ ] Advanced search functionality
 - [ ] Mobile application
