@@ -25,11 +25,9 @@ export default function PitchDeck() {
           spaceBetween={0}
           slidesPerView={1}
           navigation
-          pagination={{ 
+          pagination={{
             clickable: true,
             dynamicBullets: true,
-            bulletClass: "swiper-pagination-bullet !bg-white !opacity-50",
-            bulletActiveClass: "swiper-pagination-bullet-active !bg-white !opacity-100"
           }}
           effect="fade"
           fadeEffect={{ crossFade: true }}

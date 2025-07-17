@@ -16,6 +16,12 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
+  // Check for noAppLayout static property on the child component
+  const childType = (Array.isArray(children) ? children[0]?.type : (children as any)?.type);
+  if (childType?.noAppLayout) {
+    return <>{children}</>;
+  }
+
   const pathname = usePathname() || ''; // Ensure pathname is always a string
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));

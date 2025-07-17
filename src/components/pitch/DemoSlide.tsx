@@ -1,45 +1,112 @@
+import { Box, Typography, Paper, Button, Stack, Grid } from "@mui/material";
+
 export default function DemoSlide() {
   return (
-    <div className="flex flex-col items-center text-center gap-8 text-white px-8">
-      <h2 className="text-5xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+    <Box display="flex" flexDirection="column" alignItems="center" textAlign="center" gap={4} px={4} sx={{ color: "common.white" }}>
+      <Typography
+        variant="h3"
+        fontWeight={700}
+        sx={{
+          background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          mb: 4,
+        }}
+      >
         See It In Action
-      </h2>
-      <div className="flex flex-col md:flex-row gap-8 max-w-4xl">
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
-          <div className="text-6xl mb-4">📄</div>
-          <h3 className="text-2xl font-semibold mb-4">Interactive Pitch Deck</h3>
-          <p className="text-gray-300 mb-6">Experience our full presentation with animations and detailed insights.</p>
-          <a 
-            href="https://doc.storydoc.ai/tgKIKu" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 hover:scale-105"
+      </Typography>
+      <Grid container spacing={4} maxWidth="md">
+        <Grid item xs={12} md={6}>
+          <Paper
+            elevation={6}
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              bgcolor: "rgba(255,255,255,0.08)",
+              color: "common.white",
+              transition: "transform 0.3s",
+              "&:hover": { transform: "scale(1.05)", bgcolor: "rgba(255,255,255,0.15)" },
+              textAlign: "center",
+            }}
           >
-            View Pitch Deck
-          </a>
-        </div>
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
-          <div className="text-6xl mb-4">▶️</div>
-          <h3 className="text-2xl font-semibold mb-4">Demo Video</h3>
-          <p className="text-gray-300 mb-6">Watch our platform in action with live demonstrations and use cases.</p>
-          <a 
-            href="https://youtube.com/watch?v=VwpeeR8MMG8" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="inline-block bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 hover:scale-105"
+            <Typography variant="h2" mb={2}>📄</Typography>
+            <Typography variant="h6" fontWeight={600} mb={2}>Interactive Pitch Deck</Typography>
+            <Typography variant="body2" color="grey.300" mb={2}>
+              Experience our full presentation with animations and detailed insights.
+            </Typography>
+            <Button
+              variant="contained"
+              href="https://doc.storydoc.ai/tgKIKu"
+              target="_blank"
+              sx={{
+                background: "linear-gradient(90deg, #3b82f6, #a78bfa)",
+                color: "common.white",
+                fontWeight: 700,
+                px: 3,
+                py: 1.5,
+                borderRadius: 8,
+                textTransform: "none",
+                fontSize: "1rem",
+                "&:hover": {
+                  background: "linear-gradient(90deg, #2563eb, #7c3aed)",
+                },
+              }}
+            >
+              View Pitch Deck
+            </Button>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper
+            elevation={6}
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              bgcolor: "rgba(255,255,255,0.08)",
+              color: "common.white",
+              transition: "transform 0.3s",
+              "&:hover": { transform: "scale(1.05)", bgcolor: "rgba(255,255,255,0.15)" },
+              textAlign: "center",
+            }}
           >
-            Watch Demo
-          </a>
-        </div>
-      </div>
-      <div className="mt-8">
-        <p className="text-lg text-gray-300">Thank you for your attention!</p>
-        <div className="flex justify-center space-x-4 mt-4">
-          <div className="h-3 w-3 bg-blue-400 rounded-full animate-ping"></div>
-          <div className="h-3 w-3 bg-purple-400 rounded-full animate-ping delay-100"></div>
-          <div className="h-3 w-3 bg-pink-400 rounded-full animate-ping delay-200"></div>
-        </div>
-      </div>
-    </div>
+            <Typography variant="h2" mb={2}>▶️</Typography>
+            <Typography variant="h6" fontWeight={600} mb={2}>Demo Video</Typography>
+            <Typography variant="body2" color="grey.300" mb={2}>
+              Watch our platform in action with live demonstrations and use cases.
+            </Typography>
+            <Button
+              variant="contained"
+              href="https://youtube.com/watch?v=VwpeeR8MMG8"
+              target="_blank"
+              sx={{
+                background: "linear-gradient(90deg, #ef4444, #f472b6)",
+                color: "common.white",
+                fontWeight: 700,
+                px: 3,
+                py: 1.5,
+                borderRadius: 8,
+                textTransform: "none",
+                fontSize: "1rem",
+                "&:hover": {
+                  background: "linear-gradient(90deg, #b91c1c, #db2777)",
+                },
+              }}
+            >
+              Watch Demo
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
+      <Box mt={6}>
+        <Typography variant="body1" color="grey.300">
+          Thank you for your attention!
+        </Typography>
+        <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
+          <Box sx={{ width: 16, height: 16, bgcolor: "#60a5fa", borderRadius: "50%", animation: "ping 1s infinite" }} />
+          <Box sx={{ width: 16, height: 16, bgcolor: "#a78bfa", borderRadius: "50%", animation: "ping 1s infinite 0.1s" }} />
+          <Box sx={{ width: 16, height: 16, bgcolor: "#f472b6", borderRadius: "50%", animation: "ping 1s infinite 0.2s" }} />
+        </Stack>
+      </Box>
+    </Box>
   );
 }
