@@ -1,11 +1,6 @@
 "use client";
-import React, {
-  useEffect,
-  useState,
-} from 'react';
 
-import Head from 'next/head';
-
+import { databases, ensureSession,} from '@/utils/api';
 import CommunitySection from '@/app/home0/sections/CommunitySection';
 import DownloadSection from '@/app/home0/sections/DownloadSection';
 import FeaturedProjects from '@/app/home0/sections/FeaturedProjects';
@@ -27,11 +22,11 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-
-import {
-  databases,
-  ensureSession,
-} from '../utils/api';
+import Head from 'next/head';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
 
 // Placeholder for HowItWorksSection
 const HowItWorksSection: React.FC = () => (
