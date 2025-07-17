@@ -1,18 +1,37 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { Box, Fab, useTheme, Paper, Typography, Container } from '@mui/material';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { databases, ensureSession } from '../utils/api';
-import { JOBS_DATABASE_ID, JOB_POSTINGS_COLLECTION_ID } from '@/lib/env';
-import HeroSection from './home0/sections/HeroSection';
-import StatisticsSection from './home0/sections/StatisticsSection';
-import FeaturesSection from './home0/sections/FeaturesSection';
-import FeaturedProjects from './home0/sections/FeaturedProjects';
-import TestimonialsSection from './home0/sections/TestimonialsSection';
-import DownloadSection from './home0/sections/DownloadSection';
-import JobsSection from './home0/sections/JobsSection';
-import CommunitySection from './home0/sections/CommunitySection';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
 import Head from 'next/head';
+
+import {
+  JOB_POSTINGS_COLLECTION_ID,
+  JOBS_DATABASE_ID,
+} from '@/lib/env';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import {
+  Box,
+  Container,
+  Fab,
+  Paper,
+  Typography,
+  useTheme,
+} from '@mui/material';
+
+import {
+  databases,
+  ensureSession,
+} from '../utils/api';
+import CommunitySection from './home0/sections/CommunitySection';
+import DownloadSection from './home0/sections/DownloadSection';
+import FeaturedProjects from './home0/sections/FeaturedProjects';
+import FeaturesSection from './home0/sections/FeaturesSection';
+import HeroSection from './home0/sections/HeroSection';
+import JobsSection from './home0/sections/JobsSection';
+import StatisticsSection from './home0/sections/StatisticsSection';
+import TestimonialsSection from './home0/sections/TestimonialsSection';
 
 // Placeholder for HowItWorksSection
 const HowItWorksSection: React.FC = () => (
