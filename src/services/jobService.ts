@@ -1,5 +1,5 @@
-import { AppwriteService, ID, Query } from './appwriteService';
-import { EnvService } from './envService';
+import { AppwriteService, ID, Query } from '@/services/appwriteService';
+import { EnvService } from '@/services/envService';
 import { Job, Proposal, Contract, Milestone, Review } from '@/types/job';
 
 /**

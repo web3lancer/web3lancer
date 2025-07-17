@@ -23,12 +23,12 @@ import { motion } from 'framer-motion';
 import { Keypair } from '@stellar/stellar-sdk';
 import { walletStore } from '@/utils/stellar/walletStore';
 import { fundWithFriendbot, getAccountBalance, accountExists } from '@/utils/stellar/horizonQueries';
-import { ContactsManager } from './stellar/ContactsManager';
+import { ContactsManager } from '@/components/stellar/ContactsManager';
 import { useContacts } from '@/hooks/useContacts';
-import { TruncatedKey } from './stellar/TruncatedKey';
-import TrustlineManager from './stellar/TrustlineManager';
-import StellarPayment from './stellar/StellarPayment';
-import PathPayment from './stellar/PathPayment';
+import { TruncatedKey } from '@/components/stellar/TruncatedKey';
+import TrustlineManager from '@/components/stellar/TrustlineManager';
+import StellarPayment from '@/components/stellar/StellarPayment';
+import PathPayment from '@/components/stellar/PathPayment';
 
 export default function StellarWallet() {
   // State for key management

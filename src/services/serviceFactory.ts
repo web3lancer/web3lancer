@@ -1,10 +1,10 @@
-import { AppwriteService } from './appwriteService';
+import { AppwriteService } from '@/services/appwriteService';
 import { defaultEnvConfig, EnvConfig } from '@/config/environment';
-import SystemService from './systemService';
-import NotificationService from './notificationService';
-import ProfileService from './profileService';
-import FinanceService from './financeService';
-import GovernanceService from './governanceService';
+import SystemService from '@/services/systemService';
+import NotificationService from '@/services/notificationService';
+import ProfileService from '@/services/profileService';
+import FinanceService from '@/services/financeService';
+import GovernanceService from '@/services/governanceService';
 
 /**
  * Service Factory

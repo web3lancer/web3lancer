@@ -1,5 +1,5 @@
-import { AppwriteService, ID, Query } from './appwriteService';
-import { EnvService } from './envService';
+import { AppwriteService, ID, Query } from '@/services/appwriteService';
+import { EnvService } from '@/services/envService';
 import { Post, Portfolio, Article, Bookmark, PostInteraction } from '@/types/content';
 
 /**

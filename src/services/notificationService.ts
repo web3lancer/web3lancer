@@ -1,5 +1,5 @@
-import BaseService from './baseService';
-import { AppwriteService, ID, Query, AppwriteDocument } from './appwriteService';
+import BaseService from '@/services/baseService';
+import { AppwriteService, ID, Query, AppwriteDocument } from '@/services/appwriteService';
 import { EnvConfig } from '@/config/environment';
 
 // Define local interfaces to avoid namespace conflicts

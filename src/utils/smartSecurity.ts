@@ -1,4 +1,4 @@
-import { graphiteService } from './graphite';
+import { graphiteService } from '@/utils/graphite';
 
 /**
  * Smart Security Contracts implementation for Web3Lancer

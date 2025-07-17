@@ -1,5 +1,5 @@
 // filepath: /home/nathfavour/Documents/code/web3lancer/web3lancer/src/services/activityService.ts
-import { AppwriteService } from './appwriteService';
+import { AppwriteService } from '@/services/appwriteService';
 import {
     ACTIVITY_DATABASE_ID,
     USER_NOTIFICATIONS_COLLECTION_ID,

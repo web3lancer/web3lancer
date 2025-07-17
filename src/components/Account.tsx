@@ -4,7 +4,7 @@ import { Person, Logout, Login, Settings, AccountBalanceWallet, KeyboardArrowDow
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { NetworkSwitcher } from './wallet/NetworkSwitcher';
+import { NetworkSwitcher } from '@/components/wallet/NetworkSwitcher';
 import { signOut as apiSignOut, getUserProfile, getProfilePictureUrl } from '@/utils/api'; // Import signOut from api
 
 export function Account() {

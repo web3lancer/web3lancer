@@ -1,4 +1,4 @@
-import { storage, ID } from './api';
+import { storage, ID } from '@/utils/api';
 
 /**
  * Upload a file to Appwrite Storage

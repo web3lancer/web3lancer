@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import ProjectCard from './ProjectCard';
-import ProjectFilters, { ProjectFilters as FilterTypes } from './ProjectFilters';
+import ProjectCard from '@/components/project/ProjectCard';
+import ProjectFilters, { ProjectFilters as FilterTypes } from '@/components/project/ProjectFilters';
 import projectService from '@/services/projectService';
 import { Project } from '@/types';
 

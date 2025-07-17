@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Paper, Typography, Box, Grid } from '@mui/material';
 import { Today } from '@mui/icons-material';
-import { CalendarHeader } from './calendar/CalendarHeader';
-import { CalendarDaysOfWeek } from './calendar/CalendarDaysOfWeek';
-import { CalendarDaysInMonth } from './calendar/CalendarDaysInMonth';
-import { UpcomingEvents } from './calendar/UpcomingEvents';
+import { CalendarHeader } from '@/components/profile/calendar/CalendarHeader';
+import { CalendarDaysOfWeek } from '@/components/profile/calendar/CalendarDaysOfWeek';
+import { CalendarDaysInMonth } from '@/components/profile/calendar/CalendarDaysInMonth';
+import { UpcomingEvents } from '@/components/profile/calendar/UpcomingEvents';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 
 export default function CalendarSection() {

@@ -1,5 +1,5 @@
-import { account, ID, databases } from './api';
-import { wallets } from './dbWrapper';
+import { account, ID, databases } from '@/utils/api';
+import { wallets } from '@/utils/dbWrapper';
 
 /**
  * Wallet authentication and management utilities

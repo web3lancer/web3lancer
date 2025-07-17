@@ -1,5 +1,5 @@
-import BaseService from './baseService';
-import { AppwriteService, ID, Query } from './appwriteService';
+import BaseService from '@/services/baseService';
+import { AppwriteService, ID, Query } from '@/services/appwriteService';
 import { EnvConfig } from '@/config/environment';
 import { Dispute, GovernanceProposal, GovernanceVote } from '@/types/governance';
 

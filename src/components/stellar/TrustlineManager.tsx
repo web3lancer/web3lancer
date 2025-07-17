@@ -15,11 +15,11 @@ import {
 } from '@mui/material';
 import { DeleteOutline } from '@mui/icons-material';
 import { walletStore } from '@/utils/stellar/walletStore';
-import { TruncatedKey } from './TruncatedKey';
+import { TruncatedKey } from '@/components/stellar/TruncatedKey';
 import { submit } from '@/utils/stellar/horizonQueries';
 import { createChangeTrustTransaction } from '@/utils/stellar/transactions';
 import { fetchAssets, StellarAsset } from '@/utils/stellar/stellarExpert';
-import ConfirmationModal from './ConfirmationModal';
+import ConfirmationModal from '@/components/stellar/ConfirmationModal';
 
 interface Balance {
   asset: string;

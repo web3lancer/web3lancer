@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Box, Grid, Alert, Snackbar, CircularProgress } from "@mui/material";
-import ProfileCard from './ProfileCard';
-import ProfileForm from './ProfileForm';
-import CalendarSection from './CalendarSection';
+import ProfileCard from '@/components/profile/ProfileCard';
+import ProfileForm from '@/components/profile/ProfileForm';
+import CalendarSection from '@/components/profile/CalendarSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile, updateUserProfile, getProfilePictureUrl } from '@/utils/api';
 import { motion } from 'framer-motion';

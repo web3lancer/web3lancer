@@ -7,14 +7,14 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import { Fade, Slide } from "react-awesome-reveal";
-import VisionSlide from "./VisionSlide";
-import FeaturesSlide from "./FeaturesSlide";
-import OnChainSlide from "./OnChainSlide";
-import ReputationSlide from "./ReputationSlide";
-import TrustNetworkSlide from "./TrustNetworkSlide";
-import LegalSlide from "./LegalSlide";
-import GetStartedSlide from "./GetStartedSlide";
-import DemoSlide from "./DemoSlide";
+import VisionSlide from "@/components/pitch/VisionSlide";
+import FeaturesSlide from "@/components/pitch/FeaturesSlide";
+import OnChainSlide from "@/components/pitch/OnChainSlide";
+import ReputationSlide from "@/components/pitch/ReputationSlide";
+import TrustNetworkSlide from "@/components/pitch/TrustNetworkSlide";
+import LegalSlide from "@/components/pitch/LegalSlide";
+import GetStartedSlide from "@/components/pitch/GetStartedSlide";
+import DemoSlide from "@/components/pitch/DemoSlide";
 
 export default function PitchDeck() {
   return (

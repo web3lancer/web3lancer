@@ -24,7 +24,7 @@ import {
   createPaymentTransaction, 
   createCreateAccountTransaction 
 } from '@/utils/stellar/transactions';
-import ConfirmationModal from './ConfirmationModal';
+import ConfirmationModal from '@/components/stellar/ConfirmationModal';
 
 interface StellarPaymentProps {
   publicKey: string;

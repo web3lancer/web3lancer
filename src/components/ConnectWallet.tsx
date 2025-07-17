@@ -1,11 +1,11 @@
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { Box, CircularProgress, Typography, Alert, Backdrop } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Account } from './Account';
-import { WalletOptions } from './WalletOptions';
+import { Account } from '@/components/Account';
+import { WalletOptions } from '@/components/WalletOptions';
 import { useEffect } from 'react';
-import { NetworkStatus } from './wallet/NetworkStatus';
-import { NetworkWatcher } from './wallet/NetworkWatcher';
+import { NetworkStatus } from '@/components/wallet/NetworkStatus';
+import { NetworkWatcher } from '@/components/wallet/NetworkWatcher';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function ConnectWallet() {

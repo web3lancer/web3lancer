@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Chip } from '@mui/material';
-import { useMetaMask } from '../../hooks/useMetaMask';
-import { NetworkSwitcher } from './NetworkSwitcher';
+import { useMetaMask } from '@/hooks/useMetaMask';
+import { NetworkSwitcher } from '@/components/wallet/NetworkSwitcher';
 
 export function NetworkStatus() {
   const { isConnected, getChainName } = useMetaMask();

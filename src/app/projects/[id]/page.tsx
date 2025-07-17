@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import ProjectClient from "./ProjectClient";
+import ProjectClient from "@/app/projects/[id]/ProjectClient";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   // Fetch project data (or use placeholder if not available)

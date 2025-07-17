@@ -1,4 +1,4 @@
-import { AppwriteService } from './appwriteService';
+import { AppwriteService } from '@/services/appwriteService';
 import {
   GOVERNANCE_DATABASE_ID,
   CONTRACT_DISPUTES_COLLECTION_ID,

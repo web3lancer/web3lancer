@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import UserProfilePageClient from './UserProfileClient';
+import UserProfilePageClient from '@/app/u/[usernameOrId]/UserProfileClient';
 import { getUserProfileByUsername, getUserProfile, getProfilePictureUrl } from '@/utils/api';
 
 export async function generateMetadata({ params }: { params: { usernameOrId: string } }): Promise<Metadata> {

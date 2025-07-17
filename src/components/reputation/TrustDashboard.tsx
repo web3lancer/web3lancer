@@ -19,7 +19,7 @@ import {
   Warning
 } from '@mui/icons-material';
 import { getUserTrustScore, getActivationRequirements, activateUserAccount } from '@/utils/graphite';
-import ReputationBadge from './ReputationBadge';
+import ReputationBadge from '@/components/reputation/ReputationBadge';
 
 interface TrustData {
   score: number;

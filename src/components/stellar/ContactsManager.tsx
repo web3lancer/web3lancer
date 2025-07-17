@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Delete, Star, StarBorder, PersonAdd } from '@mui/icons-material';
 import { useContacts } from '@/hooks/useContacts';
-import { TruncatedKey } from './TruncatedKey';
+import { TruncatedKey } from '@/components/stellar/TruncatedKey';
 import { StrKey } from '@stellar/stellar-sdk';
 
 export function ContactsManager() {

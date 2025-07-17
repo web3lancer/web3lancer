@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiBell } from 'react-icons/fi';
-import NotificationsList from './NotificationsList';
+import NotificationsList from '@/components/notifications/NotificationsList';
 import NotificationService from '@/services/notificationService';
 import { AppwriteService } from '@/services/appwriteService';
 import { envConfig } from '@/config/environment';

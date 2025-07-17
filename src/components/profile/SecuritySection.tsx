@@ -29,7 +29,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import MfaSetup from './MfaSetup';
+import MfaSetup from '@/components/profile/MfaSetup';
 
 interface SecuritySectionProps {
   section: 'password' | '2fa' | 'connected';

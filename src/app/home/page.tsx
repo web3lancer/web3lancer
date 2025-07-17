@@ -1,4 +1,4 @@
-import HomeClient from './HomeClient';
+import HomeClient from '@/app/home/HomeClient';
 import type { Metadata } from 'next';
 
 // Types for lances (posts)

@@ -1,4 +1,4 @@
-import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from './api';
+import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from '@/utils/api';
 import {
   PROFILES_DATABASE_ID,
   USER_PROFILES_COLLECTION_ID,

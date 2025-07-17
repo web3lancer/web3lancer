@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
-import Navbar from './Navbar';
-import Footer from './Footer';
-import SignInPrompt from '../auth/SignInPrompt';
+import Navbar from '@/components/shared/Navbar';
+import Footer from '@/components/shared/Footer';
+import SignInPrompt from '@/components/auth/SignInPrompt';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Layout({ children }: { children: React.ReactNode }) {

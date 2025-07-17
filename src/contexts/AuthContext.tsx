@@ -3,7 +3,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useRouter } from "next/navigation";
 import { account, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
-import { isAnonymousUser } from '../utils/guestSession'; // Use relative path for guestSession import
+import { isAnonymousUser } from '@/utils/guestSession'; // Use relative path for guestSession import
 import { Models, Storage, Avatars, Account } from 'appwrite';
 import { client } from '@/app/appwrite';
 import { useToast } from "@/components/ui/use-toast";

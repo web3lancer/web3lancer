@@ -1,4 +1,4 @@
-import { AppwriteService, AppwriteDocument } from './appwriteService';
+import { AppwriteService, AppwriteDocument } from '@/services/appwriteService';
 import { EnvConfig } from '@/config/environment';
 
 /**

@@ -1,7 +1,7 @@
 import { Query } from 'appwrite';
 import * as env from '@/lib/env';
-import BaseService from './baseService';
-import { AppwriteService, ID } from './appwriteService';
+import BaseService from '@/services/baseService';
+import { AppwriteService, ID } from '@/services/appwriteService';
 import { EnvConfig } from '@/config/environment';
 import { UserProfile, ProfileVerification } from '@/types/profiles';
 

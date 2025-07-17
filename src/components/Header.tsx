@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion } from "framer-motion";
 import { useAuth } from '@/contexts/AuthContext';
-import { Account } from './Account';
+import { Account } from '@/components/Account';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme, SxProps, Theme } from '@mui/material/styles';

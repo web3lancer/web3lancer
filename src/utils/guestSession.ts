@@ -1,4 +1,4 @@
-import { account } from './api'; // Assuming account is exported from api.ts
+import { account } from '@/utils/api'; // Assuming account is exported from api.ts
 import { AppwriteException } from 'appwrite';
 
 /**

@@ -31,7 +31,7 @@ import {
   createPathPaymentStrictSendTransaction, 
   createPathPaymentStrictReceiveTransaction 
 } from '@/utils/stellar/transactions';
-import ConfirmationModal from './ConfirmationModal';
+import ConfirmationModal from '@/components/stellar/ConfirmationModal';
 
 interface PathPaymentProps {
   publicKey: string;

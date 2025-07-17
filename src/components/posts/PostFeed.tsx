@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, Button, Alert, Paper } from '@mui/material';
-import PostCard from './PostCard';
-import PostForm from './PostForm';
+import PostCard from '@/components/posts/PostCard';
+import PostForm from '@/components/posts/PostForm';
 import { Post, Profile } from '@/types';
 import postService from '@/services/postService';
 // import profileService from '@/services/profileService';

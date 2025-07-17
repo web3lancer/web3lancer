@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import projectService from '@/services/projectService';
 import profileService from '@/services/profileService';
 import { Project, Profile } from '@/types';
-import ProposalForm from './ProposalForm';
+import ProposalForm from '@/components/project/ProposalForm';
 
 interface ProjectDetailProps {
   projectId: string;

@@ -10,7 +10,7 @@ import {
   CircularProgress 
 } from '@mui/material';
 import { KeyboardArrowDown } from '@mui/icons-material';
-import { useMetaMask } from '../../hooks/useMetaMask';
+import { useMetaMask } from '@/hooks/useMetaMask';
 
 // Network configurations
 const networks = {

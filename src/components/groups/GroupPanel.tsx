@@ -13,8 +13,8 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GroupIcon from "@mui/icons-material/Group";
-import GroupPosts from "./GroupPosts";
-import GroupMessages from "./GroupMessages";
+import GroupPosts from "@/components/groups/GroupPosts";
+import GroupMessages from "@/components/groups/GroupMessages";
 
 interface Group {
   id: string;
