@@ -19,7 +19,13 @@ export default function PitchDeck() {
           >
             See It In Action
           </Typography>
-          <Grid container spacing={4} maxWidth="md">
+          <Grid
+            container
+            spacing={4}
+            maxWidth="md"
+            alignItems="stretch"
+            direction={{ xs: "column", md: "row" }}
+          >
             <Grid item xs={12} md={6}>
               <Paper
                 elevation={6}
