@@ -128,16 +128,16 @@ export const jobs = {
 export const wallets = {
   get: async (walletId: string) => {
     return await safeGetDocument(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_WALLETS!,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       walletId
     );
   },
   
   listByUser: async (userId: string) => {
     return await safeListDocuments(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_WALLETS!,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       [{ equal: ['userId', userId] }]
     );
   },
@@ -147,8 +147,8 @@ export const wallets = {
     await ensureSession();
     
     return await databases.createDocument(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_WALLETS!,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       ID.unique(),
       data
     );
@@ -159,8 +159,8 @@ export const wallets = {
     await ensureSession();
     
     return await databases.updateDocument(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_WALLETS!,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       walletId,
       data
     );
@@ -171,8 +171,8 @@ export const wallets = {
     await ensureSession();
     
     return await databases.deleteDocument(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_WALLETS!,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       walletId
     );
   }
@@ -182,8 +182,8 @@ export const wallets = {
 export const balances = {
   getByWalletAndCurrency: async (walletId: string, currency: string) => {
     const response = await safeListDocuments(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_BALANCES!,
+      FINANCE_DATABASE_ID,
+      PLATFORM_TRANSACTIONS_COLLECTION_ID,
       [
         { equal: ['walletId', walletId] },
         { equal: ['currency', currency] }
@@ -195,16 +195,16 @@ export const balances = {
   
   listByWallet: async (walletId: string) => {
     return await safeListDocuments(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_BALANCES!,
+      FINANCE_DATABASE_ID,
+      PLATFORM_TRANSACTIONS_COLLECTION_ID,
       [{ equal: ['walletId', walletId] }]
     );
   },
   
   create: async (data: any) => {
     return await databases.createDocument(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_BALANCES!,
+      FINANCE_DATABASE_ID,
+      PLATFORM_TRANSACTIONS_COLLECTION_ID,
       ID.unique(),
       data
     );
@@ -212,8 +212,8 @@ export const balances = {
   
   update: async (balanceId: string, data: any) => {
     return await databases.updateDocument(
-      process.env.DATABASES_WALLET!,
-      process.env.COLLECTIONS_BALANCES!,
+      FINANCE_DATABASE_ID,
+      PLATFORM_TRANSACTIONS_COLLECTION_ID,
       balanceId,
       data
     );
@@ -292,7 +292,7 @@ export const paymentMethods = {
 export const cryptoTransactions = {
   listByWallet: async (walletId: string) => {
     return await safeListDocuments(
-      process.env.DATABASES_WALLET!,
+      FINANCE_DATABASE_ID,
       process.env.COLLECTIONS_CRYPTO_TRANSACTIONS!,
       [{ equal: ['walletId', walletId] }]
     );
@@ -300,7 +300,7 @@ export const cryptoTransactions = {
   
   create: async (data: any) => {
     return await databases.createDocument(
-      process.env.DATABASES_WALLET!,
+      FINANCE_DATABASE_ID,
       process.env.COLLECTIONS_CRYPTO_TRANSACTIONS!,
       ID.unique(),
       data

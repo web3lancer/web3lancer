@@ -1,6 +1,7 @@
 import { ID } from 'appwrite';
 import { databases } from '@/utils/api';
 import { generateWalletAddress } from '@/utils/walletUtils';
+import { FINANCE_DATABASE_ID, USER_WALLETS_COLLECTION_ID, PLATFORM_TRANSACTIONS_COLLECTION_ID } from '@/lib/env';
 
 /**
  * Wallet Service
@@ -18,8 +19,8 @@ export async function createWallet(userId: string, walletType: string = 'custodi
     
     // Create the wallet document
     const wallet = await databases.createDocument(
-      process.env.DATABASES_WALLET,
-      process.env.COLLECTIONS_WALLETS,
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
       ID.unique(),
       {
         userId,
@@ -50,9 +51,8 @@ export async function createWallet(userId: string, walletType: string = 'custodi
 export async function createBalance(walletId: string, currency: string, amount: number = 0) {
   try {
     return await databases.createDocument(
-      process.env.DATABASES_WALLET,
-      process.env.COLLECTIONS_BALANCES,
-      ID.unique(),
+      FINANCE_DATABASE_ID,
+       PLATFORM_TRANSACTIONS_COLLECTION_ID,      ID.unique(),
       {
         walletId,
         currency,
@@ -72,12 +72,11 @@ export async function createBalance(walletId: string, currency: string, amount: 
 export async function getUserWallet(userId: string) {
   try {
     const response = await databases.listDocuments(
-      process.env.DATABASES_WALLET,
-      process.env.COLLECTIONS_WALLETS,
-      [
-        databases.Query.equal('userId', userId)
-      ]
-    );
+      FINANCE_DATABASE_ID,
+      USER_WALLETS_COLLECTION_ID,
+       [
+         { equal: ['userId', userId] }
+       ]    );
     
     if (response.documents.length === 0) {
       // No wallet found, create one
