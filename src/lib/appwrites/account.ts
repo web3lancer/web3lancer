@@ -1,4 +1,4 @@
-import { account } from './client';
+import { account } from '@/lib/appwrites/client';
 
 export async function getCurrentAccount() {
   return account.get();

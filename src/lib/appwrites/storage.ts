@@ -1,4 +1,7 @@
-import { storage, avatars } from './client';
+import {
+  avatars,
+  storage,
+} from '@/lib/appwrites/client';
 
 export function getFilePreviewUrl(bucketId: string, fileId: string) {
   return storage.getFilePreview(bucketId, fileId).toString();

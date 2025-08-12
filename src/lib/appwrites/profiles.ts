@@ -1,5 +1,11 @@
-import { databases, ID } from './client';
-import { DB, COL } from './constants';
+import {
+  databases,
+  ID,
+} from '@/lib/appwrites/client';
+import {
+  COL,
+  DB,
+} from '@/lib/appwrites/constants';
 import type * as AppwriteTypes from '@/types/appwrite.d';
 
 export async function getProfile(userId: string): Promise<AppwriteTypes.Profiles | null> {
