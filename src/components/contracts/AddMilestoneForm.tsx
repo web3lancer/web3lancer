@@ -1,13 +1,16 @@
 import { useState } from 'react';
+
+import { toast } from 'react-hot-toast';
+
 import contractService from '@/services/contractService';
 import { Contract } from '@/types';
-import { toast } from 'react-hot-toast';
 
 interface AddMilestoneFormProps {
   contractId: string;
   onMilestoneAdded: (updatedContract: Contract) => void;
 }
 
+// add milestones
 export const AddMilestoneForm = ({ contractId, onMilestoneAdded }: AddMilestoneFormProps) => {
   const [formData, setFormData] = useState({
     title: '',
