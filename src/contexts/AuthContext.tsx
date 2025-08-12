@@ -1,19 +1,39 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { useRouter } from "next/navigation";
-import { account, createGitHubOAuthSession, createGoogleOAuthSession, getUserProfile, convertAnonymousSession as apiConvertAnonymousSession } from '@/utils/api'; 
-import { isAnonymousUser } from '@/utils/guestSession'; // Use relative path for guestSession import
-import { Models, Storage, Avatars, Account } from 'appwrite';
-import { client } from '@/app/appwrite';
-import { useToast } from "@/components/ui/use-toast";
-import { APP_URL, PROFILE_AVATARS_BUCKET_ID } from "@/lib/env";
-// import profileService from "@/services/profileService";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
-import getProfileByUserId from '@/services/profileService';
-import ProfileService from "@/services/profileService";
-import { AppwriteService } from "@/services/appwriteService";
-import { envConfig } from "@/config/environment";
+import {
+  Account,
+  Avatars,
+  Models,
+  Storage,
+} from 'appwrite';
+import { useRouter } from 'next/navigation';
+
+import { client } from '@/app/appwrite';
+import { useToast } from '@/components/ui/use-toast';
+import { envConfig } from '@/config/environment';
+import {
+  APP_URL,
+  PROFILE_AVATARS_BUCKET_ID,
+} from '@/lib/env';
+import { AppwriteService } from '@/services/appwriteService';
+import ProfileService from '@/services/profileService';
+import {
+  account,
+  createGitHubOAuthSession,
+  createGoogleOAuthSession,
+  getUserProfile,
+} from '@/utils/api';
+import {
+  isAnonymousUser,
+} from '@/utils/guestSession'; // Use relative path for guestSession import
 
 const appwriteService = new AppwriteService(envConfig);
 const profileService = new ProfileService(appwriteService, envConfig);
