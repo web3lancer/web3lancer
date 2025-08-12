@@ -1,8 +1,14 @@
+import {
+  FINANCE_DATABASE_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  USER_WALLETS_COLLECTION_ID,
+} from '@/lib/env';
+
 /**
  * Transaction utilities for Web3Lancer
  */
 
-import { FINANCE_DATABASE_ID, PLATFORM_TRANSACTIONS_COLLECTION_ID, USER_WALLETS_COLLECTION_ID } from '@/lib/env';
+
 
 /**
  * Parse ether value to wei (as a hex string)
@@ -191,6 +197,4 @@ async function getWalletIdForUser(userId: string): Promise<string> {
 }
 
 // Export functions
-export {
-  getWalletIdForUser
-};
+export { getWalletIdForUser };

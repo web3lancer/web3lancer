@@ -1,15 +1,19 @@
-import { databases, safeGetDocument, safeListDocuments, ID, ensureSession } from '@/utils/api';
 import {
+  FINANCE_DATABASE_ID,
+  JOB_POSTINGS_COLLECTION_ID,
+  JOBS_DATABASE_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
   PROFILES_DATABASE_ID,
   USER_PROFILES_COLLECTION_ID,
-  JOBS_DATABASE_ID,
-  JOB_POSTINGS_COLLECTION_ID,
-  FINANCE_DATABASE_ID,
   USER_WALLETS_COLLECTION_ID,
-  PLATFORM_TRANSACTIONS_COLLECTION_ID,
-  USER_PAYMENT_METHODS_COLLECTION_ID,
-  ESCROW_TRANSACTIONS_COLLECTION_ID
 } from '@/lib/env';
+import {
+  databases,
+  ensureSession,
+  ID,
+  safeGetDocument,
+  safeListDocuments,
+} from '@/utils/api';
 
 /**
  * A wrapper for database access that uses the correct database and collection IDs

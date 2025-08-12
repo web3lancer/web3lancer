@@ -1,9 +1,42 @@
-// import { Client, Account, Databases, Storage, Avatars, ID, Query } from "appwrite";
+import {
+  Account,
+  AppwriteException,
+  AuthenticationFactor,
+  Avatars,
+  Client,
+  Databases,
+  ID,
+  ImageFormat,
+  ImageGravity,
+  Models,
+  OAuthProvider,
+  Query,
+  Storage,
+} from 'appwrite';
 
-import { Client, Account, Databases, Storage, Avatars, ID, Query, OAuthProvider, ImageGravity, ImageFormat, AuthenticationFactor, AppwriteException } from 'appwrite'; // Add AppwriteException
-import { Models } from 'appwrite'; // Import Models for type hints
-import { COL, DB } from '@/lib/appwrites/constants';
-// Remove all collection/database ID imports from @/lib/env, use COL/DB instead
+import {
+  ACTIVITY_DATABASE_ID,
+  CONTENT_DATABASE_ID,
+  DIRECT_MESSAGES_COLLECTION_ID,
+  FINANCE_DATABASE_ID,
+  JOB_POSTINGS_COLLECTION_ID,
+  JOBS_DATABASE_ID,
+  PLATFORM_TRANSACTIONS_COLLECTION_ID,
+  PROFILES_DATABASE_ID,
+  SOCIAL_DATABASE_ID,
+  USER_BOOKMARKS_COLLECTION_ID,
+  USER_NOTIFICATIONS_COLLECTION_ID,
+  USER_PAYMENT_METHODS_COLLECTION_ID,
+  USER_PORTFOLIOS_COLLECTION_ID,
+  USER_PROFILES_COLLECTION_ID,
+} from '@/lib/env';
+
+// 
+
+ // Add AppwriteException
+ // Import Models for type hints
+
+
 
 // Initialize client according to Appwrite docs
 const client = new Client();
@@ -212,8 +245,8 @@ async function createMagicURLToken(email: string) {
     // Try to find if user with this email already exists
     try {
       const users = await databases.listDocuments(
-        DB.PROFILES,
-        COL.PROFILES,
+        PROFILES_DATABASE_ID,
+        USER_PROFILES_COLLECTION_ID,
         [Query.equal('email', email)]
       );
       
@@ -523,8 +556,8 @@ async function createMfaEmailVerification() {
 async function getUserProfile(userId: string): Promise<Models.Document | null> { // Add return type
   try {
     const response = await databases.getDocument(
-      DB.PROFILES,
-      COL.PROFILES,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId
     );
     return response;
@@ -541,8 +574,8 @@ async function getUserProfile(userId: string): Promise<Models.Document | null> {
 async function getUserProfileByUsername(username: string): Promise<Models.Document | null> {
   try {
     const response = await databases.listDocuments(
-      DB.PROFILES,
-      COL.PROFILES,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       [Query.equal('username', username)]
     );
     if (response.documents.length > 0) {
@@ -558,8 +591,8 @@ async function getUserProfileByUsername(username: string): Promise<Models.Docume
 async function checkUsernameAvailability(username: string): Promise<boolean> {
   try {
     const response = await databases.listDocuments(
-      DB.PROFILES,
-      COL.PROFILES,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       [Query.equal('username', username)]
     );
     return response.documents.length === 0; // True if username is available
@@ -580,8 +613,8 @@ async function createUserProfile(userId: string, userData: Models.User<Models.Pr
     // Appwrite document ID for profiles should be the same as the user ID for easy lookup
     try {
       const existingProfile = await databases.getDocument(
-        DB.PROFILES,
-        COL.PROFILES,
+        PROFILES_DATABASE_ID,
+        USER_PROFILES_COLLECTION_ID,
         userId
       );
       if (existingProfile) {
@@ -614,8 +647,8 @@ async function createUserProfile(userId: string, userData: Models.User<Models.Pr
     };
 
     const response = await databases.createDocument(
-      DB.PROFILES,
-      COL.PROFILES,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId, // Use Appwrite user ID as document ID for profile
       profileData
     );
@@ -647,8 +680,8 @@ async function updateUserProfile(userId: string, data: any) {
     }
 
     const response = await databases.updateDocument(
-      DB.PROFILES,
-      COL.PROFILES,
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
       userId,
       data
     );
@@ -677,7 +710,7 @@ async function addBookmark(userId: string, jobId: string) {
 
     const response = await databases.createDocument(
       CONTENT_DATABASE_ID, 
-
+      USER_BOOKMARKS_COLLECTION_ID, 
       ID.unique(), 
       {
         userId,
@@ -735,8 +768,8 @@ async function addTransaction(userId: string, amount: number, type: string, stat
 async function fetchJobs() {
   try {
     const response = await databases.listDocuments(
-      DB.JOBS,
-      COL.JOBS
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID
       // Add queries as needed, e.g., [Query.orderDesc('createdAt')]
     );
     return response;
@@ -749,8 +782,8 @@ async function fetchJobs() {
 async function fetchJob(jobId: string) {
   try {
     const response = await databases.getDocument(
-      DB.JOBS,
-      COL.JOBS,
+      JOBS_DATABASE_ID,
+      JOB_POSTINGS_COLLECTION_ID,
       jobId
     );
     return response;
@@ -767,7 +800,7 @@ async function sendMessage(senderId: string, receiverId: string, message: string
   try {
     const response = await databases.createDocument(
       SOCIAL_DATABASE_ID,
-   
+      DIRECT_MESSAGES_COLLECTION_ID,
       ID.unique(),
       {
         senderId,
@@ -1518,70 +1551,70 @@ export const deleteProfilePictureFile = async (fileId: string): Promise<void> =>
   }
 };
 
-export { 
-  client, 
-  account, 
-  databases, 
-  storage,
-  avatars,
-  ID, 
-  signUp, 
-  signIn,
-  signOut,
-  listSessions,
-  createEmailVerification,
-  completeEmailVerification,
-  createPasswordRecovery,
-  completePasswordRecovery,
-  createMagicURLToken,
-  createMagicURLSession,
-  createAnonymousSession,
-  ensureSession,
-  verifySession,
-  validateSession,
-  convertAnonymousSession,
-  createEmailOTP,
-  verifyEmailOTP,
-  createMfaRecoveryCodes,
-  updateMfa,
-  listMfaFactors,
-  createMfaChallenge,
-  updateMfaChallenge,
-  createMfaEmailVerification,
-  getUserProfile,
-  getUserProfileByUsername,
-  checkUsernameAvailability,
-  createUserProfile,
-  updateUserProfile,
-  addBookmark, 
-  removeBookmark,
-  addTransaction,
-  sendMessage,
+export {
+  account,
+  addBookmark,
   addNotification,
-  markNotificationAsRead,
-  addProject,
-  getProjects,
-  addUser,
   addPaymentMethod,
-  getUserPaymentMethods,
-  uploadFile,
-  getFilePreview,
-  fetchJobs,
-  fetchJob,
+  addProject,
+  addTransaction,
+  addUser,
+  avatars,
+  checkUsernameAvailability,
+  client,
+  completeEmailVerification,
+  completePasswordRecovery,
+  convertAnonymousSession,
+  createAnonymousSession,
+  createEmailOTP,
+  createEmailVerification,
   createGitHubOAuthSession,
   createGoogleOAuthSession,
-  getCurrentSession,
-  refreshOAuthSession,
+  createMagicURLSession,
+  createMagicURLToken,
+  createMfaChallenge,
+  createMfaEmailVerification,
+  createMfaRecoveryCodes,
+  createPasswordRecovery,
+  createUserProfile,
+  databases,
+  ensureSession,
   ensureValidOAuthToken,
-  isLoggedIn,
-  Query,
-  safeGetDocument,
-  safeListDocuments,
-  toggleFollowUser,
-  toggleConnectUsers,
-  isFollowing,
+  fetchJob,
+  fetchJobs,
+  getConnectionsCount,
   getConnectionStatus,
+  getCurrentSession,
+  getFilePreview,
   getFollowersCount,
   getFollowingCount,
-  getConnectionsCount
+  getProjects,
+  getUserPaymentMethods,
+  getUserProfile,
+  getUserProfileByUsername,
+  ID,
+  isFollowing,
+  isLoggedIn,
+  listMfaFactors,
+  listSessions,
+  markNotificationAsRead,
+  Query,
+  refreshOAuthSession,
+  removeBookmark,
+  safeGetDocument,
+  safeListDocuments,
+  sendMessage,
+  signIn,
+  signOut,
+  signUp,
+  storage,
+  toggleConnectUsers,
+  toggleFollowUser,
+  updateMfa,
+  updateMfaChallenge,
+  updateUserProfile,
+  uploadFile,
+  validateSession,
+  verifyEmailOTP,
+  verifySession,
 };

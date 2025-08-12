@@ -1,5 +1,10 @@
+import {
+  SxProps,
+  Theme,
+} from '@mui/material';
+
 // filepath: /home/nathfavour/Documents/code/web3lancer/web3lancer/src/utils/themeUtils.ts
-import { SxProps, Theme } from '@mui/material';
+
 
 /**
  * Helper function to create theme-aware text field styles

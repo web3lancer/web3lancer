@@ -1,4 +1,7 @@
-import { account, ID, databases } from '@/utils/api';
+import {
+  account,
+  ID,
+} from '@/utils/api';
 import { wallets } from '@/utils/dbWrapper';
 
 /**

@@ -1,5 +1,10 @@
-import { account } from '@/utils/api'; // Assuming account is exported from api.ts
+import type { Models } from 'appwrite';
 import { AppwriteException } from 'appwrite';
+
+import { account } from '@/utils/api';
+
+// Assuming account is exported from api.ts
+
 
 /**
  * Ensures that a guest (anonymous) session exists if no user is logged in.
@@ -40,4 +45,3 @@ export function isAnonymousUser(user: Models.User<Models.Preferences> | null): b
 }
 
 // Re-export necessary types if not globally available or handled elsewhere
-import type { Models } from 'appwrite';

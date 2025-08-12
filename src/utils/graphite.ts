@@ -1,3 +1,5 @@
+import { getGraphiteService } from '@/services/graphiteService';
+
 // Graphite Network Trust Score Integration
 // Based on Graphite's reputation-based PoA Layer 1 blockchain
 
@@ -112,7 +114,7 @@ export class GraphiteReputationService {
 export const graphiteService = new GraphiteReputationService();
 
 // Importing and using Graphite service in utils/graphite.ts
-import { getGraphiteService } from '@/services/graphiteService';
+
 
 // Configuration for Graphite nodes
 const GRAPHITE_CONFIG = {

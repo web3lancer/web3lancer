@@ -1,3 +1,4 @@
+
 /**
  * Utility to determine if a given identifier is a User ID or a username
  * Appwrite IDs are typically in a specific format with certain length

@@ -1,5 +1,3 @@
-import { Transaction } from '@/types';
-
 /**
  * Utility functions for formatting financial data
  */
