@@ -121,3 +121,5 @@ Web3Lancer is licensed under [GNU Affero General Public License v3.0 (AGPL-3.0)]
 ## 🖥️ In-App Pitch Deck
 
 Experience our animated, interactive pitch deck directly in the app at `/pitch` — perfect for demos and sharing our vision!
+
+## MISC
