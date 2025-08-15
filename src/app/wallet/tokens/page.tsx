@@ -209,10 +209,7 @@ export default function TokensPage() {
         )}
       </Paper>
 
-      {/* Abstraxion Modal Component */}
-      <Abstraxion
-        onClose={() => setShowXionModal(false)}
-      />
+      {/* Abstraxion Modal removed */}
     </Box>
   );
 }
