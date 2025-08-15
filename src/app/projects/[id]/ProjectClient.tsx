@@ -7,8 +7,9 @@ import { DisputeVoting } from '@/components/projects/DisputeVoting';
 import { getXionContractAddress, getDisputeMsg } from '@/utils/xionContractUtils';
 
 export default function ProjectClient({ params }: { params: { id: string } }) {
-  const { data: account } = useAbstraxionAccount();
-  const { client: queryClient } = useAbstraxionClient();
+  // Abstraxion removed — wallet/query client not available
+  const account = null;
+  const queryClient = null;
   const [hasDispute, setHasDispute] = useState<boolean>(false);
   const [project, setProject] = useState<any>(null);
 
