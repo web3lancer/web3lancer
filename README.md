@@ -14,12 +14,11 @@ Our platform is built on the principles of decentralized reputation, modular ide
 
 ## 🔗 Integrations
 
-Web3Lancer is designed to be extensible and interoperable with leading blockchain technologies.  
-The following integration powers our freelance escrow system:
+- Core DAO Integration: https://github.com/web3lancer/contracts_lancerwallet_core.git — Smart contracts and core DAO logic for web3lancer web3 wallet functionality
 
-- **Cardano/Aiken Freelance Escrow**  
-  Secure, decentralized escrow for freelance payments, built on Cardano using Aiken smart contracts.  
-  [Integration Source](https://github.com/web3lancer/freelancesafe)
+- Mantle Integration: https://github.com/web3lancer/contracts_lancerwallet_mantle.git — Mantle network-specific contract implementations and deployment scripts for web3lancer freelance contract functionality.
+
+
 
 ## 🛠️ Core Features
 
