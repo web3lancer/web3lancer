@@ -21,8 +21,11 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import GavelIcon from '@mui/icons-material/Gavel';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
-import { useAbstraxionAccount, useAbstraxionClient, useModal } from '@burnt-labs/abstraxion';
-import { Abstraxion } from "@burnt-labs/abstraxion";
+// Abstraxion/Xion removed — using placeholders
+const useAbstraxionAccount = () => ({ data: null, isConnected: false });
+const useAbstraxionClient = () => ({ client: null });
+const useModal = () => [false, (v:boolean) => {}] as const;
+const Abstraxion = ({ onClose }: { onClose?: () => void }) => null;
 import { 
   getXionContractAddress, 
   getActiveDisputesMsg, 

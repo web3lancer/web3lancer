@@ -63,6 +63,7 @@ export const DisputeVoting: React.FC<DisputeVotingProps> = ({
   
   // Xion contract removed - fetch dispute information from app backend instead
   const contractAddress = null;
+  const isConnected = false;
   
   // Fetch dispute information
   useEffect(() => {
@@ -87,6 +88,8 @@ export const DisputeVoting: React.FC<DisputeVotingProps> = ({
     };
     fetchDisputeInfo();
   }, [projectId]);
+
+  const Abstraxion = (_props: any) => null;
   
   // Calculate vote percentages
   const totalVotes = dispute ? (dispute.votes_for_client + dispute.votes_for_freelancer) : 0;
