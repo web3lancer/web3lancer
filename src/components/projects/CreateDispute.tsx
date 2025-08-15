@@ -15,8 +15,6 @@ import {
   Alert
 } from '@mui/material';
 import GavelIcon from '@mui/icons-material/Gavel';
-import { useAbstraxionAccount, useAbstraxionSigningClient, useModal } from '@burnt-labs/abstraxion';
-import { Abstraxion } from "@burnt-labs/abstraxion";
 import { getXionContractAddress, createDisputeMsg } from '@/utils/xionContractUtils';
 
 interface CreateDisputeProps {
@@ -34,9 +32,10 @@ export const CreateDispute: React.FC<CreateDisputeProps> = ({
   disabled = false,
   onDisputeCreated
 }) => {
-  const { data: account, isConnected } = useAbstraxionAccount();
-  const { client: signingClient } = useAbstraxionSigningClient();
-  const [showModal, setShowModal] = useModal();
+  // Abstraxion/Xion wallet integration removed - use app wallet flows instead
+  const account = null;
+  const signingClient = null;
+  const [showModal, setShowModal] = React.useState(false);
   
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -48,10 +47,8 @@ export const CreateDispute: React.FC<CreateDisputeProps> = ({
   const canCreateDispute = (isClient || isFreelancer) && !disabled;
   
   const handleClickOpen = () => {
-    if (!isConnected) {
-      setShowModal(true);
-      return;
-    }
+    // If no wallet connected, show app modal or prompt (implementation-specific)
+    setShowModal(true);
     setOpen(true);
   };
 
@@ -62,7 +59,8 @@ export const CreateDispute: React.FC<CreateDisputeProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!signingClient || !account?.bech32Address) {
+    // Use app-specific signing client - Xion signing removed
+    if (!signingClient || !(account as any)?.bech32Address) {
       setError("Wallet not connected. Please connect your wallet.");
       return;
     }
@@ -76,25 +74,25 @@ export const CreateDispute: React.FC<CreateDisputeProps> = ({
     setError(null);
     
     try {
-      const contractAddress = getXionContractAddress();
-      
-      const response = await signingClient.execute(
-        account.bech32Address,
-        contractAddress,
-        createDisputeMsg(projectId, reason.trim()),
-        "auto"
-      );
+      // Xion transaction flow removed. Store dispute in app backend instead.
+      // Implement actual API call to submit dispute via projectService or API route
+      try {
+        // Example placeholder - replace with real API call
+        await fetch(`/api/projects/${projectId}/disputes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: reason.trim() }),
+        });
+        setSuccess("Dispute has been submitted successfully!");
 
-      console.log("Dispute created successfully:", response);
-      setSuccess("Dispute has been submitted successfully!");
-      
-      // Close the dialog after a brief delay
-      setTimeout(() => {
-        handleClose();
-        if (onDisputeCreated) {
-          onDisputeCreated();
-        }
-      }, 2000);
+        setTimeout(() => {
+          handleClose();
+          if (onDisputeCreated) onDisputeCreated();
+        }, 1500);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to submit dispute to server');
+      }
     } catch (err) {
       console.error("Error creating dispute:", err);
       setError(`Failed to create dispute: ${err instanceof Error ? err.message : 'Unknown error'}`);

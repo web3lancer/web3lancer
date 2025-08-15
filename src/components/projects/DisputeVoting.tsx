@@ -16,8 +16,7 @@ import {
   LinearProgress,
   Paper
 } from '@mui/material';
-import { useAbstraxionAccount, useAbstraxionSigningClient, useAbstraxionClient, useModal } from '@burnt-labs/abstraxion';
-import { Abstraxion } from "@burnt-labs/abstraxion";
+// Abstraxion/Xion removed
 import PersonIcon from '@mui/icons-material/Person';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -44,10 +43,11 @@ export const DisputeVoting: React.FC<DisputeVotingProps> = ({
   freelancerName,
   freelancerAvatar
 }) => {
-  const { data: account, isConnected } = useAbstraxionAccount();
-  const { client: signingClient } = useAbstraxionSigningClient();
-  const { client: queryClient } = useAbstraxionClient();
-  const [showModal, setShowModal] = useModal();
+  // Abstraxion/Xion integration removed. Use app backend and app wallet instead.
+  const account = null as any;
+  const signingClient = null as any;
+  const queryClient = null as any;
+  const [showModal, setShowModal] = useState(false);
   
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -58,13 +58,32 @@ export const DisputeVoting: React.FC<DisputeVotingProps> = ({
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const [userVotedFor, setUserVotedFor] = useState<'client' | 'freelancer' | null>(null);
   
-  const contractAddress = getXionContractAddress();
+  // Xion contract removed - fetch dispute information from app backend instead
+  const contractAddress = null;
   
   // Fetch dispute information
   useEffect(() => {
     const fetchDisputeInfo = async () => {
-      if (!queryClient || !contractAddress) return;
-      
+      // Example: fetch from app API
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/projects/${projectId}/disputes/active`);
+        if (!res.ok) throw new Error('Failed to fetch');
+        const disputeData = await res.json();
+        setDispute(disputeData);
+
+        // determine if current user has voted -- placeholder
+        setHasVoted(disputeData.user_has_voted || false);
+        setUserVotedFor(disputeData.user_voted_for_client ? 'client' : 'freelancer');
+      } catch (err) {
+        console.error('Error fetching dispute:', err);
+        setError('Failed to load dispute information.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDisputeInfo();
+  }, [projectId]);
       setLoading(true);
       setError(null);
       

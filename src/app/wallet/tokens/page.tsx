@@ -12,8 +12,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useMetaMask } from '@/hooks/useMetaMask';
-import { useAbstraxionAccount, useModal } from '@burnt-labs/abstraxion';
-import { Abstraxion } from "@burnt-labs/abstraxion";
+// Abstraxion/Xion removed
 import { TokenBalance } from '@/components/wallet/TokenBalance';
 import { MintNFT } from '@/components/wallet/MintNFT';
 import Link from 'next/link';
@@ -28,8 +27,9 @@ const EXAMPLE_TOKENS = [
 
 export default function TokensPage() {
   const { isConnected: isMetaMaskConnected, account: metaMaskAccount } = useMetaMask();
-  const { data: xionAccount, isConnected: isXionConnected } = useAbstraxionAccount();
-  const [showXionModal, setShowXionModal] = useModal();
+  const xionAccount = null as any;
+  const isXionConnected = false;
+  const [showXionModal, setShowXionModal] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -56,7 +56,7 @@ export default function TokensPage() {
             onClick={() => setShowXionModal(true)}
             sx={{ ml: 2 }}
           >
-            {isXionConnected ? `Xion: ${xionAccount?.bech32Address.substring(0, 6)}...${xionAccount?.bech32Address.substring(xionAccount?.bech32Address.length - 4)}` : 'Connect Xion'}
+            {'Xion integration removed'}
           </Button>
           <Link href="/wallet" passHref>
             <Button variant="outlined" sx={{ ml: 2 }}>Back to Wallet</Button>

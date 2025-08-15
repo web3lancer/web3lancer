@@ -2,9 +2,6 @@
 
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { AbstraxionProvider } from '@burnt-labs/abstraxion';
-import '@burnt-labs/abstraxion/dist/index.css';
-import '@burnt-labs/ui/dist/index.css';
 import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
 import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
@@ -15,11 +12,8 @@ import { Box, CssBaseline, CircularProgress } from '@mui/material';
 
 const inter = Inter({ subsets: ['latin'] });
 
-const xionConfig = {
-  treasury: WEB3LANCER_CONTRACTS.XION.TREASURY_CONTRACT_ID,
-  rpcUrl: WEB3LANCER_CONTRACTS.XION.RPC_URL,
-  restUrl: WEB3LANCER_CONTRACTS.XION.REST_URL
-};
+// Xion integration removed: keep placeholder configuration if needed
+const xionConfig = null;
 
 export default function RootLayout({
   children,
@@ -50,7 +44,6 @@ export default function RootLayout({
             display: none;
           }
         `}</style>
-        <AbstraxionProvider config={xionConfig}>
           <AuthProvider>
             <SuiWalletProvider>
               <ThemeProviderWrapper>
