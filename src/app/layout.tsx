@@ -71,7 +71,6 @@ export default function RootLayout({
               </ThemeProviderWrapper>
             </SuiWalletProvider>
           </AuthProvider>
-        </AbstraxionProvider>
       </body>
     </html>
   );

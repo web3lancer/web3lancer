@@ -87,42 +87,6 @@ export const DisputeVoting: React.FC<DisputeVotingProps> = ({
     };
     fetchDisputeInfo();
   }, [projectId]);
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const disputeData = await queryClient.queryContractSmart(
-          contractAddress,
-          getDisputeMsg(projectId)
-        );
-        
-        setDispute(disputeData);
-        
-        // Check if the user has already voted
-        if (isConnected && account?.bech32Address) {
-          try {
-            const votedData = await queryClient.queryContractSmart(
-              contractAddress,
-              hasUserVotedMsg(projectId, account.bech32Address)
-            );
-            
-            setHasVoted(votedData.has_voted);
-            setUserVotedFor(votedData.voted_for_client ? 'client' : 'freelancer');
-          } catch (err) {
-            console.error("Error checking vote status:", err);
-            setHasVoted(false);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching dispute:", err);
-        setError("Failed to load dispute information. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchDisputeInfo();
-  }, [queryClient, contractAddress, projectId, isConnected, account]);
   
   // Calculate vote percentages
   const totalVotes = dispute ? (dispute.votes_for_client + dispute.votes_for_freelancer) : 0;
