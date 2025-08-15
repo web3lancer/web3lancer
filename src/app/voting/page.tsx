@@ -22,10 +22,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import GavelIcon from '@mui/icons-material/Gavel';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
 // Abstraxion/Xion removed — using placeholders
+// Abstraxion removed — wallet-related data not available
 const useAbstraxionAccount = () => ({ data: null, isConnected: false });
 const useAbstraxionClient = () => ({ client: null });
-const useModal = () => [false, (v:boolean) => {}] as const;
-const Abstraxion = ({ onClose }: { onClose?: () => void }) => null;
+const useModal = () => [false, (_v:boolean) => {}] as const;
+const Abstraxion = (_props: any) => null;
 import { 
   getXionContractAddress, 
   getActiveDisputesMsg, 
