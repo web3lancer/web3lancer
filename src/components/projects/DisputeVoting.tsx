@@ -1,5 +1,8 @@
 'use client';
 
+// Removed Abstraxion/Xion deps: replaced with stubs and fetch-based logic
+
+
 import React, { useState, useEffect } from 'react';
 import { 
   Box, 
