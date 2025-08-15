@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { DisputeVoting } from '@/components/projects/DisputeVoting';
-import { useAbstraxionAccount, useAbstraxionClient } from '@burnt-labs/abstraxion';
+// Abstraxion removed - use placeholders
+const useAbstraxionAccount = () => ({ data: null });
+const useAbstraxionClient = () => ({ client: null });
 import { getXionContractAddress, getDisputeMsg } from '@/utils/xionContractUtils';
 
 export default function ProjectClient({ params }: { params: { id: string } }) {

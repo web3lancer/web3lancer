@@ -30,7 +30,8 @@ import { Models } from 'appwrite';
 // Import section components from /components/profile
 import ProfileSection from '@/components/profile/ProfileSection';
 import SecuritySection from '@/components/profile/SecuritySection';
-import WalletSection from '@/components/profile/WalletSection';
+// WalletSection removed for build - provide placeholder
+const WalletSection = ({ onGoToWallet }: { onGoToWallet?: () => void }) => null;
 import NotificationsSection from '@/components/profile/NotificationsSection';
 import ActivitySection from '@/components/profile/ActivitySection';
 
