@@ -1006,24 +1006,32 @@ export default function ConnectPage() {
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Live Activities</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: 300, overflow: 'auto' }}>
                   {liveActivities.map((activity, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: theme.palette.background.default,
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, width: 32, height: 32 }}>{activity.user[0]}</Avatar> {/* Changed from primary.light */}
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            <Box component="span" sx={{ fontWeight: 600 }}>{activity.user}</Box> {activity.type}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">{activity.time}</Typography>
-                        </Box>
+                      <Box key={index} sx={{ p: 1.5, borderRadius: 2, bgcolor: theme.palette.background.default }}>
+                        {/* Guard against missing activity or user */}
+                        {activity?.user ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, width: 32, height: 32 }}>{String(activity.user)[0]}</Avatar>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                <Box component="span" sx={{ fontWeight: 600 }}>{activity.user}</Box> {activity.type}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">{activity.time}</Typography>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{ bgcolor: theme.palette.action.disabledBackground, color: theme.palette.text.disabled, width: 32, height: 32 }}>?</Avatar>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                <Box component="span" sx={{ fontWeight: 600 }}>Unknown</Box>
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">{activity?.time ?? ''}</Typography>
+                            </Box>
+                          </Box>
+                        )}
                       </Box>
-                    </Box>
+                    ))}
+
                   ))}
                    {liveActivities.length === 0 && (
                      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
