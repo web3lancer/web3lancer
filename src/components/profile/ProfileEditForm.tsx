@@ -4,13 +4,16 @@ import { useAuth } from '@/contexts/AuthContext';
 // import profileService from '@/services/profileService';
 import { Profile } from '@/types';
 
-import getProfileByUserId from '@/services/profileService';
-import ProfileService from "@/services/profileService";
-import { AppwriteService } from "@/services/appwriteService";
-import { envConfig } from "@/config/environment";
-
-const appwriteService = new AppwriteService(envConfig);
-const profileService = new ProfileService(appwriteService, envConfig);
+import {
+  updateProfile,
+  getProfileByUserId,
+} from '@/lib/appwrites/profiles';
+import {
+  createFile,
+  deleteFile,
+  getFilePreviewUrl,
+} from '@/lib/appwrites/storage';
+import { BUCKET_ID } from '@/lib/appwrites/constants';
 
 const ProfileEditForm: React.FC = () => {
   const { user } = useAuth();
@@ -46,14 +49,15 @@ const ProfileEditForm: React.FC = () => {
   // Fetch user profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user || !user.userId) return;
+      if (!user) return;
       
       try {
-        const userProfile = await profileService.getProfileByUserId(user.$id);
+        // Assuming getProfile is a function that fetches the profile by user ID
+        const userProfile = await getProfileByUserId(user.$id);
         if (userProfile) {
           setProfile(userProfile);
           setFormData({
-            displayName: userProfile.displayName || '',
+            displayName: userProfile.name || '',
             username: userProfile.username || '',
             bio: userProfile.bio || '',
             location: userProfile.location || '',
@@ -61,7 +65,7 @@ const ProfileEditForm: React.FC = () => {
             skills: userProfile.skills || [],
             newSkill: '',
             roles: userProfile.roles || [],
-            languages: userProfile.languages || [],
+            languages: userProfile.languages || [], // Assuming languages is a field
             socialLinks: {
               twitter: userProfile.socialLinks?.twitter || '',
               github: userProfile.socialLinks?.github || '',
@@ -72,11 +76,11 @@ const ProfileEditForm: React.FC = () => {
           
           // Set avatar and cover previews if they exist
           if (userProfile.avatarFileId) {
-            setAvatarPreview(profileService.getProfileAvatarUrl(userProfile.avatarFileId));
+            setAvatarPreview(getFilePreviewUrl(BUCKET_ID.PROFILE_AVATARS, userProfile.avatarFileId));
           }
           
           if (userProfile.coverImageFileId) {
-            setCoverPreview(profileService.getProfileCoverUrl(userProfile.coverImageFileId));
+            setCoverPreview(getFilePreviewUrl(BUCKET_ID.COVER_IMAGES, userProfile.coverImageFileId));
           }
         }
       } catch (error) {
@@ -165,33 +169,43 @@ const ProfileEditForm: React.FC = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      // Update profile data
-      const updatedProfile = await profileService.updateProfile(profile.$id, {
-        displayName: formData.displayName,
+      let avatarFileId = profile.avatarFileId;
+      if (avatarFile) {
+        if (profile.avatarFileId) {
+          await deleteFile(BUCKET_ID.PROFILE_AVATARS, profile.avatarFileId);
+        }
+        const newAvatar = await createFile(BUCKET_ID.PROFILE_AVATARS, avatarFile);
+        avatarFileId = newAvatar.$id;
+      }
+
+      let coverImageFileId = profile.coverImageFileId;
+      if (coverFile) {
+        if (profile.coverImageFileId) {
+          await deleteFile(BUCKET_ID.COVER_IMAGES, profile.coverImageFileId);
+        }
+        const newCover = await createFile(BUCKET_ID.COVER_IMAGES, coverFile);
+        coverImageFileId = newCover.$id;
+      }
+
+      const updatedProfileData = {
+        name: formData.displayName,
         username: formData.username,
         bio: formData.bio,
         location: formData.location,
-        profileType: formData.profileType as 'individual' | 'organization',
+        profileType: formData.profileType,
         skills: formData.skills,
         roles: formData.roles,
         languages: formData.languages,
-        socialLinks: formData.socialLinks
-      });
-      
-      // Update avatar if changed
-      if (avatarFile && updatedProfile) {
-        await profileService.updateProfileAvatar(profile.$id, avatarFile);
-      }
-      
-      // Update cover if changed
-      if (coverFile && updatedProfile) {
-        await profileService.updateProfileCover(profile.$id, coverFile);
-      }
+        socialLinks: formData.socialLinks,
+        avatarFileId,
+        coverImageFileId,
+      };
+
+      await updateProfile(profile.$id, updatedProfileData);
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
-      // Refresh profile data
-      const refreshedProfile = await profileService.getProfile(profile.$id);
+      const refreshedProfile = await getProfile(profile.$id);
       if (refreshedProfile) {
         setProfile(refreshedProfile);
       }

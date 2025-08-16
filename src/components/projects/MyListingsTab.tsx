@@ -73,7 +73,7 @@ export default function MyListingsTab({ user, jobs, projects }: MyListingsTabPro
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const myJobs = user ? jobs.filter((job: any) => job.userId === user.$id) : [];
+  const myJobs = user ? jobs.filter((job: any) => job.clientId === user.$id) : [];
   const myProjects = user ? projects.filter((project: any) => project.userId === user.$id) : [];
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {

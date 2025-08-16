@@ -1,6 +1,7 @@
 import {
   databases,
   ID,
+  Query,
 } from '@/lib/appwrites/client';
 import {
   COL,
@@ -20,6 +21,11 @@ export async function updateProfile(userId: string, data: Partial<AppwriteTypes.
 }
 export async function listProfiles(queries: any[] = []) {
   return databases.listDocuments<AppwriteTypes.Profiles>(DB.PROFILES, COL.PROFILES, queries);
+}
+
+export async function getProfileByUserId(userId: string) {
+  const response = await listProfiles([Query.equal('userId', userId)]);
+  return response.documents[0];
 }
 
 export async function createProject(data: Partial<AppwriteTypes.Profiles>) {

@@ -26,7 +26,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { motion } from 'framer-motion';
-import { databases, ID } from "@/utils/api";
+import { createJob } from '@/lib/appwrite';
 
 // Skills data
 const AVAILABLE_SKILLS = [
@@ -137,22 +137,22 @@ export default function PostJobTab({ user, onJobPosted, setActiveTab }: PostJobT
           : [];
 
       const jobData = {
-        userId: user.$id,
+        clientId: user.$id,
         title: formData.title,
         description: formData.description,
         skillsRequired,
         duration: formData.duration,
         experienceLevel: formData.experienceLevel,
-        budget: formData.budget,
+        // TODO: Parse budgetMin and budgetMax from formData.budget
+        // budget: formData.budget,
         status: 'open',
+        visibility: 'public',
+        locationPreference: 'remote',
+        jobType: 'fixed-price',
+        currency: 'USD'
       };
 
-      await databases.createDocument(
-        process.env.NEXT_PUBLIC_DATABASE_ID!,
-        process.env.NEXT_PUBLIC_COLLECTION_ID!,
-        ID.unique(),
-        jobData
-      );
+      await createJob(jobData);
 
       setSuccess(true);
       setTimeout(() => {
