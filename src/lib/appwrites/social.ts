@@ -1,6 +1,7 @@
 import {
   databases,
   ID,
+  Query,
 } from '@/lib/appwrites/client';
 import {
   COL,
@@ -12,8 +13,21 @@ import type * as AppwriteTypes from '@/types/appwrite.d';
 export async function createConnection(data: Partial<AppwriteTypes.Connections>) {
   return databases.createDocument<AppwriteTypes.Connections>(DB.SOCIAL, COL.CONNECTIONS, ID.unique(), data);
 }
+
 export async function listConnections(queries: any[] = []) {
   return databases.listDocuments<AppwriteTypes.Connections>(DB.SOCIAL, COL.CONNECTIONS, queries);
+}
+
+export async function getConnection(followerId: string, followingId: string) {
+  const response = await listConnections([
+    Query.equal('followerId', followerId),
+    Query.equal('followingId', followingId),
+  ]);
+  return response.documents[0];
+}
+
+export async function deleteConnection(connectionId: string) {
+  return databases.deleteDocument(DB.SOCIAL, COL.CONNECTIONS, connectionId);
 }
 
 // --- Messages ---
@@ -30,6 +44,10 @@ export async function createGroupChat(data: Partial<AppwriteTypes.GroupChats>) {
 }
 export async function listGroupChats(queries: any[] = []) {
   return databases.listDocuments<AppwriteTypes.GroupChats>(DB.SOCIAL, COL.GROUP_CHATS, queries);
+}
+
+export async function updateGroupChat(groupChatId: string, data: Partial<AppwriteTypes.GroupChats>) {
+  return databases.updateDocument<AppwriteTypes.GroupChats>(DB.SOCIAL, COL.GROUP_CHATS, groupChatId, data);
 }
 
 // --- Group Messages ---

@@ -60,8 +60,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     fetchJobs();
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   const fetchJobs = async () => {
     setLoading(true);
