@@ -95,43 +95,13 @@ export default function ConnectPage() {
   const router = useRouter();
 
   const initializeMockData = useCallback(() => {
-    const mockUsers: User[] = [
-      { $id: '1', name: 'Alice Johnson', email: 'alice@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/1.jpg' },
-      { $id: '2', name: 'Bob Smith', email: 'bob@example.com', status: 'offline', avatarUrl: 'https://mui.com/static/images/avatar/2.jpg' },
-      { $id: '3', name: 'Charlie Brown', email: 'charlie@example.com', status: 'away', avatarUrl: 'https://mui.com/static/images/avatar/3.jpg' },
-      { $id: '4', name: 'Diana Prince', email: 'diana@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/4.jpg' },
-      { $id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', status: 'online', avatarUrl: 'https://mui.com/static/images/avatar/5.jpg' },
-    ];
-
-    const initialActivities: Activity[] = [
-      { type: 'started a voice call', user: 'Alice', time: '2 minutes ago' },
-      { type: 'joined a space', user: 'Bob', time: '5 minutes ago' },
-      { type: 'sent a friend request', user: 'Charlie', time: '10 minutes ago' },
-    ];
-
-    const initialFriendRequests: FriendRequest[] = user ? [
-      { id: 'fr1', senderId: '3', receiverId: user.$id || '', status: 'pending', senderName: 'Charlie Brown' },
-      { id: 'fr2', senderId: '5', receiverId: user.$id || '', status: 'pending', senderName: 'Ethan Hunt' },
-    ] : [];
-
-    const initialSpaces: Space[] = [
-      { id: 'space1', name: 'Web3 Developers', type: 'voice', participants: 7, hostId: '2' },
-      { id: 'space2', name: 'Blockchain Discussion', type: 'video', participants: 4, hostId: '4' },
-      { id: 'space3', name: 'Freelancer Tips', type: 'voice', participants: 12, hostId: '1' },
-    ];
-
-    const initialMessages: Message[] = user ? [
-      { id: 'm1', senderId: '1', receiverId: user.$id || '', content: 'Hey, how are you?', timestamp: '2023-08-10T10:30:00Z', senderName: 'Alice Johnson' },
-      { id: 'm2', senderId: user.$id || '', receiverId: '1', content: 'I\'m good, thanks! Working on a new project.', timestamp: '2023-08-10T10:32:00Z', senderName: user.name || '' },
-      { id: 'm3', senderId: '1', receiverId: user.$id || '', content: 'That sounds exciting! Tell me more about it.', timestamp: '2023-08-10T10:35:00Z', senderName: 'Alice Johnson' },
-    ] : [];
-
+    // Demo data removed. Return empty arrays so the UI shows no demo content.
     return {
-      mockUsers,
-      initialActivities,
-      initialFriendRequests,
-      initialSpaces,
-      initialMessages
+      mockUsers: [],
+      initialActivities: [],
+      initialFriendRequests: [],
+      initialSpaces: [],
+      initialMessages: []
     };
   }, [user]);
 
@@ -563,7 +533,7 @@ export default function ConnectPage() {
                                     (m.senderId === user?.$id && m.receiverId === selectedChat)
                                   )
                                   .map((msg) => (
-                                    <motion.div>
+                                    <motion.div key={msg.id}>
                                       <Box 
                                         sx={{ 
                                           display: 'flex', 
@@ -1036,24 +1006,32 @@ export default function ConnectPage() {
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Live Activities</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: 300, overflow: 'auto' }}>
                   {liveActivities.map((activity, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: theme.palette.background.default,
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, width: 32, height: 32 }}>{activity.user[0]}</Avatar> {/* Changed from primary.light */}
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            <Box component="span" sx={{ fontWeight: 600 }}>{activity.user}</Box> {activity.type}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">{activity.time}</Typography>
-                        </Box>
+                      <Box key={index} sx={{ p: 1.5, borderRadius: 2, bgcolor: theme.palette.background.default }}>
+                        {/* Guard against missing activity or user */}
+                        {activity?.user ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, width: 32, height: 32 }}>{String(activity.user)[0]}</Avatar>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                <Box component="span" sx={{ fontWeight: 600 }}>{activity.user}</Box> {activity.type}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">{activity.time}</Typography>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{ bgcolor: theme.palette.action.disabledBackground, color: theme.palette.text.disabled, width: 32, height: 32 }}>?</Avatar>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                <Box component="span" sx={{ fontWeight: 600 }}>Unknown</Box>
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">{activity?.time ?? ''}</Typography>
+                            </Box>
+                          </Box>
+                        )}
                       </Box>
-                    </Box>
+                    ))}
+
                   ))}
                    {liveActivities.length === 0 && (
                      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
