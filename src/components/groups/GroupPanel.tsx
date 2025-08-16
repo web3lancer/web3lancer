@@ -16,22 +16,18 @@ import GroupIcon from "@mui/icons-material/Group";
 import GroupPosts from "@/components/groups/GroupPosts";
 import GroupMessages from "@/components/groups/GroupMessages";
 
-interface Group {
-  id: string;
-  name: string;
-  description: string;
-  members: number;
-  joined: boolean;
-}
+import type { GroupChats } from "@/types/appwrite.d";
 
 export default function GroupPanel({
   group,
   onBack,
   onJoinToggle,
+  userId,
 }: {
-  group: Group;
+  group: GroupChats;
   onBack: () => void;
-  onJoinToggle: (id: string) => void;
+  onJoinToggle: (g: GroupChats) => void;
+  userId?: string;
 }) {
   const [tab, setTab] = useState(0);
 
@@ -53,18 +49,18 @@ export default function GroupPanel({
           </Typography>
         </Box>
         <Chip
-          label={`${group.members} members`}
+          label={`${group.memberCount} members`}
           size="small"
           color="primary"
           sx={{ fontWeight: 500, mr: 1 }}
         />
         <Button
-          variant={group.joined ? "outlined" : "contained"}
-          color={group.joined ? "secondary" : "primary"}
-          onClick={() => onJoinToggle(group.id)}
+          variant={userId && group.memberIds?.includes(userId) ? "outlined" : "contained"}
+          color={userId && group.memberIds?.includes(userId) ? "secondary" : "primary"}
+          onClick={() => onJoinToggle(group)}
           sx={{ borderRadius: 2, fontWeight: 600, minWidth: 90 }}
         >
-          {group.joined ? "Exit" : "Join"}
+          {userId && group.memberIds?.includes(userId) ? "Exit" : "Join"}
         </Button>
       </Box>
       <Divider sx={{ mb: 2 }} />
@@ -78,9 +74,9 @@ export default function GroupPanel({
         <Tab label="Messages" />
       </Tabs>
       {tab === 0 ? (
-        <GroupPosts groupId={group.id} joined={group.joined} />
+        <GroupPosts groupId={group.$id} joined={userId ? group.memberIds?.includes(userId) : false} />
       ) : (
-        <GroupMessages groupId={group.id} joined={group.joined} />
+        <GroupMessages groupId={group.$id} joined={userId ? group.memberIds?.includes(userId) : false} />
       )}
     </Box>
   );

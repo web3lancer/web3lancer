@@ -2,8 +2,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { Button, CircularProgress, Typography } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import { isFollowing, toggleFollowUser } from '@/utils/api';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  getConnection,
+  createConnection,
+  deleteConnection,
+} from '@/lib/appwrite';
 
 interface FollowButtonProps {
   targetUserId: string;
@@ -20,10 +24,11 @@ const FollowButton = ({
   size = 'medium',
   fullWidth = false,
   showFollowText = true,
-  onFollowChange
+  onFollowChange,
 }: FollowButtonProps) => {
   const { user } = useAuth();
   const [following, setFollowing] = useState<boolean>(false);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,8 +40,14 @@ const FollowButton = ({
 
     try {
       setLoading(true);
-      const status = await isFollowing(user.$id, targetUserId);
-      setFollowing(status);
+      const connection = await getConnection(user.$id, targetUserId);
+      if (connection) {
+        setFollowing(true);
+        setConnectionId(connection.$id);
+      } else {
+        setFollowing(false);
+        setConnectionId(null);
+      }
     } catch (err) {
       console.error('Error checking follow status:', err);
       setError('Could not check follow status');
@@ -57,17 +68,24 @@ const FollowButton = ({
     try {
       setLoading(true);
       setError(null);
-      
-      // Toggle follow status
-      await toggleFollowUser(
-        user.$id,
-        targetUserId,
-        following ? 'unfollow' : 'follow'
-      );
-      
-      // Update local state
-      setFollowing(!following);
-      
+
+      if (following && connectionId) {
+        // Unfollow
+        await deleteConnection(connectionId);
+        setFollowing(false);
+        setConnectionId(null);
+      } else {
+        // Follow
+        const connection = await createConnection({
+          followerId: user.$id,
+          followingId: targetUserId,
+          connectionType: 'follow',
+          status: 'active',
+        });
+        setFollowing(true);
+        setConnectionId(connection.$id);
+      }
+
       // Call the callback if provided
       if (onFollowChange) {
         onFollowChange(!following);

@@ -5,8 +5,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { Post, Profile } from '@/types';
 import { Card, CardHeader, CardContent, CardActions, Avatar, Typography, IconButton, Box, Chip, Menu, MenuItem } from '@mui/material';
 import { MoreVert as MoreVertIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Comment as CommentIcon, Share as ShareIcon } from '@mui/icons-material';
-import profileService from '@/services/profileService';
 import { useAuth } from '@/contexts/AuthContext';
+import { getFilePreviewUrl } from '@/lib/appwrites/storage';
+import { BUCKET_ID } from '@/lib/appwrites/constants';
 
 interface PostCardProps {
   post: Post;
@@ -31,9 +32,8 @@ const PostCard: React.FC<PostCardProps> = ({
   
   const isCurrentUserAuthor = user && authorProfile && user.userId === authorProfile.userId;
   
-  // Get author avatar URL
-  const authorAvatarUrl = authorProfile?.avatarFileId 
-    ? profileService.getProfileAvatarUrl(authorProfile.avatarFileId)
+  const authorAvatarUrl = authorProfile?.avatarFileId
+    ? getFilePreviewUrl(BUCKET_ID.PROFILE_AVATARS, authorProfile.avatarFileId)
     : '/images/default-avatar.png';
   
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -146,7 +146,7 @@ const PostCard: React.FC<PostCardProps> = ({
                 }}
               >
                 <Image
-                  src={`/api/v1/posts/media/${mediaId}`}
+                  src={getFilePreviewUrl(BUCKET_ID.MESSAGE_ATTACHMENTS, mediaId)}
                   alt={`Post media ${index + 1}`}
                   layout="fill"
                   objectFit="cover"
