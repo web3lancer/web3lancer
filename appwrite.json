@@ -102,7 +102,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -110,7 +111,8 @@
                     "required": true,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "tags",
@@ -118,7 +120,8 @@
                     "required": false,
                     "array": true,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -142,7 +145,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "jobType",
@@ -181,7 +185,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "skillsRequired",
@@ -189,7 +194,8 @@
                     "required": false,
                     "array": true,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "experienceLevel",
@@ -210,7 +216,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "attachmentsFileIds",
@@ -218,7 +225,8 @@
                     "required": false,
                     "array": true,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -276,7 +284,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "proposalsCount",
@@ -337,7 +346,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "freelancerId",
@@ -345,7 +355,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "coverLetter",
@@ -353,7 +364,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "proposedRate",
@@ -370,7 +382,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "attachmentsFileIds",
@@ -378,7 +391,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -402,7 +416,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "submittedAt",
@@ -443,7 +458,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "proposalId",
@@ -451,7 +467,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "clientId",
@@ -459,7 +476,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "freelancerId",
@@ -467,7 +485,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "terms",
@@ -475,7 +494,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "contractType",
@@ -483,7 +503,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "agreedRate",
@@ -500,7 +521,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "startDate",
@@ -556,7 +578,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "totalPaid",
@@ -606,7 +629,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -614,7 +638,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "amount",
@@ -654,7 +679,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "clientFeedback",
@@ -662,7 +688,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "paymentTransactionId",
@@ -670,7 +697,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -711,7 +739,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "reviewerId",
@@ -719,7 +748,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "revieweeId",
@@ -727,7 +757,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "reviewType",
@@ -756,7 +787,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "publicFeedback",
@@ -764,7 +796,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "privateFeedback",
@@ -772,7 +805,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "reviewCriteria",
@@ -780,7 +814,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "isAnonymous",
@@ -832,7 +867,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "name",
@@ -840,7 +876,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "email",
@@ -848,7 +885,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "bio",
@@ -856,7 +894,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "skills",
@@ -864,7 +903,8 @@
                     "required": false,
                     "array": true,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "profilePicture",
@@ -872,7 +912,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -896,7 +937,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "avatarFileId",
@@ -904,7 +946,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "coverImageFileId",
@@ -912,7 +955,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "tagline",
@@ -920,7 +964,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "location",
@@ -928,7 +973,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "timezone",
@@ -936,7 +982,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "portfolioLink",
@@ -944,7 +991,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "socialLinks",
@@ -952,7 +1000,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "reputationScore",
@@ -983,7 +1032,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "wallets",
@@ -991,7 +1041,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "profileType",
@@ -1012,7 +1063,8 @@
                     "required": false,
                     "array": true,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": [
@@ -1049,7 +1101,8 @@
                     "required": true,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "verificationType",
@@ -1070,7 +1123,8 @@
                     "required": false,
                     "array": true,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -1091,7 +1145,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "submittedAt",
@@ -1115,7 +1170,8 @@
                     "required": false,
                     "array": false,
                     "size": 256,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": []
@@ -1140,7 +1196,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "followingId",
@@ -1148,7 +1205,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "connectionType",
@@ -1232,7 +1290,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "senderId",
@@ -1240,7 +1299,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "receiverId",
@@ -1248,7 +1308,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "content",
@@ -1256,7 +1317,8 @@
                     "required": true,
                     "array": false,
                     "size": 2000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "contentType",
@@ -1283,7 +1345,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "metadata",
@@ -1291,7 +1354,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "isRead",
@@ -1336,7 +1400,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "lastMessageAt",
@@ -1352,7 +1417,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": []
@@ -1377,7 +1443,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -1385,7 +1452,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "avatarFileId",
@@ -1393,7 +1461,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "creatorId",
@@ -1401,7 +1470,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "memberIds",
@@ -1409,7 +1479,8 @@
                     "required": false,
                     "array": true,
                     "size": 10000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "memberCount",
@@ -1426,7 +1497,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "chatType",
@@ -1455,7 +1527,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -1496,7 +1569,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "senderId",
@@ -1504,7 +1578,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "content",
@@ -1512,7 +1587,8 @@
                     "required": true,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "contentType",
@@ -1540,7 +1616,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "metadata",
@@ -1548,7 +1625,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "readBy",
@@ -1556,7 +1634,8 @@
                     "required": false,
                     "array": true,
                     "size": 10000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "reactions",
@@ -1564,7 +1643,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "sentAt",
@@ -1587,7 +1667,8 @@
                     "required": false,
                     "array": true,
                     "size": 10000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": []
@@ -1628,7 +1709,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "walletAddress",
@@ -1636,7 +1718,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "walletType",
@@ -1659,7 +1742,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "isPrimary",
@@ -1674,7 +1758,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "balance",
@@ -1682,7 +1767,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "linkedAt",
@@ -1723,7 +1809,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "profileId",
@@ -1731,7 +1818,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "type",
@@ -1782,7 +1870,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "blockchain",
@@ -1790,7 +1879,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "onChainTxHash",
@@ -1798,7 +1888,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "fromAddress",
@@ -1806,7 +1897,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "toAddress",
@@ -1814,7 +1906,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "relatedContractId",
@@ -1822,7 +1915,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "relatedMilestoneId",
@@ -1830,7 +1924,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -1838,7 +1933,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "metadata",
@@ -1846,7 +1942,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "feeAmount",
@@ -1913,7 +2010,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "methodType",
@@ -1934,7 +2032,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "providerToken",
@@ -1942,7 +2041,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "details",
@@ -1950,7 +2050,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "isDefault",
@@ -2003,7 +2104,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "action",
@@ -2026,7 +2128,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "amount",
@@ -2043,7 +2146,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "notes",
@@ -2051,7 +2155,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "transactionId",
@@ -2059,7 +2164,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -2092,7 +2198,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "content",
@@ -2100,7 +2207,8 @@
                     "required": true,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "media",
@@ -2108,7 +2216,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "tags",
@@ -2116,7 +2225,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "mentions",
@@ -2124,7 +2234,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "visibility",
@@ -2173,7 +2284,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "originalPostId",
@@ -2181,7 +2293,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -2240,7 +2353,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "userId",
@@ -2248,7 +2362,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -2264,7 +2379,8 @@
                     "required": true,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": []
@@ -2289,7 +2405,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "title",
@@ -2297,7 +2414,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -2305,7 +2423,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "coverImageFileId",
@@ -2313,7 +2432,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "mediaFileIds",
@@ -2321,7 +2441,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "projectUrl",
@@ -2329,7 +2450,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "skillsUsed",
@@ -2337,7 +2459,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "tags",
@@ -2345,7 +2468,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "completedDate",
@@ -2406,7 +2530,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "title",
@@ -2414,7 +2539,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "slug",
@@ -2422,7 +2548,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "content",
@@ -2430,7 +2557,8 @@
                     "required": true,
                     "array": false,
                     "size": 10000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "excerpt",
@@ -2438,7 +2566,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "coverImageFileId",
@@ -2446,7 +2575,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "tags",
@@ -2454,7 +2584,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -2552,7 +2683,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "itemId",
@@ -2560,7 +2692,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "itemType",
@@ -2583,7 +2716,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "tags",
@@ -2591,7 +2725,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -2624,7 +2759,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "initiatorId",
@@ -2632,7 +2768,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "respondentId",
@@ -2640,7 +2777,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "reason",
@@ -2648,7 +2786,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "evidenceFileIds",
@@ -2656,7 +2795,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "respondentEvidenceFileIds",
@@ -2664,7 +2804,8 @@
                     "required": false,
                     "array": true,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -2688,7 +2829,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "assignedModeratorId",
@@ -2696,7 +2838,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -2745,7 +2888,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "voterId",
@@ -2753,7 +2897,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "voteChoice",
@@ -2783,7 +2928,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "castAt",
@@ -2830,7 +2976,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "title",
@@ -2838,7 +2985,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -2846,7 +2994,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "proposalType",
@@ -2854,7 +3003,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -2877,7 +3027,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "votingStartDate",
@@ -2961,7 +3112,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "type",
@@ -2989,7 +3141,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "link",
@@ -2997,7 +3150,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "message",
@@ -3005,7 +3159,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "isRead",
@@ -3028,7 +3183,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "itemId",
@@ -3036,7 +3192,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "itemType",
@@ -3044,7 +3201,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "createdAt",
@@ -3077,7 +3235,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "actorIp",
@@ -3093,7 +3252,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "targetResourceId",
@@ -3101,7 +3261,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "targetResourceType",
@@ -3109,7 +3270,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "details",
@@ -3117,7 +3279,8 @@
                     "required": false,
                     "array": false,
                     "size": 1000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "status",
@@ -3162,7 +3325,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "category",
@@ -3170,7 +3334,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -3178,7 +3343,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "isVerified",
@@ -3219,7 +3385,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "slug",
@@ -3227,7 +3394,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "parentCategoryId",
@@ -3235,7 +3403,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -3243,7 +3412,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "icon",
@@ -3251,7 +3421,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": []
@@ -3276,7 +3447,8 @@
                     "required": true,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "settingValue",
@@ -3284,7 +3456,8 @@
                     "required": true,
                     "array": false,
                     "size": 100,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -3292,7 +3465,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "lastUpdatedBy",
@@ -3300,7 +3474,8 @@
                     "required": false,
                     "array": false,
                     "size": 255,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "updatedAt",
