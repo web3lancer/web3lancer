@@ -563,7 +563,7 @@ export default function ConnectPage() {
                                     (m.senderId === user?.$id && m.receiverId === selectedChat)
                                   )
                                   .map((msg) => (
-                                    <motion.div>
+                                    <motion.div key={msg.id}>
                                       <Box 
                                         sx={{ 
                                           display: 'flex', 
