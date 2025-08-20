@@ -19,10 +19,15 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import * as social from '@/lib/appwrites/social';
-import * as profiles from '@/lib/appwrites/profiles';
 import { Query } from 'appwrite';
 import type { Models } from 'appwrite';
 import { client } from '@/lib/appwrites/client';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -105,7 +110,7 @@ export default function ConnectPage() {
     setError(null);
     try {
       const [profilesResponse, connectionsResponse] = await Promise.all([
-        profiles.listProfiles(),
+        profileService.listProfiles(),
         social.listConnections([
           Query.or([
             Query.equal('followerId', user.$id),
@@ -114,7 +119,7 @@ export default function ConnectPage() {
         ])
       ]);
 
-      const profilesData = profilesResponse.documents as unknown as User[];
+      const profilesData = profilesResponse as unknown as User[];
       const connectionsData = connectionsResponse.documents as unknown as FriendRequest[];
 
       const friendRequestsData = connectionsData.filter(c => c.status === 'pending' && c.receiverId === user.$id);

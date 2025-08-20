@@ -3,7 +3,8 @@ import * as env from '@/lib/env';
 import BaseService from '@/services/baseService';
 import { AppwriteService, ID } from '@/services/appwriteService';
 import { EnvConfig } from '@/config/environment';
-import { UserProfile, ProfileVerification } from '@/types/profiles';
+import { UserProfile, ProfileVerification } from '@/types/profile';
+import { Review } from '@/types/jobs';
 
 /**
  * ProfileService - Handles user profile management operations
@@ -195,6 +196,91 @@ class ProfileService extends BaseService {
       fileId,
       width,
       height
+    );
+  }
+
+  // Update profile avatar
+  async updateProfileAvatar(profileId: string, file: File): Promise<{ profile: UserProfile; fileId: string }> {
+    return this.handleRequest(
+      async () => {
+        const fileId = await this.uploadProfilePicture(file, profileId);
+        const profile = await this.updateProfile(profileId, { avatarFileId: fileId });
+        return { profile, fileId };
+      },
+      'updateProfileAvatar'
+    );
+  }
+
+  // Upload cover image
+  async uploadCoverImage(file: File, profileId: string): Promise<string> {
+    return this.handleRequest(
+      async () => {
+        const result = await this.appwrite.uploadFile(
+          this.config.storage.coverImagesBucketId,
+          ID.unique(),
+          file,
+          ['role:all'] // Public permissions for cover images
+        );
+
+        return result.$id;
+      },
+      'uploadCoverImage'
+    );
+  }
+
+  // Update profile cover image
+  async updateProfileCoverImage(profileId: string, file: File): Promise<{ profile: UserProfile; fileId: string }> {
+    return this.handleRequest(
+      async () => {
+        const fileId = await this.uploadCoverImage(file, profileId);
+        const profile = await this.updateProfile(profileId, { coverImageFileId: fileId });
+        return { profile, fileId };
+      },
+      'updateProfileCoverImage'
+    );
+  }
+
+  // Submit verification request
+  async submitVerificationRequest(profileId: string, verificationType: string, documents: File[]): Promise<ProfileVerification> {
+    return this.handleRequest(
+      async () => {
+        const documentIds = await Promise.all(
+          documents.map(doc => this.uploadVerificationDocument(doc, profileId))
+        );
+
+        const verificationRequest = await this.createVerification({
+          profileId,
+          userId: this.appwrite.getUserId(),
+          verificationType,
+          status: 'pending',
+          documentIds,
+        });
+
+        return verificationRequest;
+      },
+      'submitVerificationRequest'
+    );
+  }
+
+  // Get verification requests
+  async getVerificationRequests(profileId: string): Promise<ProfileVerification[]> {
+    return this.getVerifications(profileId);
+  }
+
+  // Upload post media
+  async uploadPostMedia(file: File): Promise<string> {
+    return this.handleRequest(
+      async () => {
+        const result = await this.appwrite.uploadFile(
+          this.config.storage.messageAttachmentsBucketId,
+          ID.unique(),
+          file,
+          ['role:all'] // Public permissions for post media
+        );
+
+        return result.$id;
+      },
+      'uploadPostMedia'
     );
   }
 

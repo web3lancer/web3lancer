@@ -1,8 +1,13 @@
 import { Box, Typography, Paper, TextField, Button, Stack } from "@mui/material";
 import { useState, useEffect, useCallback } from "react";
 import * as social from "@/lib/appwrites/social";
-import * as profiles from "@/lib/appwrites/profiles";
 import { useAuth } from "@/contexts/AuthContext";
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 import { client } from "@/lib/appwrites/client";
 import { Query } from "appwrite";
 import type { Models } from "appwrite";
@@ -14,7 +19,7 @@ type GroupMessage = Models.Document & {
 };
 
 type Profile = Models.Document & {
-  name: string;
+  displayName: string;
 };
 
 export default function GroupMessages({ groupId, joined }: { groupId: string; joined: boolean }) {
@@ -36,10 +41,9 @@ export default function GroupMessages({ groupId, joined }: { groupId: string; jo
 
       const senderIds = [...new Set(messages.map((m) => m.senderId))];
       if (senderIds.length > 0) {
-        const profilesResponse = await profiles.listProfiles([
+        const profilesData = await profileService.listProfiles([
           Query.equal("userId", senderIds),
         ]);
-        const profilesData = profilesResponse.documents as unknown as Profile[];
         const profilesMap = profilesData.reduce((acc, p) => {
           acc[p.$id] = p;
           return acc;
@@ -101,7 +105,7 @@ export default function GroupMessages({ groupId, joined }: { groupId: string; jo
             {messages.map((msg) => (
               <Paper key={msg.$id} sx={{ p: 1.5, borderRadius: 2, bgcolor: "background.default" }}>
                 <Typography variant="subtitle2" fontWeight={700}>
-                  {profilesMap[msg.senderId]?.name || "Unknown User"}
+                  {profilesMap[msg.senderId]?.displayName || "Unknown User"}
                 </Typography>
                 <Typography variant="body2">{msg.content}</Typography>
                 <Typography variant="caption" color="text.secondary">

@@ -4,16 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 // import profileService from '@/services/profileService';
 import { Profile } from '@/types';
 
-import {
-  updateProfile,
-  getProfileByUserId,
-} from '@/lib/appwrites/profiles';
-import {
-  createFile,
-  deleteFile,
-  getFilePreviewUrl,
-} from '@/lib/appwrites/storage';
-import { BUCKET_ID } from '@/lib/appwrites/constants';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 const ProfileEditForm: React.FC = () => {
   const { user } = useAuth();
@@ -52,12 +48,11 @@ const ProfileEditForm: React.FC = () => {
       if (!user) return;
       
       try {
-        // Assuming getProfile is a function that fetches the profile by user ID
-        const userProfile = await getProfileByUserId(user.$id);
+        const userProfile = await profileService.getProfileByUserId(user.$id);
         if (userProfile) {
           setProfile(userProfile);
           setFormData({
-            displayName: userProfile.name || '',
+            displayName: userProfile.displayName || '',
             username: userProfile.username || '',
             bio: userProfile.bio || '',
             location: userProfile.location || '',
@@ -74,13 +69,12 @@ const ProfileEditForm: React.FC = () => {
             }
           });
           
-          // Set avatar and cover previews if they exist
           if (userProfile.avatarFileId) {
-            setAvatarPreview(getFilePreviewUrl(BUCKET_ID.PROFILE_AVATARS, userProfile.avatarFileId));
+            setAvatarPreview(profileService.getProfilePictureUrl(userProfile.avatarFileId));
           }
           
           if (userProfile.coverImageFileId) {
-            setCoverPreview(getFilePreviewUrl(BUCKET_ID.COVER_IMAGES, userProfile.coverImageFileId));
+            setCoverPreview(profileService.getProfilePictureUrl(userProfile.coverImageFileId));
           }
         }
       } catch (error) {
@@ -169,26 +163,16 @@ const ProfileEditForm: React.FC = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      let avatarFileId = profile.avatarFileId;
       if (avatarFile) {
-        if (profile.avatarFileId) {
-          await deleteFile(BUCKET_ID.PROFILE_AVATARS, profile.avatarFileId);
-        }
-        const newAvatar = await createFile(BUCKET_ID.PROFILE_AVATARS, avatarFile);
-        avatarFileId = newAvatar.$id;
+        await profileService.updateProfileAvatar(profile.$id, avatarFile);
       }
 
-      let coverImageFileId = profile.coverImageFileId;
       if (coverFile) {
-        if (profile.coverImageFileId) {
-          await deleteFile(BUCKET_ID.COVER_IMAGES, profile.coverImageFileId);
-        }
-        const newCover = await createFile(BUCKET_ID.COVER_IMAGES, coverFile);
-        coverImageFileId = newCover.$id;
+        await profileService.updateProfileCoverImage(profile.$id, coverFile);
       }
 
       const updatedProfileData = {
-        name: formData.displayName,
+        displayName: formData.displayName,
         username: formData.username,
         bio: formData.bio,
         location: formData.location,
@@ -197,17 +181,14 @@ const ProfileEditForm: React.FC = () => {
         roles: formData.roles,
         languages: formData.languages,
         socialLinks: formData.socialLinks,
-        avatarFileId,
-        coverImageFileId,
       };
 
-      await updateProfile(profile.$id, updatedProfileData);
+      const updatedProfile = await profileService.updateProfile(profile.$id, updatedProfileData);
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
-      const refreshedProfile = await getProfile(profile.$id);
-      if (refreshedProfile) {
-        setProfile(refreshedProfile);
+      if (updatedProfile) {
+        setProfile(updatedProfile);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
