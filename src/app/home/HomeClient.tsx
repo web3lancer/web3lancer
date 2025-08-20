@@ -57,6 +57,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CommentSection from '@/components/posts/CommentSection';
 
 // Import Query from Appwrite SDK
 import { Query } from "appwrite";
@@ -127,6 +128,10 @@ export default function HomeClient() {
   const feedContainerRef = useRef<HTMLDivElement>(null); // Add ref for feed container
   const { ref: sentinelRef, inView } = useInView({ threshold: 0, rootMargin: '200px' }); // Add intersection observer
   const [addMenuAnchorEl, setAddMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [openCommentSection, setOpenCommentSection] = useState<string | null>(null);
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [jobBudget, setJobBudget] = useState('');
 
   // Mock trending topics
   const trendingTopics = [
@@ -294,30 +299,44 @@ export default function HomeClient() {
     setAddMenuAnchorEl(null);
   };
 
-  const handleLikeToggle = (id: string) => {
-    setLances(prev =>
-      prev.map(lance =>
-        lance.$id === id
-          ? {
-            ...lance,
-            isLiked: !lance.isLiked,
-            likes: lance.isLiked ? lance.likes - 1 : lance.likes + 1
-          }
-          : lance
-      )
-    );
-    // In a real app, you would also update this on the server
+  const handleLikeToggle = async (id: string) => {
+    if (!user) return;
+    try {
+      const lance = lances.find(l => l.$id === id);
+      if (!lance) return;
+
+      const interaction = await getPostInteraction(id, user.$id);
+      if (interaction) {
+        await deletePostInteraction(interaction.$id);
+        await updatePost(id, { likesCount: lance.likes - 1 });
+      } else {
+        await createPostInteraction({ postId: id, userId: user.$id, interactions: 'like' });
+        await updatePost(id, { likesCount: lance.likes + 1 });
+      }
+      fetchLances(true);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
   };
 
-  const handleBookmarkToggle = (id: string) => {
-    setLances(prev =>
-      prev.map(lance =>
-        lance.$id === id
-          ? { ...lance, isBookmarked: !lance.isBookmarked }
-          : lance
-      )
-    );
-    // In a real app, you would also update this on the server
+  const handleBookmarkToggle = async (id: string) => {
+    if (!user) return;
+    try {
+      const lance = lances.find(l => l.$id === id);
+      if (!lance) return;
+
+      const bookmark = await getBookmark(id, user.$id);
+      if (bookmark) {
+        await deleteBookmark(bookmark.$id);
+        await updatePost(id, { bookmarksCount: lance.bookmarks - 1 });
+      } else {
+        await createBookmark({ itemId: id, profileId: user.$id, itemType: 'post' });
+        await updatePost(id, { bookmarksCount: lance.bookmarks + 1 });
+      }
+      fetchLances(true);
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    }
   };
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning' = 'success') => {
@@ -331,30 +350,46 @@ export default function HomeClient() {
   };
 
   const handlePostSubmit = async () => {
-    if (!newPostContent.trim() && selectedMedia.length === 0) {
-      showSnackbar('Please enter some content or add media', 'warning');
-      return;
+    if (activeTab === 3) {
+      if (!jobTitle.trim() || !jobDescription.trim()) {
+        showSnackbar('Please fill out all job fields', 'warning');
+        return;
+      }
+    } else {
+      if (!newPostContent.trim() && selectedMedia.length === 0) {
+        showSnackbar('Please enter some content or add media', 'warning');
+        return;
+      }
     }
+
     setIsLoading(true);
     try {
-      let media: Media[] = [];
-      if (selectedMedia.length > 0) {
-        // Use getFileViewUrl for preview, but for upload use createPost (media upload logic can be added in appwrite.ts if needed)
-        // For now, skip media upload for brevity
-      }
-      // Use createPost from appwrite.ts
-      const doc = await createPost({
+      let postData: Partial<Posts> & { postType?: string } = {
         authorId: user?.$id,
-        content: newPostContent,
-        media: media.length > 0 ? JSON.stringify(media) : undefined,
         likesCount: 0,
         commentsCount: 0,
         bookmarksCount: 0,
         viewsCount: 0,
         repostsCount: 0,
         visibility: selectedVisibility,
-        tags: (newPostContent.match(/#(\w+)/g) || []) as string[],
-      });
+      };
+
+      if (activeTab === 3) {
+        postData = {
+          ...postData,
+          postType: 'job',
+          content: `${jobTitle}\n\n${jobDescription}\n\nBudget: ${jobBudget}`,
+          tags: ['job', ...jobTitle.split(' '), ...jobDescription.split(' ')],
+        };
+      } else {
+        postData = {
+          ...postData,
+          content: newPostContent,
+          tags: (newPostContent.match(/#(\w+)/g) || []) as string[],
+        };
+      }
+
+      const doc = await createPost(postData);
       setLances(prev => [{
         $id: doc.$id,
         userId: doc.authorId,
@@ -373,13 +408,16 @@ export default function HomeClient() {
         isBookmarked: false
       }, ...prev]);
       setNewPostContent('');
+      setJobTitle('');
+      setJobDescription('');
+      setJobBudget('');
       setSelectedMedia([]);
       setMediaPreview([]);
       setSelectedVisibility('public');
-      showSnackbar('Lance posted successfully!', 'success');
+      showSnackbar('Post created successfully!', 'success');
     } catch (error) {
-      console.error('Error posting lance:', error);
-      showSnackbar('Failed to post lance', 'error');
+      console.error('Error creating post:', error);
+      showSnackbar('Failed to create post', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -476,6 +514,11 @@ export default function HomeClient() {
                   iconPosition="start"
                   label="Following"
                 />
+                <Tab
+                  icon={<TrendingUpIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Jobs"
+                />
               </Tabs>
             </Paper>
 
@@ -493,24 +536,32 @@ export default function HomeClient() {
                   <Box sx={{ display: 'flex', gap: 1.5 }}>
                     <Avatar src={userProfilePic ? getProfilePictureUrl(userProfilePic) : undefined} />
                     <Box sx={{ flexGrow: 1 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        rows={2}
-                        placeholder="What's happening in the web3 world?"
-                        value={newPostContent}
-                        onChange={(e) => setNewPostContent(e.target.value)}
-                        variant="outlined"
-                        sx={{
-                          mb: 1,
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                          },
-                        }}
-                        InputProps={{
-                          sx: { p: 1.5 }
-                        }}
-                      />
+                      {activeTab === 3 ? (
+                        <Box>
+                          <TextField fullWidth placeholder="Job Title" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} sx={{ mb: 1 }} />
+                          <TextField fullWidth multiline rows={3} placeholder="Job Description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} sx={{ mb: 1 }} />
+                          <TextField fullWidth placeholder="Budget" value={jobBudget} onChange={(e) => setJobBudget(e.target.value)} sx={{ mb: 1 }} />
+                        </Box>
+                      ) : (
+                        <TextField
+                          fullWidth
+                          multiline
+                          rows={2}
+                          placeholder="What's happening in the web3 world?"
+                          value={newPostContent}
+                          onChange={(e) => setNewPostContent(e.target.value)}
+                          variant="outlined"
+                          sx={{
+                            mb: 1,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                            },
+                          }}
+                          InputProps={{
+                            sx: { p: 1.5 }
+                          }}
+                        />
+                      )}
 
                       {/* Media preview */}
                       {mediaPreview.length > 0 && (
@@ -896,7 +947,7 @@ export default function HomeClient() {
                                   </Typography>
                                 </Box>
                               </IconButton>
-                              <IconButton size="small">
+                              <IconButton size="small" onClick={() => setOpenCommentSection(openCommentSection === lance.$id ? null : lance.$id)}>
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                   <ChatBubbleOutlineIcon fontSize="small" />
                                   <Typography variant="caption" sx={{ ml: 0.5 }}>
@@ -929,6 +980,7 @@ export default function HomeClient() {
                             </Box>
                           </Box>
                         </Box>
+                        {openCommentSection === lance.$id && <CommentSection postId={lance.$id} />}
                       </CardContent>
                     </AnimatedCard>
                   );

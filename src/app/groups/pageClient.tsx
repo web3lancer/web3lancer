@@ -21,8 +21,15 @@ import GroupPanel from "@/components/groups/GroupPanel";
 import CreateGroupDialog from "@/components/groups/CreateGroupDialog";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { listGroupChats, createGroupChat, updateGroupChat } from "@/lib/appwrite";
-import type { GroupChats } from "@/types/appwrite.d";
+import * as social from "@/lib/appwrites/social";
+import type { Models } from "appwrite";
+
+type GroupChats = Models.Document & {
+  name: string;
+  description?: string;
+  memberIds?: string[];
+  memberCount?: number;
+};
 
 export default function GroupsPageClient() {
   const [search, setSearch] = useState("");
@@ -32,16 +39,14 @@ export default function GroupsPageClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchGroups();
-  }, []);
+  const { user } = useAuth();
 
   const fetchGroups = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await listGroupChats();
-      setGroups(response.documents);
+      const response = await social.listGroupChats();
+      setGroups(response.documents as unknown as GroupChats[]);
     } catch (error) {
       console.error("Error fetching groups:", error);
       setError("Failed to fetch groups. Please try again later.");
@@ -50,14 +55,9 @@ export default function GroupsPageClient() {
     }
   };
 
-  // Filter groups by search
-  const filteredGroups = groups.filter(
-    (g) =>
-      g.name.toLowerCase().includes(search.toLowerCase()) ||
-      g.description?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const { user } = useAuth();
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   const handleJoinToggle = async (group: GroupChats) => {
     if (!user) {
@@ -65,26 +65,21 @@ export default function GroupsPageClient() {
       return;
     }
 
-    setLoading(true);
     try {
       const isMember = group.memberIds?.includes(user.$id);
       const newMemberIds = isMember
         ? group.memberIds?.filter((id) => id !== user.$id)
         : [...(group.memberIds || []), user.$id];
 
-      const newMemberCount = newMemberIds?.length || 0;
-
-      await updateGroupChat(group.$id, {
+      await social.updateGroupChat(group.$id, {
         memberIds: newMemberIds,
-        memberCount: newMemberCount,
+        memberCount: newMemberIds.length,
       });
 
       fetchGroups(); // Re-fetch groups to update the UI
     } catch (error) {
       console.error("Error toggling group membership:", error);
       setError("Failed to update group membership. Please try again later.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -94,24 +89,31 @@ export default function GroupsPageClient() {
       return;
     }
 
-    setLoading(true);
     try {
-      await createGroupChat({
+      await social.createGroupChat({
         name: group.name,
         description: group.description,
         creatorId: user.$id,
         memberIds: [user.$id],
+        adminIds: [user.$id],
         memberCount: 1,
+        chatType: 'private'
       });
       fetchGroups(); // Re-fetch groups after creating a new one
     } catch (error) {
       console.error("Error creating group:", error);
       setError("Failed to create group. Please try again later.");
     } finally {
-      setLoading(false);
       setCreateOpen(false);
     }
   };
+
+  // Filter groups by search
+  const filteredGroups = groups.filter(
+    (g) =>
+      g.name.toLowerCase().includes(search.toLowerCase()) ||
+      (g.description && g.description.toLowerCase().includes(search.toLowerCase()))
+  );
 
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", bgcolor: "background.default" }}>
