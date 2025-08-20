@@ -1,41 +1,40 @@
-import { Metadata } from 'next';
-import UserProfilePageClient from '@/app/u/[usernameOrId]/UserProfileClient';
-import { getUserProfileByUsername, getUserProfile, getProfilePictureUrl } from '@/utils/api';
+import { notFound } from 'next/navigation';
+import PublicProfileView from '@/components/profile/PublicProfileView';
+import ProfileService from '@/services/profileService';
+import { AppwriteService } from '@/services/appwriteService';
+import { envConfig } from '@/config/environment';
+import { Query }from 'appwrite';
 
-export async function generateMetadata({ params }: { params: { usernameOrId: string } }): Promise<Metadata> {
-  const username = params.usernameOrId;
-  const title = `${username} | Web3Lancer Profile`;
-  const description = `View ${username}'s profile, portfolio, and activity on Web3Lancer.`;
-  let image = '/logo/web3lancer.jpg';
-  try {
-    let profile = await getUserProfileByUsername(username);
-    if (!profile) {
-      profile = await getUserProfile(username);
-    }
-    if (profile && profile.profilePicture) {
-      image = getProfilePictureUrl(profile.profilePicture);
-    }
-  } catch (e) {}
-  const url = `https://www.web3lancer.website/u/${username}`;
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url,
-      images: [image],
-      type: 'profile',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [image],
-    },
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
+
+interface PublicProfilePageProps {
+  params: {
+    usernameOrId: string;
   };
 }
 
-export default function UserProfilePage() {
-  return <UserProfilePageClient />;
+export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
+  const { usernameOrId } = params;
+
+  let profile = null;
+
+  // Check if it's a valid Appwrite ID (20 chars, alphanumeric)
+  if (usernameOrId.length === 20 && /^[a-zA-Z0-9]+$/.test(usernameOrId)) {
+    profile = await profileService.getProfile(usernameOrId);
+  } else {
+    // Otherwise, assume it's a username
+    const profiles = await profileService.listProfiles([
+      Query.equal('username', usernameOrId),
+    ]);
+    if (profiles.length > 0) {
+      profile = profiles[0];
+    }
+  }
+
+  if (!profile) {
+    notFound();
+  }
+
+  return <PublicProfileView profile={profile} />;
 }

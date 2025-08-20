@@ -5,19 +5,18 @@ import PostForm from '@/components/posts/PostForm';
 import { Post, Profile } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  getProfileByUserId,
-  getProfile,
-} from '@/lib/appwrites/profiles';
-import {
   createPost,
   listPosts,
   updatePost,
   deletePost,
 } from '@/lib/appwrites/posts';
-import {
-  createFile,
-} from '@/lib/appwrites/storage';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
 import { BUCKET_ID } from '@/lib/appwrites/constants';
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 
 interface PostFeedProps {
   profileId?: string; // If provided, shows only posts from this profile
@@ -40,7 +39,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ profileId, showPostForm = true }) =
         setError(null);
 
         if (user) {
-          const userProfile = await getProfileByUserId(user.$id);
+          const userProfile = await profileService.getProfileByUserId(user.$id);
           setCurrentUserProfile(userProfile);
         }
 
@@ -48,8 +47,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ profileId, showPostForm = true }) =
         setPosts(response.documents);
 
         const authorIds = [...new Set(response.documents.map(post => post.authorId))];
-        const profilePromises = authorIds.map(id => getProfile(id));
-        const profiles = await Promise.all(profilePromises);
+        const profiles = await profileService.listProfiles([Query.equal('$id', authorIds)]);
 
         const profilesMap: Record<string, Profile> = {};
         profiles.forEach(profile => {
@@ -80,7 +78,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ profileId, showPostForm = true }) =
 
       let mediaFileIds: string[] = [];
       if (files && files.length > 0) {
-        const uploadPromises = files.map(file => createFile(BUCKET_ID.MESSAGE_ATTACHMENTS, file));
+        const uploadPromises = files.map(file => profileService.uploadPostMedia(file));
         const uploadedFiles = await Promise.all(uploadPromises);
         mediaFileIds = uploadedFiles.map(file => file.$id);
       }
@@ -126,7 +124,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ profileId, showPostForm = true }) =
       
       let mediaFileIds: string[] = updatedPost.media || [];
       if (files && files.length > 0) {
-        const uploadPromises = files.map(file => createFile(BUCKET_ID.MESSAGE_ATTACHMENTS, file));
+        const uploadPromises = files.map(file => profileService.uploadPostMedia(file));
         const uploadedFiles = await Promise.all(uploadPromises);
         mediaFileIds = [...mediaFileIds, ...uploadedFiles.map(file => file.$id)];
       }

@@ -2,8 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, TextField, Button, Avatar, Paper, Stack } from '@mui/material';
 import { useAuth } from '@/contexts/AuthContext';
 import * as posts from '@/lib/appwrites/posts';
-import * as profiles from '@/lib/appwrites/profiles';
 import { Query } from 'appwrite';
+import ProfileService from "@/services/profileService";
+import { AppwriteService } from "@/services/appwriteService";
+import { envConfig } from "@/config/environment";
+
+const appwriteService = new AppwriteService(envConfig);
+const profileService = new ProfileService(appwriteService, envConfig);
 import type { Models } from 'appwrite';
 
 type Comment = Models.Document & {
@@ -13,7 +18,7 @@ type Comment = Models.Document & {
 };
 
 type Profile = Models.Document & {
-    name: string;
+    displayName: string;
     profilePicture?: string;
 };
 
@@ -31,10 +36,9 @@ export default function CommentSection({ postId }: { postId: string }) {
 
             const userIds = [...new Set(comments.map(c => c.userId))];
             if (userIds.length > 0) {
-                const profilesResponse = await profiles.listProfiles([
+                const profilesData = await profileService.listProfiles([
                     Query.equal('userId', userIds),
                 ]);
-                const profilesData = profilesResponse.documents as unknown as Profile[];
                 const profilesMap = profilesData.reduce((acc, p) => {
                     acc[p.userId] = p;
                     return acc;
@@ -74,7 +78,7 @@ export default function CommentSection({ postId }: { postId: string }) {
                         <Avatar src={profilesMap[comment.userId]?.profilePicture} />
                         <Box>
                             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                {profilesMap[comment.userId]?.name || 'Unknown User'}
+                                {profilesMap[comment.userId]?.displayName || 'Unknown User'}
                             </Typography>
                             <Typography variant="body2">{comment.content}</Typography>
                             <Typography variant="caption" color="text.secondary">
