@@ -10,7 +10,7 @@ import {
 import type * as AppwriteTypes from '@/types/appwrite.d';
 
 // --- Connections ---
-export async function createConnection(data: Partial<AppwriteTypes.Connections>) {
+export async function createConnection(data: Omit<AppwriteTypes.Connections, '$id' | '$collectionId' | '$databaseId' | '$createdAt' | '$updatedAt' | '$permissions'>) {
   return databases.createDocument<AppwriteTypes.Connections>(DB.SOCIAL, COL.CONNECTIONS, ID.unique(), data);
 }
 
@@ -26,12 +26,16 @@ export async function getConnection(followerId: string, followingId: string) {
   return response.documents[0];
 }
 
+export async function updateConnection(connectionId: string, data: Partial<AppwriteTypes.Connections>) {
+  return databases.updateDocument<AppwriteTypes.Connections>(DB.SOCIAL, COL.CONNECTIONS, connectionId, data);
+}
+
 export async function deleteConnection(connectionId: string) {
   return databases.deleteDocument(DB.SOCIAL, COL.CONNECTIONS, connectionId);
 }
 
 // --- Messages ---
-export async function createMessage(data: Partial<AppwriteTypes.Messages>) {
+export async function createMessage(data: Omit<AppwriteTypes.Messages, '$id' | '$collectionId' | '$databaseId' | '$createdAt' | '$updatedAt' | '$permissions'>) {
   return databases.createDocument<AppwriteTypes.Messages>(DB.SOCIAL, COL.MESSAGES, ID.unique(), data);
 }
 export async function listMessages(queries: any[] = []) {
@@ -39,7 +43,7 @@ export async function listMessages(queries: any[] = []) {
 }
 
 // --- Group Chats ---
-export async function createGroupChat(data: Partial<AppwriteTypes.GroupChats>) {
+export async function createGroupChat(data: Omit<AppwriteTypes.GroupChats, '$id' | '$collectionId' | '$databaseId' | '$createdAt' | '$updatedAt' | '$permissions'>) {
   return databases.createDocument<AppwriteTypes.GroupChats>(DB.SOCIAL, COL.GROUP_CHATS, ID.unique(), data);
 }
 export async function listGroupChats(queries: any[] = []) {
@@ -51,7 +55,7 @@ export async function updateGroupChat(groupChatId: string, data: Partial<Appwrit
 }
 
 // --- Group Messages ---
-export async function createGroupMessage(data: Partial<AppwriteTypes.GroupMessages>) {
+export async function createGroupMessage(data: Omit<AppwriteTypes.GroupMessages, '$id' | '$collectionId' | '$databaseId' | '$createdAt' | '$updatedAt' | '$permissions'>) {
   return databases.createDocument<AppwriteTypes.GroupMessages>(DB.SOCIAL, COL.GROUP_MESSAGES, ID.unique(), data);
 }
 export async function listGroupMessages(queries: any[] = []) {

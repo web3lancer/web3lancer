@@ -18,12 +18,17 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
+import * as social from '@/lib/appwrites/social';
+import * as profiles from '@/lib/appwrites/profiles';
+import { Query } from 'appwrite';
+import type { Models } from 'appwrite';
+import { client } from '@/lib/appwrites/client';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
-    transition: { 
+    transition: {
       staggerChildren: 0.1,
       delayChildren: 0.2
     }
@@ -32,37 +37,34 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { 
-    y: 0, 
+  visible: {
+    y: 0,
     opacity: 1,
     transition: { type: "spring", stiffness: 100 }
   }
 };
 
-interface User {
-  $id: string;
+type User = Models.Document & {
   name: string;
   email: string;
   status: string;
   avatarUrl?: string;
-}
+};
 
-interface Message {
-  id: string;
+type Message = Models.Document & {
   senderId: string;
   receiverId: string;
   content: string;
   timestamp: string;
   senderName: string;
-}
+};
 
-interface FriendRequest {
-  id: string;
+type FriendRequest = Models.Document & {
   senderId: string;
   receiverId: string;
   status: 'pending' | 'accepted' | 'rejected';
   senderName: string;
-}
+};
 
 interface Space {
   id: string;
@@ -94,72 +96,91 @@ export default function ConnectPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
-  const initializeMockData = useCallback(() => {
-    // Demo data removed. Return empty arrays so the UI shows no demo content.
-    return {
-      mockUsers: [],
-      initialActivities: [],
-      initialFriendRequests: [],
-      initialSpaces: [],
-      initialMessages: []
-    };
-  }, [user]);
+  const loadData = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const [profilesResponse, connectionsResponse] = await Promise.all([
+        profiles.listProfiles(),
+        social.listConnections([
+          Query.or([
+            Query.equal('followerId', user.$id),
+            Query.equal('followingId', user.$id)
+          ])
+        ])
+      ]);
+
+      const profilesData = profilesResponse.documents as unknown as User[];
+      const connectionsData = connectionsResponse.documents as unknown as FriendRequest[];
+
+      const friendRequestsData = connectionsData.filter(c => c.status === 'pending' && c.receiverId === user.$id);
+
+      const usersWithStatus = profilesData.map(p => {
+        const connection = connectionsData.find(c => c.followerId === user.$id && c.followingId === p.$id);
+        return {
+          ...p,
+          status: connection ? connection.status : 'not-connected'
+        };
+      });
+
+      setUsers(usersWithStatus);
+      setFriendRequests(friendRequestsData);
+
+      if (selectedChat) {
+        const messagesResponse = await social.listMessages([
+          Query.or([
+            Query.and([Query.equal('senderId', user.$id), Query.equal('receiverId', selectedChat)]),
+            Query.and([Query.equal('senderId', selectedChat), Query.equal('receiverId', user.$id)])
+          ]),
+          Query.orderDesc('$createdAt'),
+          Query.limit(50)
+        ]);
+        setMessages(messagesResponse.documents as unknown as Message[]);
+      }
+
+    } catch (error) {
+      console.error('Error loading connect page data:', error);
+      setError('Failed to load data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user, selectedChat]);
 
   useEffect(() => {
-    async function loadData() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      setError(null);
-      try {
-        const { mockUsers, initialActivities, initialFriendRequests, initialSpaces, initialMessages } = initializeMockData();
-        setUsers(mockUsers);
-        setLiveActivities(initialActivities);
-        setFriendRequests(initialFriendRequests);
-        setActiveSpaces(initialSpaces);
-        setMessages(initialMessages);
-      } catch (error) {
-        console.error('Error loading connect page data:', error);
-        setError('Failed to load data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    }
-    
     loadData();
 
-    const interval = setInterval(() => {
-      const { initialActivities } = initializeMockData();
-      const newActivity = initialActivities[Math.floor(Math.random() * initialActivities.length)];
-      setLiveActivities((prev) => [newActivity, ...prev].slice(0, 10));
-    }, 5000);
+    const unsubscribe = client.subscribe(`databases.${process.env.NEXT_PUBLIC_APPWRITE_DATABASE_SOCIAL_ID}.collections.${process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_DIRECT_MESSAGES_ID}.documents`, response => {
+      if (response.events.includes("databases.*.collections.*.documents.*.create")) {
+        setMessages(prevMessages => [response.payload as unknown as Message, ...prevMessages]);
+      }
+    });
 
-    return () => clearInterval(interval);
-  }, [user, initializeMockData, selectedChat]);
+    return () => {
+      unsubscribe();
+    };
+  }, [loadData]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedChat || !user) return;
-    
+
     const newMessageData = {
       senderId: user.$id,
       receiverId: selectedChat,
       content: message,
-      senderName: user.name || 'User'
+      senderName: user.name || 'User',
+      chatId: [user.$id, selectedChat].sort().join('_'),
+      contentType: 'text' as const,
     };
-    
+
     setMessage('');
 
     try {
-      console.log("Sending message via Appwrite:", newMessageData);
-      const mockNewMessage: Message = {
-        id: `m${Date.now()}`,
-        ...newMessageData,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages([...messages, mockNewMessage]);
-
+      const newMessage = await social.createMessage(newMessageData);
+      setMessages(prevMessages => [newMessage as unknown as Message, ...prevMessages]);
     } catch (error) {
       console.error("Error sending message:", error);
       setError("Failed to send message.");
@@ -168,26 +189,16 @@ export default function ConnectPage() {
   };
 
   const handleSendFriendRequest = async (userId: string) => {
-    if(!user) return;
-    
-    const newFriendRequestData = {
-      senderId: user.$id,
-      receiverId: userId,
-      status: 'pending' as const, // Ensure status is a literal type
-      senderName: user.name || 'User' 
-    };
+    if (!user) return;
 
     try {
-      console.log("Sending friend request via Appwrite:", newFriendRequestData);
-      const mockNewRequest: FriendRequest = {
-        id: `fr${Date.now()}`,
-        senderId: newFriendRequestData.senderId,
-        receiverId: newFriendRequestData.receiverId,
-        status: newFriendRequestData.status,
-        senderName: newFriendRequestData.senderName
-      };
-      setFriendRequests([...friendRequests, mockNewRequest]);
-      
+      await social.createConnection({
+        followerId: user.$id,
+        followingId: userId,
+        connectionType: 'friend_request' as const,
+        status: 'pending' as const,
+      });
+      loadData(); // Refresh data
     } catch (error) {
       console.error("Error sending friend request:", error);
       setError("Failed to send friend request.");
@@ -195,19 +206,22 @@ export default function ConnectPage() {
   };
 
   const handleAcceptFriendRequest = async (requestId: string) => {
-    const request = friendRequests.find(req => req.id === requestId);
-    if (!request) return;
-
     try {
-      console.log("Accepting friend request via Appwrite:", requestId);
-      setFriendRequests(
-        friendRequests.map(req => 
-          req.id === requestId ? {...req, status: 'accepted'} : req
-        )
-      );
+      await social.updateConnection(requestId, { status: 'accepted' as const });
+      loadData(); // Refresh data
     } catch (error) {
       console.error("Error accepting friend request:", error);
       setError("Failed to accept friend request.");
+    }
+  };
+
+  const handleDeclineFriendRequest = async (requestId: string) => {
+    try {
+      await social.deleteConnection(requestId);
+      loadData(); // Refresh data
+    } catch (error) {
+      console.error("Error declining friend request:", error);
+      setError("Failed to decline friend request.");
     }
   };
 
@@ -255,9 +269,8 @@ export default function ConnectPage() {
 
   const filterUsers = (users: User[]) => {
     if (!searchQuery) return users;
-    return users.filter(user => 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    return users.filter(user =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
@@ -665,35 +678,38 @@ export default function ConnectPage() {
                                     }}
                                   >
                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                      <Avatar 
-                                        sx={{ 
+                                      <Avatar
+                                        sx={{
                                           width: 48,
-                                          height: 48, 
+                                          height: 48,
                                           mr: 1.5,
-                                          bgcolor: theme.palette.primary.main, // Changed from primary.light
-                                          color: theme.palette.primary.contrastText // Added for contrast
+                                          bgcolor: theme.palette.primary.main,
+                                          color: theme.palette.primary.contrastText
                                         }}
                                       >
-                                        {request.senderName[0]}
+                                        {users.find(u => u.$id === request.senderId)?.name[0]}
                                       </Avatar>
                                       <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{request.senderName}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                          {users.find(u => u.$id === request.senderId)?.name || 'Unknown User'}
+                                        </Typography>
                                         <Typography variant="caption" color="text.secondary">Wants to connect</Typography>
                                       </Box>
                                     </Box>
                                     <Box sx={{ display: 'flex', gap: 1 }}>
-                                      <Button 
-                                        variant="contained" 
+                                      <Button
+                                        variant="contained"
                                         size="small"
-                                        onClick={() => handleAcceptFriendRequest(request.id)}
+                                        onClick={() => handleAcceptFriendRequest(request.$id)}
                                         sx={{ flexGrow: 1, borderRadius: 2, textTransform: 'none' }}
                                       >
                                         Accept
                                       </Button>
-                                      <Button 
-                                        variant="outlined" 
+                                      <Button
+                                        variant="outlined"
                                         size="small"
-                                        color="error" // Changed from "inherit"
+                                        color="error"
+                                        onClick={() => handleDeclineFriendRequest(request.$id)}
                                         sx={{ flexGrow: 1, borderRadius: 2, textTransform: 'none' }}
                                       >
                                         Decline

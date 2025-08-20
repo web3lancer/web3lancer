@@ -1,13 +1,90 @@
 import { Box, Typography, Paper, TextField, Button, Stack } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import * as social from "@/lib/appwrites/social";
+import * as profiles from "@/lib/appwrites/profiles";
+import { useAuth } from "@/contexts/AuthContext";
+import { client } from "@/lib/appwrites/client";
+import { Query } from "appwrite";
+import type { Models } from "appwrite";
 
-const mockMessages = [
-  { id: "m1", user: "Alice", content: "Hey everyone!", createdAt: "10:00" },
-  { id: "m2", user: "Bob", content: "Hi Alice!", createdAt: "10:01" },
-];
+type GroupMessage = Models.Document & {
+  senderId: string;
+  content: string;
+  createdAt: string;
+};
+
+type Profile = Models.Document & {
+  name: string;
+};
 
 export default function GroupMessages({ groupId, joined }: { groupId: string; joined: boolean }) {
   const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<GroupMessage[]>([]);
+  const [profilesMap, setProfilesMap] = useState<Record<string, Profile>>({});
+  const { user } = useAuth();
+
+  const fetchMessages = useCallback(async () => {
+    if (!groupId) return;
+    try {
+      const response = await social.listGroupMessages([
+        Query.equal("groupId", groupId),
+        Query.orderDesc("$createdAt"),
+        Query.limit(50),
+      ]);
+      const messages = response.documents as unknown as GroupMessage[];
+      setMessages(messages);
+
+      const senderIds = [...new Set(messages.map((m) => m.senderId))];
+      if (senderIds.length > 0) {
+        const profilesResponse = await profiles.listProfiles([
+          Query.equal("userId", senderIds),
+        ]);
+        const profilesData = profilesResponse.documents as unknown as Profile[];
+        const profilesMap = profilesData.reduce((acc, p) => {
+          acc[p.$id] = p;
+          return acc;
+        }, {} as Record<string, Profile>);
+        setProfilesMap(profilesMap);
+      }
+    } catch (error) {
+      console.error("Error fetching group messages:", error);
+    }
+  }, [groupId]);
+
+  useEffect(() => {
+    fetchMessages();
+
+    const unsubscribe = client.subscribe(
+      `databases.${process.env.NEXT_PUBLIC_APPWRITE_DATABASE_SOCIAL_ID}.collections.${process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_GROUP_MESSAGES_ID}.documents`,
+      (response) => {
+        if (response.events.includes("databases.*.collections.*.documents.*.create")) {
+          const newMessage = response.payload as unknown as GroupMessage;
+          if (newMessage.groupId === groupId) {
+            setMessages((prevMessages) => [newMessage, ...prevMessages]);
+          }
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchMessages, groupId]);
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || !user) return;
+    try {
+      await social.createGroupMessage({
+        groupId,
+        senderId: user.$id,
+        content: input,
+        contentType: "text",
+      });
+      setInput("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
 
   return (
     <Box>
@@ -21,14 +98,14 @@ export default function GroupMessages({ groupId, joined }: { groupId: string; jo
       {joined && (
         <Box>
           <Stack spacing={1} sx={{ maxHeight: 260, overflowY: "auto", mb: 2 }}>
-            {mockMessages.map((msg) => (
-              <Paper key={msg.id} sx={{ p: 1.5, borderRadius: 2, bgcolor: "background.default" }}>
+            {messages.map((msg) => (
+              <Paper key={msg.$id} sx={{ p: 1.5, borderRadius: 2, bgcolor: "background.default" }}>
                 <Typography variant="subtitle2" fontWeight={700}>
-                  {msg.user}
+                  {profilesMap[msg.senderId]?.name || "Unknown User"}
                 </Typography>
                 <Typography variant="body2">{msg.content}</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {msg.createdAt}
+                  {new Date(msg.$createdAt).toLocaleTimeString()}
                 </Typography>
               </Paper>
             ))}
@@ -40,13 +117,14 @@ export default function GroupMessages({ groupId, joined }: { groupId: string; jo
               placeholder="Type a message…"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               sx={{ borderRadius: 2 }}
             />
             <Button
               variant="contained"
               disabled={!input.trim()}
               sx={{ borderRadius: 2, px: 3 }}
-              onClick={() => setInput("")}
+              onClick={handleSendMessage}
             >
               Send
             </Button>
