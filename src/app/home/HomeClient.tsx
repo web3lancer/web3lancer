@@ -41,7 +41,10 @@ import {
   createBookmark,
   deleteBookmark,
   getProfile,
+  getProfileByUserId,
   getFileViewUrl,
+  uploadFiles,
+  BUCKET,
 } from '@/lib/appwrite';
 import type { Posts, Profiles } from '@/types/appwrite.d';
 import { useInView } from 'react-intersection-observer';
@@ -110,10 +113,9 @@ interface VisibilityOption {
 
 // Helper for profile pic (fix: this is not defined in your code)
 function getProfilePictureUrl(pic: string) {
-  // Update this function to match your backend implementation
   if (!pic) return "";
-  // Example: if you store only fileId, and need to use getFileViewUrl
-  return getFileViewUrl("", pic);
+  if (pic.startsWith('http')) return pic;
+  return getFileViewUrl(BUCKET.PROFILE_AVATARS, pic);
 }
 
 export default function HomeClient() {
@@ -172,9 +174,9 @@ export default function HomeClient() {
   const fetchUserProfile = async () => {
     if (user && user.$id) {
       try {
-        const profile = await getProfile(user.$id);
-        if (profile && profile.profilePicture) {
-          setUserProfilePic(profile.profilePicture);
+        const profile = await getProfileByUserId(user.$id);
+        if (profile && (profile.avatarFileId || profile.profilePicture)) {
+          setUserProfilePic(profile.avatarFileId || profile.profilePicture);
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -399,6 +401,15 @@ export default function HomeClient() {
           content: newPostContent,
           tags: (newPostContent.match(/#(\w+)/g) || []) as string[],
         };
+      }
+
+      if (selectedMedia.length > 0) {
+        const uploadedIds = await uploadFiles(BUCKET.MESSAGE_ATTACHMENTS, selectedMedia);
+        const media = uploadedIds.map((id) => ({
+          type: 'image' as const,
+          fileId: id,
+        }));
+        (postData as any).media = JSON.stringify(media);
       }
 
       const doc = await createPost(postData);
@@ -917,7 +928,7 @@ export default function HomeClient() {
                                   >
                                     {media.type === 'image' ? (
                                       <img
-                                        src={getFileViewUrl('', media.fileId)}
+                                        src={getFileViewUrl(BUCKET.MESSAGE_ATTACHMENTS, media.fileId)}
                                         alt="Post media"
                                         style={{
                                           width: '100%',
@@ -931,7 +942,7 @@ export default function HomeClient() {
                                     ) : media.type === 'video' ? (
                                       <Box
                                         component="video"
-                                        src={getFileViewUrl('', media.fileId)}
+                                        src={getFileViewUrl(BUCKET.MESSAGE_ATTACHMENTS, media.fileId)}
                                         controls
                                         sx={{ width: '100%', borderRadius: 2 }}
                                       />
