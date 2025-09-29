@@ -1410,6 +1410,93 @@ export const deleteProfilePictureFile = async (fileId: string): Promise<void> =>
   }
 };
 
+/**
+ * Profile management functions
+ */
+async function getUserProfile(userId: string) {
+  try {
+    const profiles = await databases.listDocuments(
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
+      [Query.equal('userId', userId)]
+    );
+    
+    return profiles.documents.length > 0 ? profiles.documents[0] : null;
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    throw new Error(`Failed to get user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function getUserProfileByUsername(username: string) {
+  try {
+    const profiles = await databases.listDocuments(
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
+      [Query.equal('username', username)]
+    );
+    
+    return profiles.documents.length > 0 ? profiles.documents[0] : null;
+  } catch (error) {
+    console.error('Error getting user profile by username:', error);
+    throw new Error(`Failed to get user profile by username: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function createUserProfile(profileData: any) {
+  try {
+    const response = await databases.createDocument(
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
+      ID.unique(),
+      {
+        ...profileData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    );
+    console.log('User profile created successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error creating user profile:', error);
+    throw new Error(`Failed to create user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function updateUserProfile(profileId: string, profileData: any) {
+  try {
+    const response = await databases.updateDocument(
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
+      profileId,
+      {
+        ...profileData,
+        updatedAt: new Date().toISOString()
+      }
+    );
+    console.log('User profile updated successfully:', response);
+    return response;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw new Error(`Failed to update user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+async function checkUsernameAvailability(username: string) {
+  try {
+    const profiles = await databases.listDocuments(
+      PROFILES_DATABASE_ID,
+      USER_PROFILES_COLLECTION_ID,
+      [Query.equal('username', username)]
+    );
+    
+    return profiles.documents.length === 0;
+  } catch (error) {
+    console.error('Error checking username availability:', error);
+    throw new Error(`Failed to check username availability: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 export {
   account,
   addBookmark,
@@ -1419,6 +1506,7 @@ export {
   addTransaction,
   addUser,
   avatars,
+  checkUsernameAvailability,
   client,
   completeEmailVerification,
   completePasswordRecovery,
@@ -1434,6 +1522,7 @@ export {
   createMfaEmailVerification,
   createMfaRecoveryCodes,
   createPasswordRecovery,
+  createUserProfile,
   databases,
   ensureSession,
   ensureValidOAuthToken,
@@ -1447,6 +1536,8 @@ export {
   getFollowingCount,
   getProjects,
   getUserPaymentMethods,
+  getUserProfile,
+  getUserProfileByUsername,
   ID,
   isFollowing,
   isLoggedIn,
@@ -1467,6 +1558,7 @@ export {
   toggleFollowUser,
   updateMfa,
   updateMfaChallenge,
+  updateUserProfile,
   uploadFile,
   validateSession,
   verifyEmailOTP,
