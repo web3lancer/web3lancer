@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCircle, AlertCircle, MessageCircle, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import ServiceFactory from '@/services/serviceFactory';
-import NotificationService from '@/services/notificationService';
-import { Notification } from '@/types/activity';
+import { listNotifications, updateNotification } from '@/lib/appwrite';
+import { Query } from 'appwrite';
+import type { Notifications } from '@/types/appwrite.d';
 import { isAuthenticated } from '@/utils/auth';
 
 interface NotificationDropdownProps {
@@ -15,19 +15,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   maxHeight = 400,
   maxNotifications = 10
 }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  
-  // Get services
-  const serviceFactory = ServiceFactory.getInstance();
-  const notificationService = new NotificationService(
-    serviceFactory.getAppwriteService(),
-    serviceFactory.getConfig()
-  );
 
   // Load notifications
   useEffect(() => {
@@ -57,11 +50,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     
     try {
       setIsLoading(true);
-      const userNotifications = await notificationService.getUserNotifications(
-        user.$id, 
-        maxNotifications
-      );
-      setNotifications(userNotifications);
+      const response = await listNotifications([
+        Query.equal('userId', user.$id),
+        Query.orderDesc('$createdAt'),
+        Query.limit(maxNotifications)
+      ]);
+      setNotifications(response.documents);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -74,8 +68,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     if (!isAuthenticated || !user) return;
     
     try {
-      const count = await notificationService.getUnreadNotificationCount(user.$id);
-      setUnreadCount(count);
+      const response = await listNotifications([
+        Query.equal('userId', user.$id),
+        Query.equal('isRead', false)
+      ]);
+      setUnreadCount(response.total);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
@@ -84,7 +81,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
     try {
-      await notificationService.markNotificationAsRead(notificationId);
+      await updateNotification(notificationId, { 
+        isRead: true, 
+        readAt: new Date().toISOString() 
+      });
       
       // Update the notification in the local state
       setNotifications(prev => 

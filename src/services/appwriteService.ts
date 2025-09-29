@@ -150,24 +150,38 @@ class AppwriteService {
     );
   }
 
-  async getFileView(
+  async uploadFile(
     bucketId: string,
-    fileId: string
-  ): Promise<string> {
-    return this.storage.getFileView(
+    fileId: string,
+    file: File,
+    permissions?: string[]
+  ): Promise<Models.File> {
+    return this.storage.createFile(
       bucketId,
-      fileId
+      fileId,
+      file,
+      permissions
     );
   }
 
-  async getFileDownload(
+  getFileView(
+    bucketId: string,
+    fileId: string,
+    width?: number,
+    height?: number
+  ): string {
+    // Note: This returns a URL string, not a Promise
+    if (width && height) {
+      return this.storage.getFileView(bucketId, fileId).toString() + `?width=${width}&height=${height}`;
+    }
+    return this.storage.getFileView(bucketId, fileId).toString();
+  }
+
+  getFileDownload(
     bucketId: string,
     fileId: string
-  ): Promise<string> {
-    return this.storage.getFileDownload(
-      bucketId,
-      fileId
-    );
+  ): string {
+    return this.storage.getFileDownload(bucketId, fileId).toString();
   }
 
   async deleteFile(

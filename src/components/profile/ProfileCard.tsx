@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Profile } from '@/types';
-import profileService from '@/services/profileService';
+import { getFileViewUrl, BUCKET } from '@/lib/appwrite';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -18,9 +18,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onClickProfile
 }) => {
   if (!profile) return null;
-  // Default avatar if none exists
+  
+  // Use proper Appwrite storage URL generation
   const avatarUrl = profile.avatarFileId 
-    ? `/api/profile/avatar/${profile.avatarFileId}` // fallback URL pattern
+    ? getFileViewUrl(BUCKET.PROFILE_AVATARS, profile.avatarFileId)
     : '/images/default-avatar.png';
   
   const handleProfileClick = () => {

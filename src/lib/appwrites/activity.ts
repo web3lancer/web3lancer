@@ -15,6 +15,9 @@ export async function createNotification(data: Partial<AppwriteTypes.Notificatio
 export async function listNotifications(queries: any[] = []) {
   return databases.listDocuments<AppwriteTypes.Notifications>(DB.ACTIVITY, COL.NOTIFICATIONS, queries);
 }
+export async function updateNotification(notificationId: string, data: Partial<AppwriteTypes.Notifications>) {
+  return databases.updateDocument<AppwriteTypes.Notifications>(DB.ACTIVITY, COL.NOTIFICATIONS, notificationId, data);
+}
 
 // --- Audit Logs ---
 export async function createAuditLog(data: Partial<AppwriteTypes.AuditLogs>) {
