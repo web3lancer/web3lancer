@@ -20,8 +20,9 @@ import {
   Launch as LaunchIcon,
   Add as AddIcon
 } from '@mui/icons-material';
-import { Portfolio, Profile } from '@/types';
-import portfolioService from '@/services/portfolioService';
+import { listPortfolios, getFileViewUrl, BUCKET } from '@/lib/appwrite';
+import { Query } from 'appwrite';
+import type { Portfolios } from '@/types/appwrite.d';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -32,7 +33,7 @@ interface PortfolioListProps {
 
 const PortfolioList: React.FC<PortfolioListProps> = ({ profileId, showAddButton = false }) => {
   const { user } = useAuth();
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [portfolios, setPortfolios] = useState<Portfolios[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -44,13 +45,15 @@ const PortfolioList: React.FC<PortfolioListProps> = ({ profileId, showAddButton 
         setLoading(true);
         setError(null);
         
-        const userPortfolios = await portfolioService.getUserPortfolios(profileId);
-        setPortfolios(userPortfolios);
+        const response = await listPortfolios([
+          Query.equal('profileId', profileId),
+          Query.orderDesc('$createdAt')
+        ]);
+        setPortfolios(response.documents);
         
         // Check if current user is the owner of this profile
         if (user) {
-          // This is a simplified check - in a real app, you would compare the profile's userId with the current user's userId
-          setIsOwner(profileId === user.userId);
+          setIsOwner(profileId === user.$id);
         }
       } catch (error) {
         console.error('Error fetching portfolios:', error);

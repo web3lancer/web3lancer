@@ -23,6 +23,15 @@ const platformTransactionsCollection = PLATFORM_TRANSACTIONS_COLLECTION_ID;
 const userPaymentMethodsCollection = USER_PAYMENT_METHODS_COLLECTION_ID;
 const escrowTransactionsCollection = ESCROW_TRANSACTIONS_COLLECTION_ID;
 
+// Log configuration for debugging
+console.debug('Escrow API configuration loaded:', { 
+  financeDatabase, 
+  userWalletsCollection, 
+  platformTransactionsCollection, 
+  userPaymentMethodsCollection, 
+  escrowTransactionsCollection 
+});
+
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication

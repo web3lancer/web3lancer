@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Unauthorized access to payment method' }, { status: 403 });
         }
       } catch (error) {
+        console.error('Payment method validation error:', error);
         return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
       }
     }

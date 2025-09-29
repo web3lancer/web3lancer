@@ -1053,7 +1053,6 @@ export default function ConnectPage() {
                       </Box>
                     ))}
 
-                  ))}
                    {liveActivities.length === 0 && (
                      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                        No recent activity.

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Chip } from '@mui/material';
-import { createProject } from "@/lib/appwrite";
+import { createJob } from "@/lib/appwrite";
 
 interface CreateProjectTabProps {
   user: any;
@@ -27,15 +27,22 @@ export default function CreateProjectTab({ user, onProjectCreated, setActiveTab 
 
   const handleCreateProject = async () => {
     try {
-      await createProject({
-        userId: user?.$id,
-        name: projectTitle,
-        bio: projectDescription,
-        skills: projectTags, // Optionally use 'skills' if you want to store tags as skills
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      await createJob({
+        clientId: user?.$id,
+        title: projectTitle,
+        description: projectDescription,
+        skills: projectTags,
+        status: 'open',
+        type: 'fixed-price',
+        experienceLevel: 'intermediate',
+        visibility: 'public',
+        locationPreference: 'remote',
         isActive: true,
-        isVerified: false,
+        budget: {
+          min: 0,
+          max: 0,
+          currency: 'USD'
+        }
       });
       console.log('Project created successfully');
       
