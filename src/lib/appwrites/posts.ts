@@ -1,6 +1,7 @@
 import {
   databases,
   ID,
+  Query,
 } from '@/lib/appwrites/client';
 import {
   COL,

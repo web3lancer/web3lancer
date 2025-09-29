@@ -7,7 +7,7 @@ import { Card, CardHeader, CardContent, CardActions, Avatar, Typography, IconBut
 import { MoreVert as MoreVertIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Comment as CommentIcon, Share as ShareIcon } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { getFilePreviewUrl } from '@/lib/appwrites/storage';
-import { BUCKET_ID } from '@/lib/appwrites/constants';
+import { BUCKET as BUCKET_ID } from '@/lib/appwrites/constants';
 
 interface PostCardProps {
   post: Post;

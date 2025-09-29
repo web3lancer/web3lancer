@@ -30,7 +30,19 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { listPosts, getProfile, createPost, getFileViewUrl } from '@/lib/appwrite';
+import {
+  listPosts,
+  createPost,
+  updatePost,
+  getPostInteraction,
+  createPostInteraction,
+  deletePostInteraction,
+  getBookmark,
+  createBookmark,
+  deleteBookmark,
+  getProfile,
+  getFileViewUrl,
+} from '@/lib/appwrite';
 import type { Posts, Profiles } from '@/types/appwrite.d';
 import { useInView } from 'react-intersection-observer';
 

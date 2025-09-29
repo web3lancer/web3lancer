@@ -9,3 +9,5 @@ export * from './appwrites/finance';
 export * from './appwrites/governance';
 export * from './appwrites/activity';
 export * from './appwrites/core';
+export * from './appwrites/storage';
+export * from './appwrites/profiles';
