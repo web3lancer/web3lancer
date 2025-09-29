@@ -1,6 +1,5 @@
 'use client';
 
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { WEB3LANCER_CONTRACTS } from '@/utils/contractUtils';
 import { Suspense } from 'react';
@@ -9,8 +8,6 @@ import AppLayout from '@/components/layout/AppLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SuiWalletProvider } from '@/contexts/SuiWalletContext';
 import { Box, CssBaseline, CircularProgress } from '@mui/material';
-
-const inter = Inter({ subsets: ['latin'] });
 
 // Xion integration removed: keep placeholder configuration if needed
 const xionConfig = null;
@@ -31,13 +28,14 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} style={{
+      <body style={{
         margin: 0,
         padding: 0,
         overflowX: 'hidden',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
-        WebkitOverflowScrolling: 'touch'
+        WebkitOverflowScrolling: 'touch',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
       }}>
         <style jsx global>{`
           ::-webkit-scrollbar {
