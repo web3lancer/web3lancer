@@ -15,7 +15,6 @@ import {
   Chip,
   Avatar,
   IconButton,
-  InputAdornment,
 } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -61,7 +60,7 @@ export default function AdsPageClient() {
   const [adSchedule, setAdSchedule] = useState("");
   const [ads, setAds] = useState(mockScheduledAds);
 
-  const handleTabChange = (_: any, newValue: number) => setTab(newValue);
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => setTab(newValue);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -83,7 +82,7 @@ export default function AdsPageClient() {
         id: `ad${Date.now()}`,
         title: adTitle,
         description: adDescription,
-        image: adImagePreview || "",
+        image: adImage ? adImagePreview || "" : "",
         scheduledFor: adSchedule,
         status: "Scheduled",
       },
