@@ -13,7 +13,7 @@ import {
 import ProfileService from "@/services/profileService";
 import { AppwriteService } from "@/services/appwriteService";
 import { envConfig } from "@/config/environment";
-import { BUCKET_ID } from '@/lib/appwrites/constants';
+import { BUCKET as BUCKET_ID } from '@/lib/appwrites/constants';
 
 const appwriteService = new AppwriteService(envConfig);
 const profileService = new ProfileService(appwriteService, envConfig);
